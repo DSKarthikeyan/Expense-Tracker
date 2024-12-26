@@ -44,7 +44,7 @@ expense_module/
 │   ├── viewmodel/      # ViewModels for UI components
 ├── util/               # Utility and helper classes
 
-
+---
 
 # Installation
 

@@ -10,6 +10,15 @@ The **Expense Module** is an Android application designed to manage and track ex
 
 ---
 
+## Requirements
+- **Android Version**: API Level 31 or higher.
+- **Permissions**:
+  - Network access (`INTERNET`, `ACCESS_NETWORK_STATE`)
+  - SMS permissions (`RECEIVE_SMS`, `READ_SMS`)
+  - Notification permissions (`POST_NOTIFICATIONS`)
+  - Storage permissions (`READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE`)
+  - Camera (`CAMERA`)
+
 ## Architecture
 This project follows the **MVVM** architecture:
 - **Model**: Defines application data structures and business logic.
@@ -35,20 +44,28 @@ expense_module/
 
 ---
 
-## Setup and Installation
-1. Clone the repository:
+## Installation
+1. Clone this repository:
    ```bash
    git clone https://github.com/your-username/expense-module.git
 2. Open the project in Android Studio.
 3. Sync Gradle files and build the project.
 4. Run the application on an emulator or physical device.
 
+AndroidManifest Highlights
+   * Main activity: .expense_module.core.MainActivity
+   * Custom receivers for SMS actions:
+   * SmsReceiver
+   * SmsActionReceiver
+   * Services:
+   * SmsJobService
+   * NotificationListener
+
 Permissions
 This app requires the following permissions:
-
-SMS: To parse expense-related SMS.
-Storage: To save and load backup data.
-Network: For currency conversion and API calls.
+   - SMS: To parse expense-related SMS.
+   - Storage: To save and load backup data.
+   - Network: For currency conversion and API calls.
 
 Contribution
 Contributions are welcome! Feel free to fork the repository, create issues, or submit pull requests for improvements or new features.

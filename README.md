@@ -19,4 +19,43 @@ This project follows the **MVVM** architecture:
 ---
 
 ## Folder Structure
-expense_module/ ├── core/ # Application initialization and entry points ├── data/ # Data-related components │ ├── model/ # Data models │ ├── repository/ # Repository layer for data operations │ ├── source/ # Data sources (local and network) │ ├── provider/ # System and external providers ├── ui/ # User interface components │ ├── adapter/ # RecyclerView and Spinner adapters │ ├── view/ # Activities, Fragments, and custom Views │ ├── viewmodel/ # ViewModels for UI components ├── util/ # Utility and helper classes
+expense_module/ 
+├── core/ # Application initialization and entry points 
+├── data/ # Data-related components │ 
+├── model/ # Data models │ 
+├── repository/ # Repository layer for data operations │ 
+├── source/ # Data sources (local and network) │ 
+├── provider/ # System and external providers 
+├── ui/ # User interface components │ 
+├── adapter/ # RecyclerView and Spinner adapters │ 
+├── view/ # Activities, Fragments, and custom Views │ 
+├── viewmodel/ # ViewModels for UI components 
+├── util/ # Utility and helper classes
+
+
+---
+
+## Setup and Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/expense-module.git
+2. Open the project in Android Studio.
+3. Sync Gradle files and build the project.
+4. Run the application on an emulator or physical device.
+
+Permissions
+This app requires the following permissions:
+
+SMS: To parse expense-related SMS.
+Storage: To save and load backup data.
+Network: For currency conversion and API calls.
+
+Contribution
+Contributions are welcome! Feel free to fork the repository, create issues, or submit pull requests for improvements or new features.
+
+License
+This project is licensed under the MIT License.
+
+Developer Notes
+Ensure compliance with Android's runtime permissions for a seamless user experience.
+Follow MVVM principles to maintain a clean and modular architecture.

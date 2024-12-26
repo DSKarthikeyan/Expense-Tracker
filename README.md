@@ -27,8 +27,6 @@ This project follows the **MVVM** architecture:
 - **View**: Handles UI rendering and user interactions.
 - **ViewModel**: Acts as a bridge between Model and View, managing UI-related logic and data binding.
 
----
-
 ## Folder Structure
 ```plaintext
 expense_module/
@@ -43,15 +41,14 @@ expense_module/
 │   ├── view/           # Activities, Fragments, and custom Views
 │   ├── viewmodel/      # ViewModels for UI components
 ├── util/               # Utility and helper classes
-
+```
 ---
-
-# Installation
+## Installation
 
 ### Clone this repository:
 ```bash
 git clone https://github.com/your-username/expense-module.git
-
+```
 ### Steps to Run the Application
 1. Open the project in **Android Studio**.
 2. Sync Gradle files and build the project.

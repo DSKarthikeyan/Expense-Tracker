@@ -19,3 +19,4 @@ This project follows the **MVVM** architecture:
 ---
 
 ## Folder Structure
+expense_module/ ├── core/ # Application initialization and entry points ├── data/ # Data-related components │ ├── model/ # Data models │ ├── repository/ # Repository layer for data operations │ ├── source/ # Data sources (local and network) │ ├── provider/ # System and external providers ├── ui/ # User interface components │ ├── adapter/ # RecyclerView and Spinner adapters │ ├── view/ # Activities, Fragments, and custom Views │ ├── viewmodel/ # ViewModels for UI components ├── util/ # Utility and helper classes

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorAccent">#03DAC5</color>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="light_white">#E5E5E5</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#438883</color>
+    <color name="teal_800">#408782</color>
+    <color name="teal_900">#2F7E79</color>
+    <color name="green">#4CAF50</color>
+    <color name="red">#F4511E</color>
+    <color name="dark_green">#125715</color>
+    <color name="transparent">#00000000</color>
+    <color name="gray">#D3D3D3</color>
+
+    <color name="selected_button_background">@color/teal_900</color>
+    <color name="selected_button_ripple">#22000000</color>
+</resources>

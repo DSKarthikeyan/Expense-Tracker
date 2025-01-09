@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeDetailsFragment">
+
+    <fragment
+        android:id="@+id/homeDetailsFragment"
+        android:name="com.dsk.myexpense.expense_module.ui.view.homedetails.HomeDetailsFragment"
+        android:label="Group" />
+
+    <fragment
+        android:id="@+id/accountsDetailsFragment"
+        android:name="AccountsDetailsFragment"
+        android:label="Account" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.dsk.myexpense.expense_module.ui.view.settings.SettingsFragment"
+        android:label="Settings" />
+
+    <fragment
+        android:id="@+id/walletDetailsFragment"
+        android:name="com.dsk.myexpense.expense_module.ui.view.wallet.WalletViewFragment"
+        android:label="Wallet" />
+
+    <fragment
+        android:id="@+id/statisticsDetailsViewFragment"
+        android:name="com.dsk.myexpense.expense_module.ui.view.statisticsdetails.StatisticsDetailsFragment"
+        android:label="Statistics" />
+
+    <action
+        android:id="@+id/action_accountsDetailsFragment_to_settingsFragment"
+        app:destination="@id/settingsFragment" />
+</navigation>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="category_expense_name">
+        <item>@string/text_expenses_category_grocery</item>
+        <item>@string/text_expenses_category_netflix</item>
+        <item>@string/text_expenses_category_rent</item>
+        <item>@string/text_expenses_category_paypal</item>
+        <item>@string/text_expenses_category_starbucks</item>
+        <item>@string/text_expenses_category_shopping</item>
+        <item>@string/text_expenses_category_transport</item>
+        <item>@string/text_expenses_category_utilities</item>
+        <item>@string/text_expenses_category_dining_out</item>
+        <item>@string/text_expenses_category_entertainment</item>
+        <item>@string/text_expenses_category_healthcare</item>
+        <item>@string/text_expenses_category_insurance</item>
+        <item>@string/text_expenses_category_subscriptions</item>
+        <item>@string/text_expenses_category_education</item>
+        <item>@string/text_expenses_category_debt</item>
+        <item>@string/text_expenses_category_gifts</item>
+        <item>@string/text_expenses_category_travel</item>
+        <item>@string/text_expenses_category_other</item>
+    </string-array>
+
+    <string-array name="category_income_name">
+        <item>@string/text_income_category_paypal</item>
+        <item>@string/text_income_category_salary</item>
+        <item>@string/text_income_category_freelance</item>
+        <item>@string/text_income_category_investments</item>
+        <item>@string/text_income_category_bonus</item>
+        <item>@string/text_income_category_rental_income</item>
+        <item>@string/text_income_category_other_income</item>
+    </string-array>
+
+    <string-array name="filter_options">
+        <item>Expense</item>
+        <item>Income</item>
+    </string-array>
+</resources>

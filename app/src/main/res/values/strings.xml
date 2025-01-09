@@ -1,0 +1,126 @@
+<resources>
+    <string name="app_name">MyExpense</string>
+
+
+    <string name="text_string_groups">Groups</string>
+    <string name="text_string_home">Home</string>
+    <string name="text_string_statistics">Statistics</string>
+    <string name="text_string_wallet">Wallet</string>
+    <string name="text_string_friends">Friends</string>
+    <string name="text_string_expense_sms">Expense SMS</string>
+    <string name="text_string_activity">Activity</string>
+    <string name="text_string_account">Account</string>
+
+    <string name="filter">Filter</string>
+
+    <string name="filter_by">Filter By</string>
+    <string name="no_transactions_found">No transactions found!</string>
+
+    <string name="home_title">Transactions</string>
+
+    <string name="text_add_expense">Add Expense</string>
+    <string name="text_expense">Expense</string>
+    <string name="text_expenses_category_loans">Loan</string>
+    <string name="text_okay">Okay</string>
+    <string name="text_income">Income</string>
+    <string name="text_dark_mode">Dark Mode</string>
+    <string name="text_default_currency">Default Currency</string>
+    <string name="text_default_currency_value">INR</string>
+    <string name="text_edit_details">Edit Expense/Income Details</string>
+    <string name="text_back">Back</string>
+    <string name="text_sort">Sort</string>
+    <string name="text_menu">Menu</string>
+    <string name="text_no_expenses">no expenses</string>
+    <string name="text_no_expenses_here">No expenses here yet</string>
+    <string name="text_you_owe">You Owe %s %d</string>
+    <string name="text_total">Total</string>
+    <string name="text_amount">Amount</string>
+    <string name="text_amount_placeholder">$ 48.00</string>
+    <string name="text_date_placeholder">Sun, 31 Mar 1996</string>
+    <string name="text_welcome_holder">Good afternoon,</string>
+    <string name="text_transactions_history">Transactions History</string>
+    <string name="text_transactions_details">Transaction Details</string>
+    <string name="text_profile_details">Profile Details</string>
+    <string name="text_profile">Profile</string>
+    <string name="text_notification">Notification</string>
+    <string name="text_not_valid">Not Valid</string>
+    <string name="text_see_all">See All</string>
+    <string name="text_user_name">Expense Tracker User</string>
+    <string name="text_date">Date</string>
+    <string name="text_name">Name</string>
+    <string name="text_expense_name">Expense Name</string>
+    <string name="text_category">Category</string>
+    <string name="text_download_receipt">Download Receipt</string>
+    <string name="text_invoice">Invoice</string>
+    <string name="text_add_invoice">Add Invoice</string>
+    <string name="text_add">Add</string>
+    <string name="text_with_you">With you and:</string>
+    <string name="text_overall_you_owe">Overall You Owe %d</string>
+    <string name="text_settle_up">Settle Up</string>
+    <string name="text_settings">Settings</string>
+    <string name="text_settled_up">Settled Up</string>
+    <string name="text_paid_by">Paid by</string>
+    <string name="text_and_split">and split</string>
+    <string name="text_equally">equally</string>
+    <string name="text_split_equally">split equally</string>
+    <string name="text_description">Description</string>
+    <string name="text_enter_description">Enter a description</string>
+    <string name="text_choose_group">Choose group</string>
+    <string name="text_per_person">%d/person</string>
+    <string name="text_person_count">(%d person)</string>
+    <string name="text_all">all</string>
+    <string name="text_currency_placeholder">0.00</string>
+    <string name="text_friends_details_placeholder">Enter name, emails, or phone</string>
+
+    <string name="text_expense_description">Expense description</string>
+    <string name="text_expense_details">%s paid %d</string>
+    <string name="text_you_borrowed">you borrowed\n%s</string>
+    <string name="text_you_lent">you lent\n%s</string>
+
+    <!-- Expense Category Name -->
+    <string name="text_expenses_category_grocery">Grocery</string>
+    <string name="text_expenses_category_netflix">Netflix</string>
+    <string name="text_expenses_category_rent">Rent</string>
+    <string name="text_expenses_category_paypal">Paypal</string>
+    <string name="text_expenses_category_starbucks">Starbucks</string>
+    <string name="text_expenses_category_shopping">Shopping</string>
+    <string name="text_expenses_category_transport">Transport</string>
+    <string name="text_expenses_category_utilities">Utilities</string>
+    <string name="text_expenses_category_dining_out">Dining Out</string>
+    <string name="text_expenses_category_entertainment">Entertainment</string>
+    <string name="text_expenses_category_healthcare">Healthcare</string>
+    <string name="text_expenses_category_insurance">Insurance</string>
+    <string name="text_expenses_category_subscriptions">Subscriptions</string>
+    <string name="text_expenses_category_education">Education</string>
+    <string name="text_expenses_category_debt">Debt Payments</string>
+    <string name="text_expenses_category_gifts">Gifts &amp; Donations</string>
+    <string name="text_expenses_category_travel">Travel</string>
+    <string name="text_expenses_category_other">Other Expenses</string>
+
+    <!-- Income Category Name -->
+    <string name="text_income_category_paypal">Paypal</string>
+    <string name="text_income_category_salary">Salary</string>
+    <string name="text_income_category_freelance">Freelance</string>
+    <string name="text_income_category_investments">Investments</string>
+    <string name="text_income_category_bonus">Bonus</string>
+    <string name="text_income_category_rental_income">Rental Income</string>
+    <string name="text_income_category_other_income">Other Income</string>
+
+    <string name="text_status">Status</string>
+    <string name="text_from">From</string>
+    <string name="text_to">To</string>
+    <string name="text_time">Time</string>
+    <string name="text_earnings">Earnings</string>
+    <string name="text_spending">Spending</string>
+    <string name="text_fee">Fee</string>
+    <string name="statistics">Statistics</string>
+    <string name="day">Day</string>
+    <string name="week">Week</string>
+    <string name="month">Month</string>
+    <string name="year">Year</string>
+    <string name="top_spending">Top Spending</string>
+    <string name="back_button">Back</string>
+    <string name="share_button">Share</string>
+
+    <string name="no_data_available">No Data Available</string>
+</resources>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/homeDetailsFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_home"
+        android:title=""/>
+
+    <item
+        android:id="@+id/statisticsDetailsViewFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_statistics"
+        android:title="" />
+
+    <item
+        android:id="@+id/action_add_expense"
+        android:enabled="true"
+        android:title=""/>
+
+    <item
+        android:id="@+id/walletDetailsFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_wallet"
+        android:title=""/>
+
+    <item
+        android:id="@+id/accountsDetailsFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_account"
+        android:title="" />
+</menu>

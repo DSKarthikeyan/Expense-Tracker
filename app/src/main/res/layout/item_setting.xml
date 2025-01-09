@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="16dp">
+
+    <!-- TextView for setting name -->
+    <TextView
+        android:id="@+id/settingName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Setting Name"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- TextView for setting value -->
+    <TextView
+        android:id="@+id/settingValue"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Setting Value"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/settingName" />
+
+    <!-- Switch for enabling/disabling Dark Mode -->
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/settingSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:text="Enable Dark Mode"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/settingValue" />
+</androidx.constraintlayout.widget.ConstraintLayout>

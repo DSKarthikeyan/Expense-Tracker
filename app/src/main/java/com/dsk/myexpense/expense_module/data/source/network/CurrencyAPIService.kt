@@ -1,0 +1,38 @@
+package com.dsk.myexpense.expense_module.data.source.network
+
+import com.dsk.myexpense.expense_module.data.model.Currency
+import com.dsk.myexpense.expense_module.util.ApiResponse
+import java.io.IOException
+
+object CurrencyAPIService {
+
+    private const val BASE_URL = "https://openexchangerates.org/api/"
+
+    private val apiService: CurrencyApi by lazy {
+        RetrofitClient.createRetrofitService(BASE_URL).create(CurrencyApi::class.java)
+    }
+
+    suspend fun getCurrencies(appId: String): ApiResponse<List<Currency>> {
+        return try {
+            val response = apiService.getCurrencies(appId)
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null && body["rates"] is Map<*, *>) {
+                    ApiResponse.Success(
+                        (body["rates"] as Map<String, Double>).map {
+                            Currency(name = it.key, code = it.value)
+                        }
+                    )
+                } else {
+                    ApiResponse.Error("Unexpected response format")
+                }
+            } else {
+                ApiResponse.Error("Failed to fetch data: ${response.errorBody()?.string()}")
+            }
+        } catch (e: IOException) {
+            ApiResponse.Error(e.localizedMessage ?: "Network error")
+        } catch (e: Exception) {
+            ApiResponse.Error(e.localizedMessage ?: "Unknown error")
+        }
+    }
+}

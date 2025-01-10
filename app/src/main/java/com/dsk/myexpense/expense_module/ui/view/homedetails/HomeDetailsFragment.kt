@@ -36,6 +36,7 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
         GenericViewModelFactory {
             HomeDetailsViewModel(
+                requireContext(),
                 (requireActivity().application as ExpenseApplication).expenseRepository,
                 (requireActivity().application as ExpenseApplication).settingsRepository
             )
@@ -62,18 +63,16 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
         binding.rvTransactions.layoutManager = LinearLayoutManager(context)
 
         initUI()
+
         homeDetailsViewModel.allExpenseDetails.observe(viewLifecycleOwner) { list ->
             list?.let {
                 adapter.updateList(list)
             }
         }
 
-        homeDetailsViewModel.fetchCurrencySymbol(requireContext())
-
         // Observe the combined LiveData to update the UI
         homeDetailsViewModel.combinedLiveData.observe(viewLifecycleOwner) { (currencySymbol, amounts) ->
             val (income, expense, balance) = amounts
-
             // Format the amount and update UI elements
             binding.totalIncomeAmount.text = formatAmount(currencySymbol, income)
             binding.totalExpenseAmount.text = formatAmount(currencySymbol, expense)
@@ -91,10 +90,13 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
 
     // Helper function to format the amount with the currency symbol
     private fun formatAmount(currencySymbol: String, amount: Double?): String {
-        return "$currencySymbol ${amount.toString()}"
+        val formattedAmount = String.format("%.2f", amount ?: 0.0)
+        return "$currencySymbol $formattedAmount"
     }
 
     private fun initUI() {
+        homeDetailsViewModel.fetchCurrencySymbol(requireContext())
+
         binding.rvTransactions.setHasFixedSize(true)
 
         // Adding item divider decoration
@@ -104,7 +106,6 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
 
         checkForNotificationCount()
         NotificationListener.notificationCount.observe(viewLifecycleOwner) { count ->
-            Log.d("DsK", "unreadNotificationCount $count")
             if (count == 0) {
                 binding.notificationIcon.setImageResource(R.drawable.ic_notification_unfilled)
             } else {

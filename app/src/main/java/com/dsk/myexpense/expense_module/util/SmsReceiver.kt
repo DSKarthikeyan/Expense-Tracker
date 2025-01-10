@@ -92,6 +92,7 @@ class SmsReceiver : BroadcastReceiver() {
                 val categoryNameValue = messageDetails.categoryName ?: ""
                 val viewModel = SmsReceiverViewModel(application)
                 viewModel.saveTransaction(
+                    context,
                     messageDetails.senderName,
                     messageDetails.expenseMessageSender,
                     messageDetails.receiverName,

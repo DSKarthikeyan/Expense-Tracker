@@ -1,6 +1,7 @@
 package com.dsk.myexpense.expense_module.ui.viewmodel.smshandler
 
 import android.app.Application
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -37,6 +38,7 @@ class SmsReceiverViewModel(application: Application) : AndroidViewModel(applicat
      * @param isIncome Flag indicating if the transaction is an income
      */
     fun saveTransaction(
+        context: Context,
         senderName: String?,
         messageSenderName: String,
         receiverName: String,
@@ -61,6 +63,7 @@ class SmsReceiverViewModel(application: Application) : AndroidViewModel(applicat
 
             // Save transaction with or without invoice
             repository.saveExpenseWithInvoice(
+                context = context,
                 expenseDetails = expenseDetails,
                 categoryName = categoryName,
                 bitmap = invoiceImage

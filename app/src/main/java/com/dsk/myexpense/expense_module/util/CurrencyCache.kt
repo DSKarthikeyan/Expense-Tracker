@@ -14,10 +14,27 @@ object CurrencyCache {
 
     fun setCurrencySymbol(context: Context, symbol: String) {
         val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        Log.d("DsK","symbol $symbol")
         with(sharedPreferences.edit()) {
             putString(KEY_CURRENCY_SYMBOL, symbol)
             apply()
         }
+    }
+
+    fun getBaseCurrency(context: Context): String {
+        val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return sharedPreferences.getString("base_currency", "USD") ?: "USD"
+    }
+
+    fun getExchangeRate(context: Context): Double {
+        val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return sharedPreferences.getFloat("exchange_rate", 0.0f).toDouble()
+    }
+
+    fun setBaseCurrency(context: Context, currency: String, exchangeRate: Double) {
+        val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        sharedPreferences.edit()
+            .putString("base_currency", currency)
+            .putFloat("exchange_rate", exchangeRate.toFloat())
+            .apply()
     }
 }

@@ -15,25 +15,87 @@ import com.dsk.myexpense.expense_module.data.source.local.DailyExpenseWithTime
 import com.dsk.myexpense.expense_module.data.source.local.MonthlyExpenseWithTime
 import com.dsk.myexpense.expense_module.data.source.local.WeeklyExpenseSum
 import com.dsk.myexpense.expense_module.ui.view.settings.SettingsRepository
+import com.dsk.myexpense.expense_module.util.CurrencyCache
+import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import com.dsk.myexpense.expense_module.util.Utility
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class HomeDetailsViewModel(
+    context: Context,
     private var expenseRepository: ExpenseRepository,
     private var settingsRepository: SettingsRepository
 ) : ViewModel() {
-
-    val allExpenseDetails: LiveData<List<ExpenseDetails>> = expenseRepository.allExpenseDetails
-    private val getTotalIncomeAmount: LiveData<Double> = expenseRepository.getTotalIncomeAmount
-    private val getTotalExpenseAmount: LiveData<Double> = expenseRepository.getTotalExpenseAmount
-    private val getTotalIncomeExpenseAmount: LiveData<Int> = expenseRepository.getTotalIncomeExpenseAmount
 
     private val _currencySymbol = MutableLiveData<String>()
     private val currencySymbol: LiveData<String> get() = _currencySymbol
 
     // MediatorLiveData to combine currency symbol with other amounts
     val combinedLiveData = MediatorLiveData<Pair<String, Triple<Double?, Double?, Double?>>>()
+
+    private val getTotalIncomeAmount: LiveData<Double> = MediatorLiveData<Double>().apply {
+        addSource(expenseRepository.getTotalIncomeAmount) { totalIncomeInUSD ->
+            val exchangeRate = CurrencyCache.getExchangeRate(context)
+            value = CurrencyUtils.convertFromUSD(totalIncomeInUSD, exchangeRate)
+        }
+    }
+
+    private val getTotalExpenseAmount: LiveData<Double> = MediatorLiveData<Double>().apply {
+        addSource(expenseRepository.getTotalExpenseAmount) { totalExpenseInUSD ->
+            val exchangeRate = CurrencyCache.getExchangeRate(context)
+            value = CurrencyUtils.convertFromUSD(totalExpenseInUSD, exchangeRate)
+        }
+    }
+
+    private val getTotalIncomeExpenseAmount: LiveData<Int> = MediatorLiveData<Int>().apply {
+        addSource(expenseRepository.getTotalIncomeExpenseAmount) { totalIncomeExpenseInUSD ->
+            val exchangeRate = CurrencyCache.getExchangeRate(context)
+            value = CurrencyUtils.convertFromUSD(totalIncomeExpenseInUSD.toDouble(), exchangeRate).toInt()
+        }
+    }
+
+    init {
+        // Initialize MediatorLiveData with currency symbol and amounts
+        combinedLiveData.addSource(currencySymbol) { currency ->
+            updateCombinedLiveData(currency = currency)
+        }
+        combinedLiveData.addSource(getTotalIncomeAmount) { income ->
+            updateCombinedLiveData(currencySymbol.value ?: "", income = income)
+        }
+        combinedLiveData.addSource(getTotalExpenseAmount) { expense ->
+            updateCombinedLiveData(currencySymbol.value ?: "", expense = expense)
+        }
+        combinedLiveData.addSource(getTotalIncomeExpenseAmount) { balance ->
+            updateCombinedLiveData(currencySymbol.value ?: "", balance = balance.toDouble())
+        }
+    }
+
+    private fun updateCombinedLiveData(
+        currency: String = "", income: Double? = getTotalIncomeAmount.value,
+        expense: Double? = getTotalExpenseAmount.value,
+        balance: Double? = getTotalIncomeExpenseAmount.value?.toDouble()) {
+        combinedLiveData.value = Pair(
+            currency,
+            Triple(income, expense, balance)
+        )
+    }
+
+    val allExpenseDetails: LiveData<List<ExpenseDetails>> = MediatorLiveData<List<ExpenseDetails>>().apply {
+        addSource(expenseRepository.allExpenseDetails) { expenses ->
+            // Make sure context is valid, and exchange rate is retrieved properly
+            val exchangeRate = CurrencyCache.getExchangeRate(context)
+
+            // Log to ensure exchangeRate and amount conversion is working correctly
+            Log.d("DsK", "Exchange Rate: $exchangeRate")
+
+            // Update the LiveData value after conversion
+            value = expenses.map { expense ->
+                // Log the conversion
+                val convertedAmount = CurrencyUtils.convertFromUSD(expense.amount, exchangeRate)
+                expense.copy(amount = convertedAmount)
+            }
+        }
+    }
 
     fun deleteExpenseDetails(expenseDetails: ExpenseDetails) {
         viewModelScope.launch {
@@ -42,33 +104,44 @@ class HomeDetailsViewModel(
     }
 
     fun insertExpense(
-        expenseDetails: ExpenseDetails, bitmap: Bitmap?, categoryName: String
-    ) = viewModelScope.launch(Dispatchers.IO) {
-        if (bitmap != null) {
-            expenseRepository.saveExpenseWithInvoice(
-                expenseDetails,
-                categoryName = categoryName,
-                bitmap = bitmap,
-            )
-        } else {
-            expenseRepository.insert(expenseDetails)
-        }
-    }
-
-    fun updateExpense(
+        context: Context,
         expenseDetails: ExpenseDetails,
         bitmap: Bitmap?,
         categoryName: String
     ) = viewModelScope.launch(Dispatchers.IO) {
+
+        val updatedExpenseDetails = Utility.convertExpenseAmountToUSD(context, expenseDetails)
+
+        if (bitmap != null) {
+            expenseRepository.saveExpenseWithInvoice(
+                context = context,
+                expenseDetails = updatedExpenseDetails,
+                categoryName = categoryName,
+                bitmap = bitmap
+            )
+        } else {
+            expenseRepository.insert(updatedExpenseDetails)
+        }
+    }
+
+    fun updateExpense(
+        context: Context,
+        expenseDetails: ExpenseDetails,
+        bitmap: Bitmap?,
+        categoryName: String
+    ) = viewModelScope.launch(Dispatchers.IO) {
+        val updatedExpenseDetails = Utility.convertExpenseAmountToUSD(context, expenseDetails)
+
         if (bitmap != null) {
             expenseRepository.updateExpenseWithInvoice(
-                expenseDetails = expenseDetails,
+                context,
+                expenseDetails = updatedExpenseDetails,
                 categoryName = categoryName,
                 bitmap = bitmap,
                 isIncome = expenseDetails.isIncome
             )
         } else {
-            expenseRepository.update(expenseDetails)
+            expenseRepository.update(updatedExpenseDetails)
         }
     }
 
@@ -96,42 +169,15 @@ class HomeDetailsViewModel(
         return expenseRepository.getYearlyExpenses()
     }
 
-    init {
-        // Initialize MediatorLiveData with currency symbol and amounts
-        combinedLiveData.addSource(currencySymbol) { currency ->
-            updateCombinedLiveData(currency = currency)
-        }
-        combinedLiveData.addSource(getTotalIncomeAmount) { income ->
-            updateCombinedLiveData(currencySymbol.value ?: "",income)
-        }
-        combinedLiveData.addSource(getTotalExpenseAmount) { expense ->
-            updateCombinedLiveData(currencySymbol.value ?: "",expense)
-        }
-        combinedLiveData.addSource(getTotalIncomeExpenseAmount) { balance ->
-            Log.d("DsK","balance $balance")
-            updateCombinedLiveData(currencySymbol.value ?: "", balance.toDouble())
-        }
-    }
-
-    private fun updateCombinedLiveData(
-        currency: String = "", income: Double? = getTotalIncomeAmount.value,
-        expense: Double? = getTotalExpenseAmount.value,
-        balance: Double? = getTotalIncomeExpenseAmount.value?.toDouble()) {
-        combinedLiveData.value = Pair(
-            currency,
-            Triple(income, expense, balance)
-        )
-    }
-
     fun fetchCurrencySymbol(context: Context) {
         viewModelScope.launch {
             try {
-                val symbol = Utility.getCurrencySymbol(context, settingsRepository)
-                Log.d("DsK","fetchCurrencySymbol $symbol")
+                val symbol = CurrencyUtils.getCurrencySymbol(context, settingsRepository)
                 _currencySymbol.postValue(symbol)
             } catch (e: Exception) {
                 _currencySymbol.postValue("Currency Symbol Error: ${e.message}")
             }
         }
     }
+
 }

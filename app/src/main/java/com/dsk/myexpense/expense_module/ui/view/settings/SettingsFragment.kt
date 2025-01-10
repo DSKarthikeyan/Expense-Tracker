@@ -1,5 +1,6 @@
 package com.dsk.myexpense.expense_module.ui.view.settings
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -43,23 +44,41 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Initialize default settings on first app launch
+        initializeDefaultSettings()
+
         binding.apply {
             switchDarkMode.setOnCheckedChangeListener { _, isChecked ->
                 settingsViewModel.setDarkModeEnabled(isChecked)
             }
 
             currencyLayout.setOnClickListener {
-                CommonDialog().showCurrencySelectionDialog(requireContext(), appLoadingViewModel) { selectedCurrency ->
-                    settingsViewModel.setDefaultCurrency(requireContext(),selectedCurrency)
+                CommonDialog().showCurrencySelectionDialog(requireContext(), appLoadingViewModel) { selectedCurrency, currencyValue ->
+                    settingsViewModel.setDefaultCurrency(requireContext(), selectedCurrency, currencyValue)
                 }
             }
 
-            iconBack.setOnClickListener{
+            iconBack.setOnClickListener {
                 activity?.onBackPressed()
             }
         }
 
         observeViewModel()
+    }
+
+    private fun initializeDefaultSettings() {
+        val sharedPreferences = requireContext().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+
+        // Check if it's the first launch
+        val isFirstLaunch = sharedPreferences.getBoolean("is_first_launch", true)
+        if (isFirstLaunch) {
+            // Assign default settings values
+            settingsViewModel.setDarkModeEnabled(false) // Default to light mode
+            settingsViewModel.setDefaultCurrency(requireContext(), "USD", 1.0) // Default currency: USD
+
+            // Mark the first launch as complete
+            sharedPreferences.edit().putBoolean("is_first_launch", false).apply()
+        }
     }
 
     private fun observeViewModel() {

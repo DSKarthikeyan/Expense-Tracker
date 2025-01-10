@@ -58,7 +58,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
         GenericViewModelFactory {
-            HomeDetailsViewModel((requireActivity().application as ExpenseApplication).expenseRepository
+            HomeDetailsViewModel(requireContext(),(requireActivity().application as ExpenseApplication).expenseRepository
                 ,(requireActivity().application as ExpenseApplication).settingsRepository)
         }
     }
@@ -149,12 +149,10 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         }
 
         selectedCurrency = CurrencyCache.getCurrencySymbol(requireContext()).toString()
-        Log.d("DsK","$selectedCurrency")
 
         // Assign the TextWatcher variable to the TextInputEditText
         addExpenseView.addNewExpenseWidget.addExpenseAmountTextView.apply {
             hint = "$selectedCurrency 7.00"
-            Log.d("DsK","Text Change Listener")
             addTextChangedListener(createCurrencyTextWatcher(selectedCurrency, this))
         }
     }
@@ -255,11 +253,19 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         addExpenseView.addNewExpenseWidget.addExpenseDateTextView.text = currentDate
     }
 
+    private fun getNumericValueFromText(input: String, currencySymbol: String): Double {
+        // Remove the currency symbol and space
+        val numericPart = input.replace("$currencySymbol ", "").trim()
+        // Parse the remaining text to a Double
+        return numericPart.toDoubleOrNull() ?: 0.0 // Return 0.0 if parsing fails
+    }
+
     private fun validateAndSubmitExpense() {
         val widget = addExpenseView.addNewExpenseWidget
         val expenseName = widget.addExpenseNameTextView.text.toString()
         val expenseDescription = widget.addExpenseDescriptionTextView.text.toString()
-        val expenseAmount = widget.addExpenseAmountTextView.text?.parseToDouble()
+        val rawInput = widget.addExpenseAmountTextView.text.toString()
+        val expenseAmount = getNumericValueFromText(rawInput, selectedCurrency)
         val selectedCategory = categories[widget.spinnerCategoryType.selectedItemPosition]
         val selectedDate = widget.addExpenseDateTextView.text.toString()
 
@@ -291,11 +297,9 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         Log.d("AddNewExpense", "Final Expense Details: $expenseDetailToSave")
 
         if (expenseDetailToSave.expenseID != null) {
-            homeDetailsViewModel.updateExpense(expenseDetailToSave, invoiceImage, selectedCategory.name)
-            Log.d("AddNewExpense", "Updating expense")
+            homeDetailsViewModel.updateExpense(requireContext(), expenseDetailToSave, invoiceImage, selectedCategory.name)
         } else {
-            homeDetailsViewModel.insertExpense(expenseDetailToSave, invoiceImage, selectedCategory.name)
-            Log.d("AddNewExpense", "Inserting new expense")
+            homeDetailsViewModel.insertExpense(requireContext(), expenseDetailToSave, invoiceImage, selectedCategory.name)
         }
 
         dismiss()

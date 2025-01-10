@@ -1,5 +1,6 @@
 package com.dsk.myexpense.expense_module.data.repository
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -19,6 +20,8 @@ import com.dsk.myexpense.expense_module.data.source.local.WeeklyExpenseSum
 import com.dsk.myexpense.expense_module.data.source.local.WeeklyExpenseWithTime
 import com.dsk.myexpense.expense_module.data.source.network.CurrencyAPIService
 import com.dsk.myexpense.expense_module.util.ApiResponse
+import com.dsk.myexpense.expense_module.util.CurrencyCache
+import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import com.dsk.myexpense.expense_module.util.Utility
 import com.dsk.myexpense.expense_module.util.Utility.bitmapToByteArray
 
@@ -36,18 +39,19 @@ class ExpenseRepository(
     val getTotalIncomeExpenseAmount: LiveData<Int> = expenseDAO.getTotalIncomeExpense().asLiveData()
 
     suspend fun saveExpenseWithInvoice(
+        context: Context,
         expenseDetails: ExpenseDetails, categoryName: String, bitmap: Bitmap?
     ) {
         val type = if (expenseDetails.isIncome) "Income" else "Expense"
+
+        val updatedExpenseDetails = Utility.convertExpenseAmountToUSD(context, expenseDetails)
 
         val category = categoryDao.getCategoryByNameAndType(categoryName, type) ?: run {
             val existingCategory = categoryDao.getCategoriesByType(type).firstOrNull()
 
             if (existingCategory == null) {
                 val defaultCategory = Category(
-                    name = "Default $type",
-                    type = type,
-                    iconResId = R.drawable.ic_other_expenses
+                    name = "Default $type", type = type, iconResId = R.drawable.ic_other_expenses
                 )
                 val newCategoryId = categoryDao.insertCategory(defaultCategory)
                 defaultCategory.copy(id = newCategoryId.toInt())
@@ -60,15 +64,13 @@ class ExpenseRepository(
             }
         }
 
-        val expenseWithCategory = expenseDetails.copy(categoryId = category.id)
+        val expenseWithCategory = updatedExpenseDetails.copy(categoryId = category.id)
 
         var invoiceImage: ExpenseInvoiceImage? = null
         if (bitmap != null) {
             val byteArray = bitmapToByteArray(bitmap)
             invoiceImage = ExpenseInvoiceImage(
-                expenseID = 0,
-                expenseInvoiceImage = byteArray,
-                expenseImageFilePath = ""
+                expenseID = 0, expenseInvoiceImage = byteArray, expenseImageFilePath = ""
             )
         }
 
@@ -89,7 +91,7 @@ class ExpenseRepository(
 
     suspend fun fetchInvoiceImages(expenseID: Int): List<Bitmap> {
         val images = expenseDAO.getInvoiceImagesForExpense(expenseID)
-        return images.mapNotNull { it?.expenseInvoiceImage?.let { Utility.byteArrayToBitmap(it) } }
+        return images.mapNotNull { it.expenseInvoiceImage?.let { Utility.byteArrayToBitmap(it) } }
     }
 
     suspend fun getCategoriesByType(type: String): List<Category> =
@@ -104,7 +106,6 @@ class ExpenseRepository(
         return try {
             val currenciesFromAPI = currencyAPIService.getCurrencies(apiKey)
             if (currenciesFromAPI is ApiResponse.Success) {
-                Log.d("DsK","insertion Success ${currenciesFromAPI.data}")
                 currenciesFromAPI.data?.let { currencyDao.insertAll(it) }
                 ApiResponse.Success(currenciesFromAPI.data)
             } else {
@@ -134,22 +135,18 @@ class ExpenseRepository(
     }
 
     suspend fun updateExpenseWithInvoice(
-        expenseDetails: ExpenseDetails,
-        categoryName: String,
-        isIncome: Boolean,
-        bitmap: Bitmap?
+        context: Context,
+        expenseDetails: ExpenseDetails, categoryName: String, isIncome: Boolean, bitmap: Bitmap?
     ) {
         val type = if (isIncome) "Income" else "Expense"
-
+        val updatedExpenseDetails = Utility.convertExpenseAmountToUSD(context, expenseDetails)
         // Ensure category exists or create a new one
         val category = categoryDao.getCategoryByNameAndType(categoryName, type) ?: run {
             val existingCategory = categoryDao.getCategoriesByType(type).firstOrNull()
 
             if (existingCategory == null) {
                 val defaultCategory = Category(
-                    name = "Default $type",
-                    type = type,
-                    iconResId = R.drawable.ic_other_expenses
+                    name = "Default $type", type = type, iconResId = R.drawable.ic_other_expenses
                 )
                 val newCategoryId = categoryDao.insertCategory(defaultCategory)
                 defaultCategory.copy(id = newCategoryId.toInt())
@@ -163,7 +160,7 @@ class ExpenseRepository(
         }
 
         // Update the expense details with the category ID
-        val updatedExpenseDetails = expenseDetails.copy(categoryId = category.id)
+        val updatedExpenseDetailsValue = updatedExpenseDetails.copy(categoryId = category.id)
 
         // Convert the bitmap to byteArray if it's provided
         var invoiceImage: ExpenseInvoiceImage? = null
@@ -178,9 +175,9 @@ class ExpenseRepository(
 
         // Perform the database update
         if (invoiceImage != null) {
-            expenseDAO.updateExpenseWithInvoice(updatedExpenseDetails, invoiceImage)
+            expenseDAO.updateExpenseWithInvoice(updatedExpenseDetailsValue, invoiceImage)
         } else {
-            expenseDAO.updateExpense(updatedExpenseDetails)
+            expenseDAO.updateExpense(updatedExpenseDetailsValue)
         }
     }
 
@@ -189,8 +186,8 @@ class ExpenseRepository(
     }
 
     fun getDailyExpenses(): List<DailyExpenseWithTime> = expenseDAO.getDailyExpenseSum()
-    fun getWeeklyExpenses():
-            List<WeeklyExpenseSum> = expenseDAO.getWeeklyExpenseSum()
+    fun getWeeklyExpenses(): List<WeeklyExpenseSum> = expenseDAO.getWeeklyExpenseSum()
+
     fun getMonthlyExpenses(): List<WeeklyExpenseSum> = expenseDAO.getMonthlyExpenseSum()
     fun getYearlyExpenses(): List<MonthlyExpenseWithTime> = expenseDAO.getYearlyExpenseSum()
 }

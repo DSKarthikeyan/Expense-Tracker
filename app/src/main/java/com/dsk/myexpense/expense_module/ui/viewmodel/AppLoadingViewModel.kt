@@ -99,7 +99,6 @@ class AppLoadingViewModel(private val repository: ExpenseRepository) : ViewModel
         viewModelScope.launch(Dispatchers.IO) {
             when (val currenciesResponse = repository.fetchCurrenciesFromAPI(AppConstants.CURRENCY_LIST_APP_ID)) {
                 is ApiResponse.Success -> {
-                    Log.d("DsK","Currency Added Successfully")
                     currenciesResponse.data?.let { repository.saveCurrenciesToLocalDB(it) }
                 }
                 is ApiResponse.Error -> {

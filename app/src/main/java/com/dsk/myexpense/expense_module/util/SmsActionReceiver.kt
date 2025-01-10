@@ -75,6 +75,7 @@ class SmsActionReceiver : BroadcastReceiver() {
 
             // Save the transaction
             viewModel.saveTransaction(
+                context,
                 senderName = senderName,
                 messageSender,
                 receiverName,

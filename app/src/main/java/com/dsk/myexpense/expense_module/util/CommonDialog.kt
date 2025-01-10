@@ -20,7 +20,7 @@ class CommonDialog {
     fun showCurrencySelectionDialog(
         context: Context,
         appLoadingViewModel: AppLoadingViewModel,
-        onCurrencySelected: (String) -> Unit
+        onCurrencySelected: (String, Double) -> Unit
     ) {
         val inflater = LayoutInflater.from(context)
         val view = inflater.inflate(R.layout.dialog_currency_selection, null)
@@ -39,7 +39,7 @@ class CommonDialog {
             val distinctCurrencies = allCurrencies.distinctBy { it.name } // Assuming 'name' is a unique field
             withContext(Dispatchers.Main) {
                 val adapter = CurrencyAdapter(distinctCurrencies) { selectedCurrency ->
-                    onCurrencySelected(selectedCurrency.name)
+                    onCurrencySelected(selectedCurrency.name, selectedCurrency.code)
                     dialog.dismiss()
                 }
 

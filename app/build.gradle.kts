@@ -69,6 +69,7 @@ dependencies {
     implementation (libs.androidx.lifecycle.viewmodel.ktx.v241)
     implementation (libs.androidx.cardview)
 
+    implementation (libs.androidx.lifecycle.livedata.ktx)
 
     implementation(libs.kotlinx.serialization.json)
 

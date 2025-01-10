@@ -16,6 +16,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import com.dsk.myexpense.expense_module.core.ExpenseApplication
 import com.dsk.myexpense.expense_module.core.ExpenseApplication.Companion.getSettingsRepository
+import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.ui.view.settings.SettingsRepository
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
@@ -27,6 +28,9 @@ import java.util.Locale
  */
 
 object Utility {
+
+    val Int.dp: Int
+        get() = (this * Resources.getSystem().displayMetrics.density).toInt()
 
     //hide keyboard
     fun hideKeyboard(activity: Activity) {
@@ -129,22 +133,14 @@ object Utility {
         }
     }
 
-    val Int.dp: Int
-        get() = (this * Resources.getSystem().displayMetrics.density).toInt()
+    fun convertExpenseAmountToUSD(
+        context: Context,
+        expenseDetails: ExpenseDetails
+    ): ExpenseDetails {
+        val exchangeRate = CurrencyCache.getExchangeRate(context)
+        val amountInUSD = CurrencyUtils.convertToUSD(expenseDetails.amount, exchangeRate)
 
-    // Utility function to fetch and cache currency symbol using SharedPreferences
-    suspend fun getCurrencySymbol(context: Context,settingsRepository: SettingsRepository): String {
-        CurrencyCache.getCurrencySymbol(context)?.let {
-            return it
-        }
-
-        val defaultCurrency = settingsRepository.getDefaultCurrency()
-        Log.d("DsK","defaultCurrency $defaultCurrency")
-        val currency = java.util.Currency.getInstance(defaultCurrency)
-        val symbol = currency.getSymbol(Locale.getDefault(Locale.Category.DISPLAY))
-        Log.d("DsK","setCurrencySymbol $symbol")
-        CurrencyCache.setCurrencySymbol(context, symbol)
-
-        return symbol
+        // Return a new ExpenseDetails instance with the updated amount
+        return expenseDetails.copy(amount = amountInUSD)
     }
 }

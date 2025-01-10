@@ -47,13 +47,12 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
     /**
      * Updates the default currency and persists it in the repository.
      */
-    fun setDefaultCurrency(context: Context, currency: String) {
+    fun setDefaultCurrency(context: Context, currency: String, currencyValue: Double) {
         viewModelScope.launch {
-            Log.d("DsK","currency -- $currency")
             val currencySymbolValue = Currency.getInstance(currency)
             val symbol = currencySymbolValue.getSymbol(Locale.getDefault(Locale.Category.DISPLAY))
-            Log.d("DsK","currency symbol -- $symbol currencySymbolValue $currencySymbolValue")
             CurrencyCache.setCurrencySymbol(context, symbol)
+            CurrencyCache.setBaseCurrency(context, currencySymbolValue.toString(), currencyValue)
             settingsRepository.setDefaultCurrency(currency)
             _defaultCurrency.value = currency
         }

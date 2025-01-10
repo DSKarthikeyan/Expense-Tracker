@@ -113,9 +113,7 @@ class MainActivity : AppCompatActivity() {
         // Initialize categories via ViewModel
         appLoadingViewModel.initializeCategories(this)
         appLoadingViewModel.allCurrencies.observe(this) {
-            Log.d("DsK","in ${it.size}")
             if (it.isEmpty()) {
-                Log.d("DsK","in22")
                 appLoadingViewModel.fetchAndStoreCurrencies()
             }
         }

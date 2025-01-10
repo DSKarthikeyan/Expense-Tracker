@@ -21,7 +21,8 @@ class SettingsFragment : Fragment() {
     private val settingsRepository by lazy {
         (requireActivity().application as ExpenseApplication).settingsRepository
     }
-    private val viewModel: SettingsViewModel by viewModels {
+
+    private val settingsViewModel: SettingsViewModel by viewModels {
         GenericViewModelFactory { SettingsViewModel(settingsRepository) }
     }
 
@@ -44,12 +45,12 @@ class SettingsFragment : Fragment() {
 
         binding.apply {
             switchDarkMode.setOnCheckedChangeListener { _, isChecked ->
-                viewModel.setDarkModeEnabled(isChecked)
+                settingsViewModel.setDarkModeEnabled(isChecked)
             }
 
             currencyLayout.setOnClickListener {
                 CommonDialog().showCurrencySelectionDialog(requireContext(), appLoadingViewModel) { selectedCurrency ->
-                    viewModel.setDefaultCurrency(selectedCurrency)
+                    settingsViewModel.setDefaultCurrency(requireContext(),selectedCurrency)
                 }
             }
 
@@ -62,12 +63,12 @@ class SettingsFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        viewModel.darkModeEnabled.observe(viewLifecycleOwner) { isEnabled ->
+        settingsViewModel.darkModeEnabled.observe(viewLifecycleOwner) { isEnabled ->
             binding.switchDarkMode.isChecked = isEnabled
             setDarkMode(isEnabled)
         }
 
-        viewModel.defaultCurrency.observe(viewLifecycleOwner) { currency ->
+        settingsViewModel.defaultCurrency.observe(viewLifecycleOwner) { currency ->
             binding.textDefaultCurrency.text = currency
         }
     }

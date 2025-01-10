@@ -17,4 +17,5 @@ class SettingsRepository(private val settingsDataStore: SettingsDataStore) {
     suspend fun setDefaultCurrency(currency: String) {
         settingsDataStore.setDefaultCurrency(currency)
     }
+
 }

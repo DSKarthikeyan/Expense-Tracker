@@ -45,7 +45,15 @@ class MyItemRecyclerViewAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = expenseDetails[position]
         holder.expenseDetailsName.text = item.expenseSenderName
-        holder.expenseAmountDetail.text = item.amount.toString()
+
+        val (prefix, color) = if (item.isIncome) {
+            "+ " to R.color.teal_700
+        } else {
+            "- " to R.color.red
+        }
+
+        holder.expenseAmountDetail.text = prefix + item.amount.toString()
+        holder.expenseAmountDetail.setTextColor(holder.expenseAmountDetail.resources.getColor(color))
 
         // Update date dynamically
         updateDate(holder.expenseAmountDate, item.expenseAddedDate)

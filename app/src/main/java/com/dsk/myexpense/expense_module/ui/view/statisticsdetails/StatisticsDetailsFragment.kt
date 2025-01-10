@@ -32,7 +32,9 @@ import java.util.Locale
 class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailClickListener {
 
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
-        GenericViewModelFactory { HomeDetailsViewModel((requireActivity().application as ExpenseApplication).expenseRepository) }
+        GenericViewModelFactory { HomeDetailsViewModel(
+            (requireActivity().application as ExpenseApplication).expenseRepository
+            ,(requireActivity().application as ExpenseApplication).settingsRepository) }
     }
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {

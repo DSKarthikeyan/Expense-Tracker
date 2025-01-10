@@ -10,20 +10,21 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
-import com.dsk.myexpense.expense_module.core.ExpenseApplication
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.FragmentHomeDetailsListBinding
+import com.dsk.myexpense.expense_module.core.ExpenseApplication
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
-import com.dsk.myexpense.expense_module.util.NotificationUtils
-import com.dsk.myexpense.expense_module.util.SwipeToDeleteCallback
 import com.dsk.myexpense.expense_module.ui.NotificationListener
-import com.dsk.myexpense.expense_module.ui.view.TransactionDetailsBottomView
 import com.dsk.myexpense.expense_module.ui.adapter.MyItemRecyclerViewAdapter
+import com.dsk.myexpense.expense_module.ui.view.TransactionDetailsBottomView
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
+import com.dsk.myexpense.expense_module.util.NotificationUtils
+import com.dsk.myexpense.expense_module.util.SwipeToDeleteCallback
+
 
 /**
  * A fragment representing a list of Items.
@@ -33,7 +34,12 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
     private var fragmentHomeDetailsListBinding: FragmentHomeDetailsListBinding? = null
     private val binding get() = fragmentHomeDetailsListBinding!!
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
-        GenericViewModelFactory { HomeDetailsViewModel((requireActivity().application as ExpenseApplication).expenseRepository) }
+        GenericViewModelFactory {
+            HomeDetailsViewModel(
+                (requireActivity().application as ExpenseApplication).expenseRepository,
+                (requireActivity().application as ExpenseApplication).settingsRepository
+            )
+        }
     }
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
@@ -62,24 +68,30 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
             }
         }
 
-        homeDetailsViewModel.getTotalIncomeAmount.observe(viewLifecycleOwner) {
-            binding.totalIncomeAmount.text = it?.toString() ?: "0"
-        }
+        homeDetailsViewModel.fetchCurrencySymbol(requireContext())
 
-        homeDetailsViewModel.getTotalExpenseAmount.observe(viewLifecycleOwner) {
-            binding.totalExpenseAmount.text = it?.toString() ?: "0"
-        }
+        // Observe the combined LiveData to update the UI
+        homeDetailsViewModel.combinedLiveData.observe(viewLifecycleOwner) { (currencySymbol, amounts) ->
+            val (income, expense, balance) = amounts
 
-        homeDetailsViewModel.getTotalIncomeExpenseAmount.observe(viewLifecycleOwner) {
-            binding.tvTotalBalance.text = it?.toString() ?: "0"
+            // Format the amount and update UI elements
+            binding.totalIncomeAmount.text = formatAmount(currencySymbol, income)
+            binding.totalExpenseAmount.text = formatAmount(currencySymbol, expense)
+            binding.tvTotalBalance.text = formatAmount(currencySymbol, balance)
         }
 
         val swipeCallback =
             SwipeToDeleteCallback(binding.rvTransactions, homeDetailsViewModel) { deletedItem ->
                 Log.d("DsK", "Deleted: ${deletedItem.expenseSenderName} SuccessFully")
             }
+
         val itemTouchHelper = ItemTouchHelper(swipeCallback)
         itemTouchHelper.attachToRecyclerView(binding.rvTransactions)
+    }
+
+    // Helper function to format the amount with the currency symbol
+    private fun formatAmount(currencySymbol: String, amount: Double?): String {
+        return "$currencySymbol ${amount?.toString() ?: "0.00"}"
     }
 
     private fun initUI() {

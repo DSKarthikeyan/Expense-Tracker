@@ -11,9 +11,12 @@ import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import com.dsk.myexpense.expense_module.core.ExpenseApplication
+import com.dsk.myexpense.expense_module.core.ExpenseApplication.Companion.getSettingsRepository
+import com.dsk.myexpense.expense_module.ui.view.settings.SettingsRepository
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -128,4 +131,20 @@ object Utility {
 
     val Int.dp: Int
         get() = (this * Resources.getSystem().displayMetrics.density).toInt()
+
+    // Utility function to fetch and cache currency symbol using SharedPreferences
+    suspend fun getCurrencySymbol(context: Context,settingsRepository: SettingsRepository): String {
+        CurrencyCache.getCurrencySymbol(context)?.let {
+            return it
+        }
+
+        val defaultCurrency = settingsRepository.getDefaultCurrency()
+        Log.d("DsK","defaultCurrency $defaultCurrency")
+        val currency = java.util.Currency.getInstance(defaultCurrency)
+        val symbol = currency.getSymbol(Locale.getDefault(Locale.Category.DISPLAY))
+        Log.d("DsK","setCurrencySymbol $symbol")
+        CurrencyCache.setCurrencySymbol(context, symbol)
+
+        return symbol
+    }
 }

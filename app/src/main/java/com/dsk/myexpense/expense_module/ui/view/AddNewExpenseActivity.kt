@@ -55,7 +55,8 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
         GenericViewModelFactory {
-            HomeDetailsViewModel((requireActivity().application as ExpenseApplication).expenseRepository)
+            HomeDetailsViewModel((requireActivity().application as ExpenseApplication).expenseRepository
+                ,(requireActivity().application as ExpenseApplication).settingsRepository)
         }
     }
 

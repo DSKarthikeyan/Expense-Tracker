@@ -28,13 +28,13 @@ interface ExpenseDAO {
     fun getAllExpenseDetails(): LiveData<List<ExpenseDetails>>
 
     @Query("SELECT COALESCE(SUM(amount), 0) FROM expense_details WHERE isIncome = 1")
-    fun getTotalIncome(): Flow<Int>
+    fun getTotalIncome(): Flow<Double>
 
     @Query("SELECT COALESCE(SUM(amount), 0) FROM expense_details WHERE isIncome != 1")
-    fun getTotalExpense(): Flow<Int>
+    fun getTotalExpense(): Flow<Double>
 
     @Query("SELECT COALESCE(SUM(amount), 0) FROM expense_details")
-    fun getTotalIncomeExpense(): Flow<Int>
+    fun getTotalIncomeExpense(): Flow<Double>
 
     @Insert
     suspend fun insertInvoiceImage(invoiceImage: ExpenseInvoiceImage)

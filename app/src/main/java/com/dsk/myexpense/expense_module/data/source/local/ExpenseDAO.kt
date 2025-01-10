@@ -34,7 +34,7 @@ interface ExpenseDAO {
     fun getTotalExpense(): Flow<Double>
 
     @Query("SELECT COALESCE(SUM(amount), 0) FROM expense_details")
-    fun getTotalIncomeExpense(): Flow<Double>
+    fun getTotalIncomeExpense(): Flow<Int>
 
     @Insert
     suspend fun insertInvoiceImage(invoiceImage: ExpenseInvoiceImage)

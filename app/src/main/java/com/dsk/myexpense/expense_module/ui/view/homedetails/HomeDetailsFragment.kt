@@ -91,7 +91,7 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
 
     // Helper function to format the amount with the currency symbol
     private fun formatAmount(currencySymbol: String, amount: Double?): String {
-        return "$currencySymbol ${amount?.toString() ?: "0.00"}"
+        return "$currencySymbol ${amount.toString()}"
     }
 
     private fun initUI() {

@@ -25,12 +25,15 @@ class HomeDetailsViewModel(
 ) : ViewModel() {
 
     val allExpenseDetails: LiveData<List<ExpenseDetails>> = expenseRepository.allExpenseDetails
-    val getTotalIncomeAmount: LiveData<Double> = expenseRepository.getTotalIncomeAmount
-    val getTotalExpenseAmount: LiveData<Double> = expenseRepository.getTotalExpenseAmount
-    val getTotalIncomeExpenseAmount: LiveData<Double> = expenseRepository.getTotalIncomeExpenseAmount
+    private val getTotalIncomeAmount: LiveData<Double> = expenseRepository.getTotalIncomeAmount
+    private val getTotalExpenseAmount: LiveData<Double> = expenseRepository.getTotalExpenseAmount
+    private val getTotalIncomeExpenseAmount: LiveData<Int> = expenseRepository.getTotalIncomeExpenseAmount
 
     private val _currencySymbol = MutableLiveData<String>()
-    val currencySymbol: LiveData<String> get() = _currencySymbol
+    private val currencySymbol: LiveData<String> get() = _currencySymbol
+
+    // MediatorLiveData to combine currency symbol with other amounts
+    val combinedLiveData = MediatorLiveData<Pair<String, Triple<Double?, Double?, Double?>>>()
 
     fun deleteExpenseDetails(expenseDetails: ExpenseDetails) {
         viewModelScope.launch {
@@ -93,30 +96,27 @@ class HomeDetailsViewModel(
         return expenseRepository.getYearlyExpenses()
     }
 
-
-    // MediatorLiveData to combine currency symbol with other amounts
-    val combinedLiveData = MediatorLiveData<Pair<String, Triple<Double?, Double?, Double?>>>()
-
     init {
         // Initialize MediatorLiveData with currency symbol and amounts
         combinedLiveData.addSource(currencySymbol) { currency ->
-            updateCombinedLiveData(currency)
+            updateCombinedLiveData(currency = currency)
         }
         combinedLiveData.addSource(getTotalIncomeAmount) { income ->
-            updateCombinedLiveData(currencySymbol.value ?: "", income)
+            updateCombinedLiveData(currencySymbol.value ?: "",income)
         }
         combinedLiveData.addSource(getTotalExpenseAmount) { expense ->
-            updateCombinedLiveData(currencySymbol.value ?: "", expense)
+            updateCombinedLiveData(currencySymbol.value ?: "",expense)
         }
         combinedLiveData.addSource(getTotalIncomeExpenseAmount) { balance ->
-            updateCombinedLiveData(currencySymbol.value ?: "", balance)
+            Log.d("DsK","balance $balance")
+            updateCombinedLiveData(currencySymbol.value ?: "", balance.toDouble())
         }
     }
 
     private fun updateCombinedLiveData(
         currency: String = "", income: Double? = getTotalIncomeAmount.value,
         expense: Double? = getTotalExpenseAmount.value,
-        balance: Double? = getTotalIncomeExpenseAmount.value) {
+        balance: Double? = getTotalIncomeExpenseAmount.value?.toDouble()) {
         combinedLiveData.value = Pair(
             currency,
             Triple(income, expense, balance)

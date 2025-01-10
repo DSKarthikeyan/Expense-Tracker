@@ -82,7 +82,7 @@
 
                 <TextView
                     android:id="@+id/tvTotalBalance"
-                    android:layout_width="126dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="36dp"
                     android:text="$2,548.00"
                     android:textSize="30sp"

@@ -33,7 +33,7 @@ class ExpenseRepository(
     val allExpenseDetails: LiveData<List<ExpenseDetails>> = expenseDAO.getAllExpenseDetails()
     val getTotalIncomeAmount: LiveData<Double> = expenseDAO.getTotalIncome().asLiveData()
     val getTotalExpenseAmount: LiveData<Double> = expenseDAO.getTotalExpense().asLiveData()
-    val getTotalIncomeExpenseAmount: LiveData<Double> = expenseDAO.getTotalIncomeExpense().asLiveData()
+    val getTotalIncomeExpenseAmount: LiveData<Int> = expenseDAO.getTotalIncomeExpense().asLiveData()
 
     suspend fun saveExpenseWithInvoice(
         expenseDetails: ExpenseDetails, categoryName: String, bitmap: Bitmap?

@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -31,10 +32,12 @@ import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.AppConstants
+import com.dsk.myexpense.expense_module.util.CurrencyCache
 import com.dsk.myexpense.expense_module.util.PermissionManager
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarView
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -143,6 +146,16 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
         headerBarView.setOnRightIconClickListener {
             onRightIconClick()
+        }
+
+        selectedCurrency = CurrencyCache.getCurrencySymbol(requireContext()).toString()
+        Log.d("DsK","$selectedCurrency")
+
+        // Assign the TextWatcher variable to the TextInputEditText
+        addExpenseView.addNewExpenseWidget.addExpenseAmountTextView.apply {
+            hint = "$selectedCurrency 7.00"
+            Log.d("DsK","Text Change Listener")
+            addTextChangedListener(createCurrencyTextWatcher(selectedCurrency, this))
         }
     }
 
@@ -403,4 +416,40 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
             }
         }
     }
+
+    private fun createCurrencyTextWatcher(
+        currencySymbol: String,
+        editText: TextInputEditText
+    ): TextWatcher {
+        return object : TextWatcher {
+            private var isUpdating = false
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                if (isUpdating) return
+
+                isUpdating = true
+
+                val inputText = s.toString()
+
+                // Ensure the text always starts with the currency symbol followed by a space
+                val requiredPrefix = "$currencySymbol "
+                if (!inputText.startsWith(requiredPrefix)) {
+                    // Remove any incorrect prefix or adjust to add the correct one
+                    val textWithoutSymbol = inputText.replace(currencySymbol, "").trim()
+                    val updatedText = "$requiredPrefix$textWithoutSymbol"
+
+                    // Update the TextInputEditText with the corrected text
+                    editText.setText(updatedText)
+                    editText.setSelection(updatedText.length)
+                }
+
+                isUpdating = false
+            }
+        }
+    }
+
 }

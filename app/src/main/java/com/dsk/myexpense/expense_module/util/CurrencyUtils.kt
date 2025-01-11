@@ -4,56 +4,42 @@ import android.content.Context
 import android.util.Log
 import com.dsk.myexpense.R
 import com.dsk.myexpense.expense_module.ui.view.settings.SettingsRepository
-import java.util.Locale
+import org.json.JSONObject
 
 object CurrencyUtils {
 
-    // Utility function to fetch and cache currency symbol using SharedPreferences
     suspend fun getCurrencySymbol(
         context: Context,
-        settingsRepository: SettingsRepository
+        getFromCache: Boolean = true,
+        settingsRepository: SettingsRepository? = null,
+        currencyCode: String? = null
     ): String {
-        // Attempt to fetch from cache first (if any caching system is in place)
-        CurrencyCache.getCurrencySymbol(context)?.let {
-            return it
+        if(getFromCache) {
+            // Attempt to fetch the symbol from cache
+            CurrencyCache.getCurrencySymbol(context)?.let {
+                return it
+            }
         }
+        // Load currency data from resources
+        val currencyMap = loadCurrencyMapFromJSON(context)
 
-        // Get the default currency code from the settings repository
-        val defaultCurrencyCode = settingsRepository.getDefaultCurrency()
+        // Determine the currency code to use
+        val codeToFetch = currencyCode ?: settingsRepository?.getDefaultCurrency()
+        // Get the symbol for the currency code, falling back to the code itself if not found
+        val symbol = currencyMap[codeToFetch] ?: codeToFetch
 
-        // Load the currency codes and symbols from XML resources
-        val currencyCodes = context.resources.getStringArray(R.array.currency_codes)
-        val currencySymbols = context.resources.getStringArray(R.array.currency_symbols)
+        // Cache the fetched symbol
+        CurrencyCache.setCurrencySymbol(context, symbol!!)
 
-        // Create a map of currency codes to symbols
-        val currencyMap = mutableMapOf<String, String>()
-        for (i in currencyCodes.indices) {
-            // Ensure mapping the code to the symbol
-            currencyMap[currencyCodes[i]] = currencySymbols.getOrElse(i) { currencyCodes[i] }
-        }
-
-        // Retrieve the symbol for the default currency
-        val symbol = currencyMap[defaultCurrencyCode] ?: defaultCurrencyCode
-
-        // Cache and return the symbol
-        CurrencyCache.setCurrencySymbol(context, symbol)
         return symbol
     }
 
-    fun getCurrencySymbolFromXML(context: Context, currencyCode: String): String {
-        // Load the currency codes and symbols from XML resources
-        val currencyCodes = context.resources.getStringArray(R.array.currency_codes)
-        val currencySymbols = context.resources.getStringArray(R.array.currency_symbols)
+    fun loadCurrencyMapFromJSON(context: Context): Map<String, String> {
+        val inputStream = context.resources.openRawResource(R.raw.currencies)
+        val jsonString = inputStream.bufferedReader().use { it.readText() }
+        val jsonObject = JSONObject(jsonString)
 
-        // Create a map of currency codes to symbols
-        val currencyMap = mutableMapOf<String, String>()
-        for (i in currencyCodes.indices) {
-            // Ensure mapping the code to the symbol
-            currencyMap[currencyCodes[i]] = currencySymbols.getOrElse(i) { currencyCodes[i] }
-        }
-
-        // Retrieve the symbol for the given currency code
-        return currencyMap[currencyCode] ?: currencyCode // fallback to code if no symbol found
+        return jsonObject.keys().asSequence().associateWith { jsonObject.getString(it) }
     }
 
     /**

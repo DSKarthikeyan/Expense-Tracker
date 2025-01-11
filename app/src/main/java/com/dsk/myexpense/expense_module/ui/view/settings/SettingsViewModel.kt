@@ -52,8 +52,8 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
     fun setDefaultCurrency(context: Context, currency: String, currencyValue: Double) {
         viewModelScope.launch {
             // Use the utility function to get the symbol from the XML
-            val symbol = CurrencyUtils.getCurrencySymbolFromXML(context, currency)
-
+            val symbol = CurrencyUtils.getCurrencySymbol(context, getFromCache = false, currencyCode = currency)
+//            Log.d("SettingsViewModel","Currency setDefaultCurrency: symbol $symbol -- currency $currency -- currencyValue $currencyValue")
             // Cache the symbol and base currency
             CurrencyCache.setCurrencySymbol(context, symbol)
             CurrencyCache.setBaseCurrency(context, currency, currencyValue)

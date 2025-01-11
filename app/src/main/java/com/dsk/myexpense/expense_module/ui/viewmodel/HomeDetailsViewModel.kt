@@ -172,7 +172,7 @@ class HomeDetailsViewModel(
     fun fetchCurrencySymbol(context: Context) {
         viewModelScope.launch {
             try {
-                val symbol = CurrencyUtils.getCurrencySymbol(context, settingsRepository)
+                val symbol = CurrencyUtils.getCurrencySymbol(context, settingsRepository = settingsRepository)
                 _currencySymbol.postValue(symbol)
             } catch (e: Exception) {
                 _currencySymbol.postValue("Currency Symbol Error: ${e.message}")

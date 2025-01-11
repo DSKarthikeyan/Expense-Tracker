@@ -26,6 +26,7 @@ import com.dsk.myexpense.expense_module.ui.viewmodel.smshandler.SmsViewModel
 import com.dsk.myexpense.expense_module.ui.view.AddNewExpenseActivity
 import com.dsk.myexpense.expense_module.ui.view.settings.SettingsDataStore
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
+import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -117,17 +118,9 @@ class MainActivity : AppCompatActivity() {
 
         appLoadingViewModel.allCurrencies.observe(this) {
             if (it.isEmpty()) {
-                appLoadingViewModel.fetchAndStoreCurrencies(loadCurrencyMap(this))
+                appLoadingViewModel.fetchAndStoreCurrencies(CurrencyUtils.loadCurrencyMapFromJSON(this))
             }
         }
-    }
-
-    private fun loadCurrencyMap(context: Context): Map<String, String> {
-        val inputStream = context.resources.openRawResource(R.raw.currencies)
-        val jsonString = inputStream.bufferedReader().use { it.readText() }
-        val jsonObject = JSONObject(jsonString)
-
-        return jsonObject.keys().asSequence().associateWith { jsonObject.getString(it) }
     }
 
     private fun registerSmsReceiver() {

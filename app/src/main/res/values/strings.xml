@@ -23,6 +23,8 @@
     <string name="text_expenses_category_loans">Loan</string>
     <string name="text_okay">Okay</string>
     <string name="text_income">Income</string>
+    <string name="text_enter_new_category">Enter New Category</string>
+    <string name="text_add_new_category">Add New Category</string>
     <string name="text_dark_mode">Dark Mode</string>
     <string name="text_default_currency">Default Currency</string>
     <string name="text_default_currency_value">INR</string>
@@ -48,6 +50,7 @@
     <string name="text_user_name">Expense Tracker User</string>
     <string name="text_date">Date</string>
     <string name="text_name">Name</string>
+    <string name="text_cancel">Cancel</string>
     <string name="text_expense_name">Expense Name</string>
     <string name="text_category">Category</string>
     <string name="text_download_receipt">Download Receipt</string>

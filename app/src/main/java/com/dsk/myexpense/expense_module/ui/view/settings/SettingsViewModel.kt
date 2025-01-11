@@ -6,21 +6,23 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dsk.myexpense.expense_module.data.model.Category
+import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
 import com.dsk.myexpense.expense_module.util.CurrencyCache
 import com.dsk.myexpense.expense_module.util.CurrencyUtils
-import com.dsk.myexpense.expense_module.util.Utility
 import kotlinx.coroutines.launch
-import java.util.Currency
-import java.util.Locale
 
 
-class SettingsViewModel(private val settingsRepository: SettingsRepository) : ViewModel() {
+class SettingsViewModel(private val settingsRepository: SettingsRepository, private val expenseRepository: ExpenseRepository,) : ViewModel() {
 
     private val _darkModeEnabled = MutableLiveData<Boolean>()
     val darkModeEnabled: LiveData<Boolean> get() = _darkModeEnabled
 
     private val _defaultCurrency = MutableLiveData<String>()
     val defaultCurrency: LiveData<String> get() = _defaultCurrency
+
+    private val _selectedCategory = MutableLiveData<Category?>()
+    val selectedCategory: LiveData<Category?> = _selectedCategory
 
     init {
         loadSettings()
@@ -66,4 +68,15 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
         }
     }
 
+    fun setSelectedCategory(category: Category) {
+        _selectedCategory.value = category
+        saveCategoryToDatabase(category) // Save to DB as well
+    }
+
+    private fun saveCategoryToDatabase(category: Category) {
+        // Save the selected category to the database (assuming you have a repository that handles DB operations)
+        viewModelScope.launch {
+            expenseRepository.addCategory(category)
+        }
+    }
 }

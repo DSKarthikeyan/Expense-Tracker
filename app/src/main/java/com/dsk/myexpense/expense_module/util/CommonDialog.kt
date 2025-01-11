@@ -1,14 +1,25 @@
 package com.dsk.myexpense.expense_module.util
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.Spinner
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dsk.myexpense.R
+import com.dsk.myexpense.expense_module.data.model.Category
 import com.dsk.myexpense.expense_module.ui.adapter.CurrencyAdapter
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
+import com.dsk.myexpense.expense_module.ui.viewmodel.CategoryViewModel
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +39,9 @@ class CommonDialog {
         val dialog = AlertDialog.Builder(context)
             .setView(view)
             .setCancelable(true)
+            .setNegativeButton("Cancel") { dialogInterface, _ ->
+                dialogInterface.dismiss()  // Close the dialog if Cancel is pressed
+            }
             .create()
 
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewCurrencies)
@@ -65,6 +79,134 @@ class CommonDialog {
         }
 
         dialog.show()
+    }
+
+    fun showCategorySelectionDialog(
+        context: Context,
+        categoryViewModel: CategoryViewModel,
+        onCategorySelected: (Category?) -> Unit,
+        onDismissDialog: (Boolean?) -> Unit
+    ) {
+        // Observe the LiveData from the ViewModel
+        categoryViewModel.fetchCategories() // Ensure categories are loaded first
+        categoryViewModel.categories.observe(context as LifecycleOwner) { categories ->
+            // If there are no categories, handle that scenario
+            if (categories.isNullOrEmpty()) {
+                Log.d("CommonDialog", "categories: empty")
+                onCategorySelected(null)  // Return null if no categories available
+            } else {
+                Log.d("CommonDialog", "categories: not empty")
+
+                // Create a list of category names to display in the dialog
+                val categoryNames = categories.map { it.name }
+
+                // Create an ArrayAdapter for the list of category names
+                val adapter =
+                    ArrayAdapter(context, android.R.layout.simple_list_item_1, categoryNames)
+
+                // Create the dialog for selecting a category
+                val dialog = AlertDialog.Builder(context)
+                    .setTitle(context.resources.getString(R.string.text_category))
+                    .setCancelable(true)
+                    .setAdapter(adapter) { _, which ->
+                        // When a category is selected, fetch the corresponding category
+                        val selectedCategory = categories[which]
+                        onCategorySelected(selectedCategory)  // Pass the selected category to the callback
+                    }
+                    .setNegativeButton(context.resources.getString(R.string.text_cancel)) { dialogInterface, _ ->
+                        dialogInterface.dismiss()  // Close the dialog if Cancel is pressed
+                        onDismissDialog(false)
+                    }
+                    .create()
+
+                // Add the "Add New Category" button at the bottom of the dialog
+                dialog.setButton(AlertDialog.BUTTON_POSITIVE, context.resources.getString(R.string.text_add_new_category)) { dialogInterface, _ ->
+                    showAddCategoryDialog(context, categoryViewModel) { newCategory ->
+                        if (newCategory != null) {
+                            onCategorySelected(newCategory)  // Return the new category
+                        } else {
+                            onCategorySelected(null) // Return null if no category was added
+                        }
+                    }
+                    dialogInterface.dismiss()  // Dismiss the dialog once the button is clicked
+                }
+
+                // Set an onDismissListener to trigger onDismissDialog callback
+                dialog.setOnDismissListener {
+                    // This will be called when the dialog is dismissed (either canceled or selected)
+                    onDismissDialog(true)
+                }
+
+                // Show the dialog on the main thread
+                dialog.show()
+            }
+        }
+    }
+
+    private fun showAddCategoryDialog(
+        context: Context,
+        categoryViewModel: CategoryViewModel,
+        onCategoryAdded: (Category?) -> Unit
+    ) {
+        // Create a dialog to input the new category details
+        val categoryNameEditText = EditText(context).apply {
+            hint = context.resources.getString(R.string.text_enter_new_category)
+        }
+
+        // Create an array of types (income, expense)
+        val types = arrayOf(context.resources.getString(R.string.text_income), context.resources.getString(R.string.text_expense))
+        var selectedType = context.resources.getString(R.string.text_income)  // Default type
+
+        val typeSpinner = Spinner(context).apply {
+            adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, types).apply {
+                setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
+            setSelection(0)  // Default to "income"
+            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parentView: AdapterView<*>, view: View?, position: Int, id: Long) {
+                    selectedType = types[position]  // Update selected type based on the spinner selection
+                }
+                override fun onNothingSelected(parentView: AdapterView<*>) {}
+            }
+        }
+
+        // Create a layout to hold the input fields
+        val layout = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(categoryNameEditText)
+            addView(typeSpinner)
+        }
+
+        // Create the dialog to add the new category
+        val addCategoryDialog = AlertDialog.Builder(context)
+            .setTitle(context.resources.getString(R.string.text_add_new_category))
+            .setView(layout)
+            .setPositiveButton(context.resources.getString(R.string.text_add)) { dialog, _ ->
+                val categoryName = categoryNameEditText.text.toString()
+                if (categoryName.isNotBlank()) {
+                    // Create a new category object
+                    val newCategory = Category(name = categoryName, type = selectedType, iconResId = R.drawable.ic_other_expenses)
+                    // Insert the new category into the database
+                    categoryViewModel.addCategory(newCategory)
+
+                    // Observe the result of category addition
+                    categoryViewModel.newCategory.observe(context as LifecycleOwner) { addedCategory ->
+                        onCategoryAdded(addedCategory)  // Return the added category
+                    }
+
+                    dialog.dismiss()
+                } else {
+                    // Handle empty category name case
+                    Toast.makeText(context, "Category name cannot be empty", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton(context.resources.getString(R.string.text_cancel)) { dialogInterface, _ ->
+                dialogInterface.dismiss()
+            }
+            .create()
+
+        // Show the dialog for adding a new category
+        addCategoryDialog.show()
     }
 
 

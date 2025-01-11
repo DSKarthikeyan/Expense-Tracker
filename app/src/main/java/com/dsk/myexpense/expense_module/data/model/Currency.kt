@@ -8,5 +8,6 @@ import androidx.room.PrimaryKey
 data class Currency(
     @PrimaryKey(autoGenerate = true) val id: Int? = null,
     @ColumnInfo(name = "code") val code: Double,
-    @ColumnInfo(name = "name") val name: String
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "symbol") val symbol: String?
 )

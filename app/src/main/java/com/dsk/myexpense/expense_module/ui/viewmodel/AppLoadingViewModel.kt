@@ -95,10 +95,11 @@ class AppLoadingViewModel(private val repository: ExpenseRepository) : ViewModel
         return predefinedExpenseCategories + predefinedIncomeCategories
     }
 
-    fun fetchAndStoreCurrencies() {
+    fun fetchAndStoreCurrencies(currencySymbols: Map<String, String>) {
         viewModelScope.launch(Dispatchers.IO) {
-            when (val currenciesResponse = repository.fetchCurrenciesFromAPI(AppConstants.CURRENCY_LIST_APP_ID)) {
+            when (val currenciesResponse = repository.fetchCurrenciesFromAPI(AppConstants.CURRENCY_LIST_APP_ID, currencySymbols)) {
                 is ApiResponse.Success -> {
+                    Log.d("AppLoadingViewModel"," Currency Loading Success ")
                     currenciesResponse.data?.let { repository.saveCurrenciesToLocalDB(it) }
                 }
                 is ApiResponse.Error -> {

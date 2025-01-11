@@ -102,16 +102,44 @@ class ExpenseRepository(
 
     suspend fun insertAll(categories: List<Category>) = categoryDao.insertAll(categories)
 
-    suspend fun fetchCurrenciesFromAPI(apiKey: String): ApiResponse<List<Currency>> {
+    suspend fun fetchCurrenciesFromAPI(apiKey: String, currencySymbols: Map<String, String>): ApiResponse<List<Currency>> {
         return try {
+            // Fetch the currencies from the API
             val currenciesFromAPI = currencyAPIService.getCurrencies(apiKey)
+            Log.d("DsK","Currencies currenciesFromAPI ${currenciesFromAPI.data?.size}")
+            // Load the symbols map from the XML
+            Log.d("DsK","Currencies currencySymbols ${currencySymbols.size}")
             if (currenciesFromAPI is ApiResponse.Success) {
-                currenciesFromAPI.data?.let { currencyDao.insertAll(it) }
-                ApiResponse.Success(currenciesFromAPI.data)
+                currenciesFromAPI.data?.let { currencies ->
+                    // Map the fetched currencies to include symbols and create Currency objects
+                    val currencyEntities: List<Currency> = currencies.map { currency ->
+                        // Ensure the code is explicitly treated as String
+                        val code: String = currency.name // Treating the code as String
+                        Log.d("DsK","Currencies code $code")
+                        // Get the symbol from the map using the currency code
+                        val symbol: String = currencySymbols[currency.name] ?: "" // Explicitly treat the symbol as String
+                        Log.d("DsK","Currencies symbol $symbol")
+                        // Create a new Currency object with code, name, and symbol
+                        Currency(
+                            code = currency.code,
+                            name = currency.name,
+                            symbol = symbol
+                        )
+                    }
+
+                    Log.d("DsK","Currencies currencyEntities $currencyEntities")
+                    // Insert the currencies with symbols into the database
+                    currencyDao.insertAll(currencyEntities)
+
+                    // Return the successful API response with data
+                    ApiResponse.Success(currencies)
+                } ?: ApiResponse.Error("No data available")
             } else {
-                ApiResponse.Error("Error fetching currencies: ${currenciesFromAPI.message}")
+                // In case of failure, return the error response with the message from API
+                ApiResponse.Error(currenciesFromAPI.message ?: "Unknown error")
             }
         } catch (e: Exception) {
+            // Catch any errors and return them in ApiResponse.Error
             ApiResponse.Error(e.localizedMessage ?: "Unknown error")
         }
     }

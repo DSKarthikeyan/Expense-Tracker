@@ -20,7 +20,10 @@ object CurrencyAPIService {
                 if (body != null && body["rates"] is Map<*, *>) {
                     ApiResponse.Success(
                         (body["rates"] as Map<String, Double>).map {
-                            Currency(name = it.key, code = it.value)
+                            Currency(
+                                name = it.key, code = it.value,
+                                symbol =""
+                            )
                         }
                     )
                 } else {

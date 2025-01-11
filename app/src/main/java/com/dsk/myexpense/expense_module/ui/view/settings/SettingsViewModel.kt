@@ -7,6 +7,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dsk.myexpense.expense_module.util.CurrencyCache
+import com.dsk.myexpense.expense_module.util.CurrencyUtils
+import com.dsk.myexpense.expense_module.util.Utility
 import kotlinx.coroutines.launch
 import java.util.Currency
 import java.util.Locale
@@ -49,11 +51,17 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
      */
     fun setDefaultCurrency(context: Context, currency: String, currencyValue: Double) {
         viewModelScope.launch {
-            val currencySymbolValue = Currency.getInstance(currency)
-            val symbol = currencySymbolValue.getSymbol(Locale.getDefault(Locale.Category.DISPLAY))
+            // Use the utility function to get the symbol from the XML
+            val symbol = CurrencyUtils.getCurrencySymbolFromXML(context, currency)
+
+            // Cache the symbol and base currency
             CurrencyCache.setCurrencySymbol(context, symbol)
-            CurrencyCache.setBaseCurrency(context, currencySymbolValue.toString(), currencyValue)
+            CurrencyCache.setBaseCurrency(context, currency, currencyValue)
+
+            // Persist the default currency in the repository
             settingsRepository.setDefaultCurrency(currency)
+
+            // Update the LiveData with the new default currency
             _defaultCurrency.value = currency
         }
     }

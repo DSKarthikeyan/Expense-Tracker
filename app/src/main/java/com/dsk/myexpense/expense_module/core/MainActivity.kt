@@ -1,6 +1,7 @@
 package com.dsk.myexpense.expense_module.core
 
 import android.Manifest
+import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -26,6 +27,7 @@ import com.dsk.myexpense.expense_module.ui.view.AddNewExpenseActivity
 import com.dsk.myexpense.expense_module.ui.view.settings.SettingsDataStore
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
@@ -112,11 +114,20 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize categories via ViewModel
         appLoadingViewModel.initializeCategories(this)
+
         appLoadingViewModel.allCurrencies.observe(this) {
             if (it.isEmpty()) {
-                appLoadingViewModel.fetchAndStoreCurrencies()
+                appLoadingViewModel.fetchAndStoreCurrencies(loadCurrencyMap(this))
             }
         }
+    }
+
+    private fun loadCurrencyMap(context: Context): Map<String, String> {
+        val inputStream = context.resources.openRawResource(R.raw.currencies)
+        val jsonString = inputStream.bufferedReader().use { it.readText() }
+        val jsonObject = JSONObject(jsonString)
+
+        return jsonObject.keys().asSequence().associateWith { jsonObject.getString(it) }
     }
 
     private fun registerSmsReceiver() {

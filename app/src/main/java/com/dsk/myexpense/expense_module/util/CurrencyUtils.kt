@@ -2,6 +2,7 @@ package com.dsk.myexpense.expense_module.util
 
 import android.content.Context
 import android.util.Log
+import com.dsk.myexpense.R
 import com.dsk.myexpense.expense_module.ui.view.settings.SettingsRepository
 import java.util.Locale
 
@@ -12,18 +13,48 @@ object CurrencyUtils {
         context: Context,
         settingsRepository: SettingsRepository
     ): String {
+        // Attempt to fetch from cache first (if any caching system is in place)
         CurrencyCache.getCurrencySymbol(context)?.let {
             return it
         }
 
-        val defaultCurrency = settingsRepository.getDefaultCurrency()
-        val currency = java.util.Currency.getInstance(defaultCurrency)
-        val symbol = currency.getSymbol(Locale.getDefault(Locale.Category.DISPLAY))
-        CurrencyCache.setCurrencySymbol(context, symbol)
+        // Get the default currency code from the settings repository
+        val defaultCurrencyCode = settingsRepository.getDefaultCurrency()
 
+        // Load the currency codes and symbols from XML resources
+        val currencyCodes = context.resources.getStringArray(R.array.currency_codes)
+        val currencySymbols = context.resources.getStringArray(R.array.currency_symbols)
+
+        // Create a map of currency codes to symbols
+        val currencyMap = mutableMapOf<String, String>()
+        for (i in currencyCodes.indices) {
+            // Ensure mapping the code to the symbol
+            currencyMap[currencyCodes[i]] = currencySymbols.getOrElse(i) { currencyCodes[i] }
+        }
+
+        // Retrieve the symbol for the default currency
+        val symbol = currencyMap[defaultCurrencyCode] ?: defaultCurrencyCode
+
+        // Cache and return the symbol
+        CurrencyCache.setCurrencySymbol(context, symbol)
         return symbol
     }
 
+    fun getCurrencySymbolFromXML(context: Context, currencyCode: String): String {
+        // Load the currency codes and symbols from XML resources
+        val currencyCodes = context.resources.getStringArray(R.array.currency_codes)
+        val currencySymbols = context.resources.getStringArray(R.array.currency_symbols)
+
+        // Create a map of currency codes to symbols
+        val currencyMap = mutableMapOf<String, String>()
+        for (i in currencyCodes.indices) {
+            // Ensure mapping the code to the symbol
+            currencyMap[currencyCodes[i]] = currencySymbols.getOrElse(i) { currencyCodes[i] }
+        }
+
+        // Retrieve the symbol for the given currency code
+        return currencyMap[currencyCode] ?: currencyCode // fallback to code if no symbol found
+    }
 
     /**
      * Converts a given amount from USD to the base currency (e.g., INR).

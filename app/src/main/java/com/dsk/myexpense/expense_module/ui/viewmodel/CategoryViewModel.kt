@@ -52,5 +52,11 @@ class CategoryViewModel(private val categoryRepository: ExpenseRepository) : Vie
             _categories.value = categoryRepository.getCategoriesByType(type)
         }
     }
-
+    fun deleteCategory(category: Category) {
+        viewModelScope.launch {
+            categoryRepository.deleteCategory(category)  // Use your repository to delete the category from the DB
+            // Refresh the categories list (this triggers an update to the LiveData)
+            fetchCategories()
+        }
+    }
 }

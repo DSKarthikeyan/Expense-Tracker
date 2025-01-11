@@ -237,4 +237,9 @@ class ExpenseRepository(
     suspend fun getAllCategories(): List<Category> {
         return categoryDao.getAllCategories()
     }
+
+    // Method to delete a category from the repository
+    suspend fun deleteCategory(category: Category) {
+        categoryDao.deleteCategory(category)  // Delegate the delete operation to the DAO
+    }
 }

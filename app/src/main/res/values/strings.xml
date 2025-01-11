@@ -44,6 +44,7 @@
     <string name="text_transactions_details">Transaction Details</string>
     <string name="text_profile_details">Profile Details</string>
     <string name="text_profile">Profile</string>
+    <string name="text_delete">Delete</string>
     <string name="text_notification">Notification</string>
     <string name="text_not_valid">Not Valid</string>
     <string name="text_see_all">See All</string>

@@ -1,6 +1,7 @@
 package com.dsk.myexpense.expense_module.data.source.local
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -14,6 +15,9 @@ interface CategoryDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCategory(category: Category): Long
+
+    @Delete
+    suspend fun deleteCategory(category: Category)  // Add this method to delete a category
 
     @Query("SELECT * FROM category_table")
     suspend fun getAllCategories(): List<Category>

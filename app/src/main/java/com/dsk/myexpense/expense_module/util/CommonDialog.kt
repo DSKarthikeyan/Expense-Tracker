@@ -4,11 +4,14 @@ import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Spinner
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
@@ -97,12 +100,33 @@ class CommonDialog {
             } else {
                 Log.d("CommonDialog", "categories: not empty")
 
-                // Create a list of category names to display in the dialog
-                val categoryNames = categories.map { it.name }
-
                 // Create an ArrayAdapter for the list of category names
-                val adapter =
-                    ArrayAdapter(context, android.R.layout.simple_list_item_1, categoryNames)
+                val adapter = object : ArrayAdapter<Category>(context, R.layout.item_category, categories) {
+                    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                        val view = convertView ?: LayoutInflater.from(context).inflate(R.layout.item_category, parent, false)
+
+                        // Get category and set up the views
+                        val category = getItem(position)
+                        val categoryNameTextView = view.findViewById<TextView>(R.id.category_name)
+                        val deleteButton = view.findViewById<ImageView>(R.id.delete_button)
+
+                        categoryNameTextView.text = category?.name
+
+                        // Handle the delete button click
+                        deleteButton.setOnClickListener {
+                            category?.let {
+                                // Call the ViewModel to delete the category
+                                categoryViewModel.deleteCategory(it)
+                                Toast.makeText(context, "Category deleted", Toast.LENGTH_SHORT).show()
+
+                                // Notify the adapter to refresh the list
+                                categoryViewModel.fetchCategories() // Re-fetch the updated list of categories
+                            }
+                        }
+
+                        return view
+                    }
+                }
 
                 // Create the dialog for selecting a category
                 val dialog = AlertDialog.Builder(context)
@@ -148,33 +172,28 @@ class CommonDialog {
         categoryViewModel: CategoryViewModel,
         onCategoryAdded: (Category?) -> Unit
     ) {
-        // Create a dialog to input the new category details
-        val categoryNameEditText = EditText(context).apply {
-            hint = context.resources.getString(R.string.text_enter_new_category)
-        }
+        // Inflate the custom layout
+        val layout = LayoutInflater.from(context).inflate(R.layout.dialog_add_category, null)
+
+        // Find the views in the custom layout
+        val categoryNameEditText = layout.findViewById<EditText>(R.id.categoryNameEditText)
+        val typeSpinner = layout.findViewById<Spinner>(R.id.typeSpinner)
 
         // Create an array of types (income, expense)
         val types = arrayOf(context.resources.getString(R.string.text_income), context.resources.getString(R.string.text_expense))
         var selectedType = context.resources.getString(R.string.text_income)  // Default type
 
-        val typeSpinner = Spinner(context).apply {
-            adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, types).apply {
-                setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        // Set up the spinner
+        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, types)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        typeSpinner.adapter = adapter
+        typeSpinner.setSelection(0)  // Default to "income"
+        typeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parentView: AdapterView<*>, view: View?, position: Int, id: Long) {
+                selectedType = types[position]  // Update selected type based on the spinner selection
             }
-            setSelection(0)  // Default to "income"
-            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parentView: AdapterView<*>, view: View?, position: Int, id: Long) {
-                    selectedType = types[position]  // Update selected type based on the spinner selection
-                }
-                override fun onNothingSelected(parentView: AdapterView<*>) {}
-            }
-        }
 
-        // Create a layout to hold the input fields
-        val layout = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            addView(categoryNameEditText)
-            addView(typeSpinner)
+            override fun onNothingSelected(parentView: AdapterView<*>) {}
         }
 
         // Create the dialog to add the new category

@@ -181,7 +181,6 @@
                     android:id="@+id/addExpenseAmountTextView"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
-                    android:hint="@string/text_amount_placeholder"
                     android:inputType="numberDecimal" />
             </com.google.android.material.textfield.TextInputLayout>
 

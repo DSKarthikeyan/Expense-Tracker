@@ -123,7 +123,11 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         preloadedExpenseDetails?.let { preloadData(it) } ?: setCurrentDate()
 
         selectedCurrency = CurrencyCache.getCurrencySymbol(requireContext()).toString()
+
         binding.addNewExpenseWidget.addExpenseAmountTextView.apply {
+            visibility = View.VISIBLE
+            isEnabled = true
+            isFocusable = true
             hint = "$selectedCurrency 48.00"
             addTextChangedListener(createCurrencyTextWatcher(selectedCurrency, this))
         }

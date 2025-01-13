@@ -6,6 +6,7 @@ class AppConstants {
 
     companion object{
         const val DATE_FORMAT_STRING = "EEE, d MMM yyyy HH:mm a"
+        const val APP_LINK_SHARE_FORMAT = "text/plain"
 
         // Regex patterns for matching different components
         val regexForRecipientName: Pattern = Pattern.compile("UPI/P2M/\\d+/([A-Za-z\\s]+)")

@@ -7,7 +7,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dsk.myexpense.R
-import com.dsk.myexpense.databinding.FragmentAccountsBinding
+import com.dsk.myexpense.databinding.FragmentSettingsAccountDetailsBinding
 import com.dsk.myexpense.expense_module.ui.adapter.ProfileOptionAdapter
 import com.dsk.myexpense.expense_module.util.AppConstants
 
@@ -18,8 +18,8 @@ data class ProfileOption(
 
 class AccountsDetailsFragment : Fragment() {
 
-    private var fragmentAccountsBinding: FragmentAccountsBinding? = null
-    private val binding get() = fragmentAccountsBinding!!
+    private var fragmentSettingsAccountDetailsBinding: FragmentSettingsAccountDetailsBinding? = null
+    private val binding get() = fragmentSettingsAccountDetailsBinding!!
     private lateinit var adapter: ProfileOptionAdapter
 
     override fun onCreateView(
@@ -27,7 +27,7 @@ class AccountsDetailsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        fragmentAccountsBinding = FragmentAccountsBinding.inflate(inflater, container, false)
+        fragmentSettingsAccountDetailsBinding = FragmentSettingsAccountDetailsBinding.inflate(inflater, container, false)
         val view = binding.root
         return view
     }
@@ -38,28 +38,28 @@ class AccountsDetailsFragment : Fragment() {
     }
 
     private fun initUI() {
-        fragmentAccountsBinding?.recyclerViewOptions?.setHasFixedSize(true)
-        fragmentAccountsBinding?.recyclerViewOptions?.layoutManager =
+        fragmentSettingsAccountDetailsBinding?.recyclerViewOptions?.setHasFixedSize(true)
+        fragmentSettingsAccountDetailsBinding?.recyclerViewOptions?.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
         val optionsList = listOf(
-            ProfileOption(R.drawable.ic_action_friends, "Invite Friends"),
-            ProfileOption(R.drawable.ic_settings, "Settings")  // Add Settings option
+            ProfileOption(R.drawable.ic_action_friends, getString(R.string.text_invite_friends)),
+            ProfileOption(R.drawable.ic_settings, getString(R.string.text_settings))  // Add Settings option
         )
 
         adapter = ProfileOptionAdapter(optionsList) { option: ProfileOption ->
             when (option.title) {
-                "Settings" -> navigateToSettings()
-                 "Invite Friends"-> {
+                getString(R.string.text_settings) -> navigateToSettings()
+                getString(R.string.text_invite_friends)-> {
                      // Share the app URL with friends
                      shareAppUrl()
                  }
                 else -> {}
             }
         }
-        fragmentAccountsBinding?.recyclerViewOptions?.adapter = adapter
+        fragmentSettingsAccountDetailsBinding?.recyclerViewOptions?.adapter = adapter
 
-        fragmentAccountsBinding?.ivBack?.setOnClickListener {
+        fragmentSettingsAccountDetailsBinding?.ivBack?.setOnClickListener {
             activity?.onBackPressed()
         }
     }
@@ -68,9 +68,9 @@ class AccountsDetailsFragment : Fragment() {
         val shareIntent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, AppConstants.ANDROID_APP_URL)
-            type = "text/plain"
+            type = AppConstants.APP_LINK_SHARE_FORMAT
         }
-        startActivity(Intent.createChooser(shareIntent, "Share App URL"))
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.text_share_app_url)))
     }
 
     private fun navigateToSettings() {
@@ -79,6 +79,6 @@ class AccountsDetailsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        fragmentAccountsBinding = null
+        fragmentSettingsAccountDetailsBinding = null
     }
 }

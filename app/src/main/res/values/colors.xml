@@ -15,7 +15,7 @@
     <color name="red">#F4511E</color>
     <color name="dark_green">#125715</color>
     <color name="transparent">#00000000</color>
-    <color name="gray">#D3D3D3</color>
+    <color name="gray">#828282</color>
 
     <color name="selected_button_background">@color/teal_900</color>
     <color name="selected_button_ripple">#22000000</color>

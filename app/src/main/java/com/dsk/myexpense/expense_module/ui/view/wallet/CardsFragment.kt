@@ -1,17 +1,15 @@
 package com.dsk.myexpense.expense_module.ui.view.wallet
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.dsk.myexpense.R
-import com.dsk.myexpense.databinding.FragmentCardsBinding
+import com.dsk.myexpense.databinding.FragmentWalletCardsBinding
 import com.dsk.myexpense.expense_module.data.model.CardEntity
 import com.dsk.myexpense.expense_module.ui.adapter.CardAdapter
 import com.dsk.myexpense.expense_module.ui.viewmodel.WalletViewModel
@@ -21,23 +19,22 @@ import kotlin.random.Random
 
 class CardsFragment : Fragment() {
 
-    private var _binding: FragmentCardsBinding? = null
-    private val binding get() = _binding!!
+    private var _binding: FragmentWalletCardsBinding? = null
+    private val fragmentCardsBinding get() = _binding!!
     private val viewModel: WalletViewModel by viewModels()
 
     private lateinit var cardAdapter: CardAdapter
     private lateinit var selectItems: Array<String>
     private val stackCount = 30
     private var randomPosition = 0
-
     private var stackLayoutManager: StackLayoutManager? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentCardsBinding.inflate(inflater, container, false)
-        return binding.root
+        _binding = FragmentWalletCardsBinding.inflate(inflater, container, false)
+        return fragmentCardsBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -50,15 +47,15 @@ class CardsFragment : Fragment() {
             onCardClicked(card)
         }
 
-        binding.cardList.apply {
-            layoutManager = stackLayoutManager
-            adapter = cardAdapter
-        }
+//        binding.cardList.apply {
+//            layoutManager = stackLayoutManager
+//            adapter = cardAdapter
+//        }
 
         // Add button click listener
-        binding.addCardButton.setOnClickListener {
-            handleAddCard()
-        }
+//        binding.addCardButton.setOnClickListener {
+//            handleAddCard()
+//        }
 
         selectItems = resources.getStringArray(R.array.items)
         resetRandom()
@@ -67,19 +64,19 @@ class CardsFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        viewModel.cards.observe(viewLifecycleOwner) { cards ->
-            if (!cards.isNullOrEmpty()) {
-                Log.d("CardsFragment", "Loaded ${cards.size} cards.")
-                updateCardList(cards)
-                binding.cardList.visibility = View.VISIBLE
-                binding.emptyText.visibility = View.GONE
-            } else {
-                Log.d("CardsFragment", "No cards found.")
-                binding.cardList.visibility = View.GONE
-                binding.emptyText.visibility = View.VISIBLE
-                Toast.makeText(requireContext(), "No cards available", Toast.LENGTH_SHORT).show()
-            }
-        }
+//        viewModel.cards.observe(viewLifecycleOwner) { cards ->
+//            if (!cards.isNullOrEmpty()) {
+//                Log.d("CardsFragment", "Loaded ${cards.size} cards.")
+//                updateCardList(cards)
+//                binding.cardList.visibility = View.VISIBLE
+//                binding.emptyText.visibility = View.GONE
+//            } else {
+//                Log.d("CardsFragment", "No cards found.")
+//                binding.cardList.visibility = View.GONE
+//                binding.emptyText.visibility = View.VISIBLE
+//                Toast.makeText(requireContext(), "No cards available", Toast.LENGTH_SHORT).show()
+//            }
+//        }
     }
 
     private fun updateCardList(cards: List<CardEntity>) {
@@ -99,11 +96,11 @@ class CardsFragment : Fragment() {
 
     private fun handleAddCard() {
         // Get the values from input fields
-        val nameOnCard = binding.nameOnCardInputLayout.editText?.text.toString()
-        val cardNumber = binding.cardNumberInputLayout.editText?.text.toString()
-        val expiryDate = binding.expiryDateInputLayout.editText?.text.toString()
-        val cvc = binding.cvcInputLayout.editText?.text.toString()
-        val zip = binding.zipInputLayout.editText?.text.toString()
+        val nameOnCard = fragmentCardsBinding.nameOnCardInputLayout.editText?.text.toString()
+        val cardNumber = fragmentCardsBinding.cardNumberInputLayout.editText?.text.toString()
+        val expiryDate = fragmentCardsBinding.expiryDateInputLayout.editText?.text.toString()
+        val cvc = fragmentCardsBinding.cvcInputLayout.editText?.text.toString()
+        val zip = fragmentCardsBinding.zipInputLayout.editText?.text.toString()
 
         // Validate the input fields
         if (nameOnCard.isBlank()) {
@@ -163,11 +160,11 @@ class CardsFragment : Fragment() {
     }
 
     private fun clearInputFields() {
-        binding.nameOnCardInputLayout.editText?.text?.clear()
-        binding.cardNumberInputLayout.editText?.text?.clear()
-        binding.expiryDateInputLayout.editText?.text?.clear()
-        binding.cvcInputLayout.editText?.text?.clear()
-        binding.zipInputLayout.editText?.text?.clear()
+        fragmentCardsBinding.nameOnCardInputLayout.editText?.text?.clear()
+        fragmentCardsBinding.cardNumberInputLayout.editText?.text?.clear()
+        fragmentCardsBinding.expiryDateInputLayout.editText?.text?.clear()
+        fragmentCardsBinding.cvcInputLayout.editText?.text?.clear()
+        fragmentCardsBinding.zipInputLayout.editText?.text?.clear()
     }
 
     private fun showCardDetails(card: CardEntity) {

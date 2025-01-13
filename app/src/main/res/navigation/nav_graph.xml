@@ -21,7 +21,7 @@
 
     <fragment
         android:id="@+id/walletDetailsFragment"
-        android:name="com.dsk.myexpense.expense_module.ui.view.wallet.CardsFragment"
+        android:name="com.dsk.myexpense.expense_module.ui.view.wallet.WalletViewFragment"
         android:label="Wallet" />
 
     <fragment

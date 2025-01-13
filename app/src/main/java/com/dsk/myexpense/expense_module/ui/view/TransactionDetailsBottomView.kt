@@ -21,9 +21,12 @@ import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.TransactionDetailsBinding
 import com.dsk.myexpense.databinding.TransactionDetailsItemViewBinding
 import com.dsk.myexpense.expense_module.core.ExpenseApplication
+import com.dsk.myexpense.expense_module.data.model.Currency
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
+import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
+import com.dsk.myexpense.expense_module.util.CurrencyCache
 import com.dsk.myexpense.expense_module.util.NotificationUtils
 import com.dsk.myexpense.expense_module.util.Utility
 import com.dsk.myexpense.expense_module.util.Utility.dp
@@ -43,14 +46,23 @@ class TransactionDetailsBottomView(
 
     private var binding: TransactionDetailsBinding? = null
     private val bindingView get() = binding!!
+    private lateinit var expenseDate: String
+    private lateinit var expenseTime: String
+    private var currencySymbol: String = ""
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
             AppLoadingViewModel((requireActivity().application as ExpenseApplication).expenseRepository)
         }
     }
-
-    private lateinit var expenseDate: String
-    private lateinit var expenseTime: String
+    private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
+        GenericViewModelFactory {
+            HomeDetailsViewModel(
+                requireContext(),
+                (requireActivity().application as ExpenseApplication).expenseRepository,
+                (requireActivity().application as ExpenseApplication).settingsRepository
+            )
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -104,10 +116,27 @@ class TransactionDetailsBottomView(
         // Set basic data dynamically
         bindingView.statusLayout.transactionDetailValue.text =
             if (expenseDetails.isIncome) {
-//                bindingView.tvTransactionStatus.setTextColor(resources.getColor(R.color.colorNormal, null))
+                bindingView.statusLayout.transactionDetailValue.setTextColor(
+                    resources.getColor(
+                        R.color.teal_800,
+                        null
+                    )
+                )
+                bindingView.tvTransactionStatus.setTextColor(
+                    resources.getColor(
+                        R.color.teal_800,
+                        null
+                    )
+                )
                 getString(R.string.text_income)
             } else {
-                bindingView.statusLayout.transactionDetailValue.setTextColor(resources.getColor(R.color.red, null))
+                bindingView.tvTransactionStatus.setTextColor(resources.getColor(R.color.red, null))
+                bindingView.statusLayout.transactionDetailValue.setTextColor(
+                    resources.getColor(
+                        R.color.red,
+                        null
+                    )
+                )
                 getString(R.string.text_expense)
             }
 
@@ -136,7 +165,8 @@ class TransactionDetailsBottomView(
 
     private fun loadCategoryIcon() {
         CoroutineScope(Dispatchers.IO).launch {
-            val category = expenseDetails.categoryId?.let { appLoadingViewModel.getCategoryNameByID(it) }
+            val category =
+                expenseDetails.categoryId?.let { appLoadingViewModel.getCategoryNameByID(it) }
             withContext(Dispatchers.Main) {
                 category?.let {
                     bindingView.ivTransactionIcon.setImageResource(it.iconResId)
@@ -195,37 +225,65 @@ class TransactionDetailsBottomView(
                         drawImage(canvas, editExpense, paint, getImageXPosition(editExpense), 20f)
 
                         // Transaction Icon
-                        drawImage(canvas, ivTransactionIcon, paint, getImageXPosition(ivTransactionIcon), 120f, 80.dp.toInt(), 80.dp.toInt())
+                        drawImage(
+                            canvas,
+                            ivTransactionIcon,
+                            paint,
+                            getImageXPosition(ivTransactionIcon),
+                            120f,
+                            80.dp.toInt(),
+                            80.dp.toInt()
+                        )
 
                         // Transaction Status
-                        canvas.drawText(tvTransactionStatus.text.toString(), getImageXPosition(tvTransactionStatus), 220f, paint)
+                        canvas.drawText(
+                            tvTransactionStatus.text.toString(),
+                            getImageXPosition(tvTransactionStatus),
+                            220f,
+                            paint
+                        )
 
                         // Transaction Amount
-                        canvas.drawText(tvTransactionAmount.text.toString(), getImageXPosition(tvTransactionAmount), 260f, paint)
+                        canvas.drawText(
+                            tvTransactionAmount.text.toString(),
+                            getImageXPosition(tvTransactionAmount),
+                            260f,
+                            paint
+                        )
 
                         // Transaction Details Label
                         canvas.drawText(tvTransactionDetailsLabel.text.toString(), 20f, 320f, paint)
 
                         // Transaction Details Section
                         binding?.statusLayout?.let {
-                            drawTransactionDetailsSection(canvas,
-                                it, 350f, paint)
+                            drawTransactionDetailsSection(
+                                canvas,
+                                it, 350f, paint
+                            )
                         }
                         binding?.fromLayout?.let {
-                            drawTransactionDetailsSection(canvas,
-                                it, 430f, paint)
+                            drawTransactionDetailsSection(
+                                canvas,
+                                it, 430f, paint
+                            )
                         }
                         binding?.toLayout?.let {
-                            drawTransactionDetailsSection(canvas,
-                                it, 510f, paint)
+                            drawTransactionDetailsSection(
+                                canvas,
+                                it, 510f, paint
+                            )
                         }
                         binding?.timeLayout?.let {
-                            drawTransactionDetailsSection(canvas,
-                                it, 590f, paint)
+                            drawTransactionDetailsSection(
+                                canvas,
+                                it, 590f, paint
+                            )
                         }
                         binding?.dateLayout?.let {
-                            drawTransactionDetailsSection(canvas,
-                                it, 670f, paint)
+                            drawTransactionDetailsSection(
+                                canvas,
+                                it, 670f, paint
+                            )
                         }
 
                         // Divider
@@ -233,12 +291,16 @@ class TransactionDetailsBottomView(
 
                         // Spending Details
                         binding?.earningsLayout?.let {
-                            drawTransactionDetailsSection(canvas,
-                                it, 730f, paint)
+                            drawTransactionDetailsSection(
+                                canvas,
+                                it, 730f, paint
+                            )
                         }
                         binding?.feesLayout?.let {
-                            drawTransactionDetailsSection(canvas,
-                                it, 810f, paint)
+                            drawTransactionDetailsSection(
+                                canvas,
+                                it, 810f, paint
+                            )
                         }
 
                         // Divider
@@ -246,8 +308,10 @@ class TransactionDetailsBottomView(
 
                         // Total Details
                         binding?.totalLayout?.let {
-                            drawTransactionDetailsSection(canvas,
-                                it, 880f, paint)
+                            drawTransactionDetailsSection(
+                                canvas,
+                                it, 880f, paint
+                            )
                         }
 
                         // Download Receipt Button
@@ -256,29 +320,43 @@ class TransactionDetailsBottomView(
                         pdfDocument.finishPage(page)
 
                         // Save to Downloads directory
-                        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        val downloadsDir =
+                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                         val file = File(downloadsDir, "${fileName}.pdf")
                         pdfDocument.writeTo(FileOutputStream(file))
                         pdfDocument.close()
 
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "PDF saved to ${file.path}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "PDF saved to ${file.path}", Toast.LENGTH_SHORT)
+                                .show()
                         }
 
                         // Show notification
-                        NotificationUtils.showPdfSavedNotification(context,file)
+                        NotificationUtils.showPdfSavedNotification(context, file)
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
-                        Log.d("DsK","Failed to generate PDF ${e.localizedMessage}")
-                        Toast.makeText(context, "Failed to generate PDF ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                        Log.d("DsK", "Failed to generate PDF ${e.localizedMessage}")
+                        Toast.makeText(
+                            context,
+                            "Failed to generate PDF ${e.localizedMessage}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
         }
     }
 
-    private fun drawImage(canvas: Canvas, imageView: ImageView, paint: Paint, x: Float, y: Float, width: Int = 24, height: Int = 24) {
+    private fun drawImage(
+        canvas: Canvas,
+        imageView: ImageView,
+        paint: Paint,
+        x: Float,
+        y: Float,
+        width: Int = 24,
+        height: Int = 24
+    ) {
         val bitmap = imageView.drawable.toBitmap(width, height)
         canvas.drawBitmap(bitmap, x, y, paint)
     }
@@ -291,7 +369,12 @@ class TransactionDetailsBottomView(
         }
     }
 
-    private fun drawTransactionDetailsSection(canvas: Canvas, binding: TransactionDetailsItemViewBinding, yPosition: Float, paint: Paint) {
+    private fun drawTransactionDetailsSection(
+        canvas: Canvas,
+        binding: TransactionDetailsItemViewBinding,
+        yPosition: Float,
+        paint: Paint
+    ) {
         canvas.drawText(binding.transactionDetailValue.text.toString(), 20f, yPosition, paint)
     }
 
@@ -302,7 +385,13 @@ class TransactionDetailsBottomView(
         canvas.drawRect(20f, yPosition, 575f, yPosition + 1f, paint)
     }
 
-    private fun drawButton(canvas: Canvas, button: MaterialButton, paint: Paint, x: Float, y: Float) {
+    private fun drawButton(
+        canvas: Canvas,
+        button: MaterialButton,
+        paint: Paint,
+        x: Float,
+        y: Float
+    ) {
         val textBounds = Rect()
         paint.getTextBounds(button.text.toString(), 0, button.text.length, textBounds)
         val xOffset = (button.width - textBounds.width()) / 2

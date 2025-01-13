@@ -1,7 +1,6 @@
 package com.dsk.myexpense.expense_module.util
 
 import android.content.Context
-import android.util.Log
 
 object CurrencyCache {
     private const val PREFS_NAME = "CurrencyPrefs"

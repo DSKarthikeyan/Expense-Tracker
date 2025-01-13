@@ -19,6 +19,7 @@ import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.CategoryViewModel
 import com.dsk.myexpense.expense_module.util.CommonDialog
+import com.dsk.myexpense.expense_module.util.CurrencyCache
 
 class SettingsFragment : Fragment() {
 

@@ -28,7 +28,7 @@ class HomeDetailsViewModel(
 ) : ViewModel() {
 
     private val _currencySymbol = MutableLiveData<String>()
-    private val currencySymbol: LiveData<String> get() = _currencySymbol
+    val currencySymbol: LiveData<String> get() = _currencySymbol
 
     // MediatorLiveData to combine currency symbol with other amounts
     val combinedLiveData = MediatorLiveData<Pair<String, Triple<Double?, Double?, Double?>>>()

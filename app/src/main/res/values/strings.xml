@@ -10,6 +10,11 @@
     <string name="text_string_expense_sms">Expense SMS</string>
     <string name="text_string_activity">Activity</string>
     <string name="text_string_account">Account</string>
+    <string name="text_card_message">This card must be connected to a bank account under your name</string>
+    <string name="text_add_debit_card">Add your debit card</string>
+    <string name="text_debit_card">Debit Card</string>
+    <string name="text_debit_card_company_name">Company Name</string>
+    <string name="text_debit_card_sample_number">6219 8610 2888 8075</string>
 
     <string name="filter">Filter</string>
 
@@ -25,6 +30,7 @@
     <string name="text_income">Income</string>
     <string name="text_enter_new_category">Enter New Category</string>
     <string name="text_add_new_category">Add New Category</string>
+    <string name="text_next">Next</string>
     <string name="text_dark_mode">Dark Mode</string>
     <string name="text_default_currency">Default Currency</string>
     <string name="text_default_currency_value">INR</string>
@@ -56,14 +62,24 @@
     <string name="text_cancel">Cancel</string>
     <string name="text_expense_name">Expense Name</string>
     <string name="text_category">Category</string>
+    <string name="text_cards">Cards</string>
+    <string name="text_card_number">Card Number</string>
+    <string name="text_name_on_card">Name on Card</string>
+    <string name="text_expiry_date">Expiry Date (MM/YY)</string>
     <string name="text_download_receipt">Download Receipt</string>
     <string name="text_invoice">Invoice</string>
     <string name="text_add_invoice">Add Invoice</string>
     <string name="text_add">Add</string>
+    <string name="text_zip_code">Zip Code</string>
+    <string name="text_cvv">CVV</string>
+    <string name="text_expiry_sample">22/01</string>
+    <string name="text_add_card">Add Card</string>
     <string name="text_with_you">With you and:</string>
     <string name="text_overall_you_owe">Overall You Owe %d</string>
     <string name="text_settle_up">Settle Up</string>
     <string name="text_settings">Settings</string>
+    <string name="text_share_app_url">Share App URL</string>
+    <string name="text_invite_friends">Invite Friends</string>
     <string name="text_settled_up">Settled Up</string>
     <string name="text_paid_by">Paid by</string>
     <string name="text_and_split">and split</string>

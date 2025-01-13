@@ -19,7 +19,7 @@ navVersion = "2.8.5"
 legacySupportV4 = "1.0.0"
 lifecycleLivedataKtx = "2.8.7"
 fragmentKtx = "1.8.5"
-recyclerviewVersion = "1.3.2"
+recyclerviewVersion = "1.2.1"
 roomRuntime = "2.6.1"
 kotlinx-serialization-json = "1.7.3"
 

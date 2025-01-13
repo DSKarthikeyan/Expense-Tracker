@@ -1,0 +1,95 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <!-- Name on Card -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/nameOnCardInputLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Name on Card"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/nameOnCardInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Card Number -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/cardNumberInputLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Card Number"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/nameOnCardInputLayout"
+        app:layout_constraintVertical_chainStyle="packed">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/cardNumberInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:maxLength="16" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Expiry Date -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/expiryDateInputLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Expiry Date (MM/YY)"
+        app:layout_constraintEnd_toStartOf="@id/cvcInputLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardNumberInputLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/expiryDateInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="date" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- CVC -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/cvcInputLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="CVC"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/expiryDateInputLayout"
+        app:layout_constraintTop_toBottomOf="@id/cardNumberInputLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/cvcInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberPassword"
+            android:maxLength="4" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Zip Code -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/zipInputLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Zip Code"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cvcInputLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/zipInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

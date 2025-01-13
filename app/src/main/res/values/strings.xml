@@ -42,6 +42,8 @@
     <string name="text_welcome_holder">Good afternoon,</string>
     <string name="text_transactions_history">Transactions History</string>
     <string name="text_transactions_details">Transaction Details</string>
+    <string name="text_transactions">Transaction</string>
+    <string name="text_upcoming_bills">Upcoming Bills</string>
     <string name="text_profile_details">Profile Details</string>
     <string name="text_profile">Profile</string>
     <string name="text_delete">Delete</string>
@@ -112,6 +114,8 @@
 
     <string name="text_status">Status</string>
     <string name="text_from">From</string>
+    <string name="text_pay">Pay</string>
+    <string name="text_send">Send</string>
     <string name="text_to">To</string>
     <string name="text_time">Time</string>
     <string name="text_earnings">Earnings</string>
@@ -125,6 +129,9 @@
     <string name="top_spending">Top Spending</string>
     <string name="back_button">Back</string>
     <string name="share_button">Share</string>
+
+    <string name="smooth_scroll">smoothScroll to %d</string>
+    <string name="scroll">scroll to %d</string>
 
     <string name="no_data_available">No Data Available</string>
 </resources>

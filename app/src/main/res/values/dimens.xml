@@ -19,4 +19,8 @@
     <dimen name="expense_details_text_view_margin_start">4dp</dimen>
     <dimen name="expense_details_amount_text_view_margin_end">6dp</dimen>
 
+    <dimen name="item_touch_helper_swipe_escape_velocity">6dp</dimen>
+    <dimen name="item_touch_helper_swipe_escape_max_velocity">6dp</dimen>
+    <dimen name="item_touch_helper_max_drag_scroll_per_frame">6dp</dimen>
+
 </resources>

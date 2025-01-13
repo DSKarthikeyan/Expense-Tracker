@@ -52,9 +52,9 @@ class MyItemRecyclerViewAdapter(
             "- " to R.color.red
         }
 
-        val formattedAmount = String.format("%.2f", item.amount ?: 0.0)
+        val formattedAmount = String.format("%.2f", item.amount)
         holder.expenseAmountDetail.text = prefix + formattedAmount
-        holder.expenseAmountDetail.setTextColor(holder.expenseAmountDetail.resources.getColor(color))
+        holder.expenseAmountDetail.setTextColor(holder.expenseAmountDetail.resources.getColor(color, null))
 
         // Update date dynamically
         updateDate(holder.expenseAmountDate, item.expenseAddedDate)

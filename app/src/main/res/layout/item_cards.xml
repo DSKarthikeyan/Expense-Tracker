@@ -1,0 +1,57 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="324dp"
+    android:layout_height="209dp"
+    android:layout_gravity="center"
+    android:background="@drawable/card_background_wallet"
+    android:padding="16dp">
+
+    <ViewFlipper
+        android:id="@+id/viewFlipper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Card Name -->
+        <TextView
+            android:id="@+id/cardName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Card Name"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="IRVAN MOSES" />
+
+        <!-- Card Number -->
+        <TextView
+            android:id="@+id/cardNumber"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Card Number"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardName"
+            tools:text="**** **** **** 8075" />
+
+        <!-- Expiration Date -->
+        <TextView
+            android:id="@+id/cardExpiry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Expiry"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardNumber"
+            tools:text="22/01" />
+    </ViewFlipper>
+</androidx.constraintlayout.widget.ConstraintLayout>

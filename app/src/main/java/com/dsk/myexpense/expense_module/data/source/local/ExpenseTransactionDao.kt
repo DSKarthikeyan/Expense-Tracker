@@ -16,13 +16,11 @@ interface ExpenseTransactionDao {
         // Insert ExpenseDetails
         val expenseID = insert(expenseDetails).toInt() // Fetch the inserted ID
 
-        if(invoiceImage != null) {
-            // Prepare Invoice Image with the returned ID
-            val updatedInvoiceImage = invoiceImage.copy(expenseID = expenseID)
+        // Prepare Invoice Image with the returned ID
+        val updatedInvoiceImage = invoiceImage.copy(expenseID = expenseID)
 
-            // Insert Invoice Image
-            insertInvoiceImage(updatedInvoiceImage)
-        }
+        // Insert Invoice Image
+        insertInvoiceImage(updatedInvoiceImage)
     }
 
     @Insert

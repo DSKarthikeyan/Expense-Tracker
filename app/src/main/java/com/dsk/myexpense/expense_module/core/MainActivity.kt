@@ -190,7 +190,7 @@ class MainActivity : AppCompatActivity() {
 
                 // Notify user why permissions are necessary
                 AlertDialog.Builder(this)
-                    .setMessage("We need these permissions to access SMS data and other features.")
+                    .setMessage("Necessary permissions to access SMS data and Images is Missing.\n Please give in app settings")
                     .setPositiveButton("Grant") { _, _ ->
                         // Redirect user to app settings if they deny
                         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)

@@ -2,32 +2,48 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Device Features -->
     <uses-feature
         android:name="android.hardware.telephony"
         android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
 
+    <!-- Permissions -->
+    <!-- Network -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- SMS -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.BIND_JOB_SERVICE"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
+    <!-- Notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Camera and Media Access -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL" />
 
-    <uses-feature android:name="android.hardware.camera" required="true"/>
+    <!-- Queries -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PICK" />
+            <data android:mimeType="image/*" />
+        </intent>
+    </queries>
 
+    <!-- Application Declaration -->
     <application
         android:name=".expense_module.core.ExpenseApplication"
         android:allowBackup="true"
@@ -40,20 +56,21 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyExpense"
         tools:targetApi="31">
-        <activity
-            android:name=".expense_module.ui.view.AddNewExpenseActivity"
-            android:exported="true"
-            android:theme="@style/Theme.MyExpense" />
+
+        <!-- Activities -->
+<!--        <activity-->
+<!--            android:name=".expense_module.ui.view.AddNewExpenseActivity"-->
+<!--            android:exported="true" />-->
         <activity
             android:name=".expense_module.core.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <!-- Broadcast Receivers -->
         <receiver
             android:name=".expense_module.util.SmsReceiver"
             android:exported="true"
@@ -72,11 +89,10 @@
             </intent-filter>
         </receiver>
 
+        <!-- Services -->
         <service
             android:name=".expense_module.util.SmsJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE">
-        </service>
-
+            android:permission="android.permission.BIND_JOB_SERVICE" />
         <service
             android:name=".expense_module.ui.NotificationListener"
             android:exported="true"
@@ -86,6 +102,7 @@
             </intent-filter>
         </service>
 
+        <!-- File Provider -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

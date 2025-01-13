@@ -298,6 +298,18 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/clearInvoiceButton"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:contentDescription="Clear Image"
+                    android:visibility="gone"
+                    android:src="@android:drawable/ic_input_delete"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_gravity="end" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <Button

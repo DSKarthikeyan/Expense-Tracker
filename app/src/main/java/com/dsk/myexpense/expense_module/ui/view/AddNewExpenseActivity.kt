@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.ext.SdkExtensions
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
@@ -20,6 +21,7 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresExtension
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -48,7 +50,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-
 class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
     private lateinit var binding: ActivityAddNewExpenseBinding
@@ -73,6 +74,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
     private val categoryViewModel: CategoryViewModel by viewModels {
         GenericViewModelFactory { CategoryViewModel(expenseRepository) }
     }
+
     // Flag to check if the dialog is already shown
     private var isCategoryDialogOpen = false
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
@@ -91,14 +93,17 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         }
     }
 
-    private val photoPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            val selectedUris = result.data?.clipData?.let { clipData ->
-                (0 until clipData.itemCount).map { clipData.getItemAt(it).uri }
-            } ?: listOfNotNull(result.data?.data)
-            handleSelectedPhotos(selectedUris)
+    private val photoPickerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val selectedUris = result.data?.clipData?.let { clipData ->
+                    (0 until clipData.itemCount).map { clipData.getItemAt(it).uri }
+                } ?: listOfNotNull(result.data?.data)
+                handleSelectedPhotos(selectedUris)
+            } else {
+                Log.d("AddNewExpenseActivity", "Photo picker cancelled")
+            }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -107,7 +112,11 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         binding = ActivityAddNewExpenseBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -229,17 +238,42 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
                 when (checkedId) {
                     R.id.addNewExpense -> {
                         binding.addNewExpenseWidget.addNewExpense.setBackgroundResource(R.drawable.radio_button_background)
-                        binding.addNewExpenseWidget.addNewIncome.setBackgroundColor(resources.getColor(R.color.transparent,null))
+                        binding.addNewExpenseWidget.addNewIncome.setBackgroundColor(
+                            resources.getColor(
+                                R.color.transparent,
+                                null
+                            )
+                        )
                     }
+
                     R.id.addNewIncome -> {
-                        binding.addNewExpenseWidget.addNewExpense.setBackgroundColor(resources.getColor(R.color.transparent,null))
+                        binding.addNewExpenseWidget.addNewExpense.setBackgroundColor(
+                            resources.getColor(
+                                R.color.transparent,
+                                null
+                            )
+                        )
                         binding.addNewExpenseWidget.addNewIncome.setBackgroundResource(R.drawable.radio_button_background)
                     }
                 }
             }
-
+        }
+        binding.addNewExpenseWidget.apply {
+            binding.addNewExpenseWidget.clearInvoiceButton.setOnClickListener {
+                clearInvoiceImage()
+            }
         }
     }
+
+    private fun clearInvoiceImage() {
+        invoiceImage = null
+        binding.addNewExpenseWidget.addExpenseAddInvoiceView.apply {
+            binding.addNewExpenseWidget.addInvoiceImageView.setImageBitmap(null)
+            visibility = View.GONE
+        }
+        Toast.makeText(context, "Invoice image cleared", Toast.LENGTH_SHORT).show()
+    }
+
 
     private fun preloadData(expenseDetails: ExpenseDetails) {
         binding.addNewExpenseWidget.apply {
@@ -252,14 +286,17 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
                 val adapter = CategorySpinnerAdapter(requireContext(), categories)
                 spinnerCategoryType.adapter = adapter
 
-                val selectedCategoryIndex = categories.indexOfFirst { it.id == expenseDetails.categoryId }
+                val selectedCategoryIndex =
+                    categories.indexOfFirst { it.id == expenseDetails.categoryId }
                 if (selectedCategoryIndex != -1) {
                     spinnerCategoryType.setSelection(selectedCategoryIndex)
                 }
             }
 
-            val dateFormatter = SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault())
-            addExpenseDateTextView.text = dateFormatter.format(Date(expenseDetails.expenseAddedDate))
+            val dateFormatter =
+                SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault())
+            addExpenseDateTextView.text =
+                dateFormatter.format(Date(expenseDetails.expenseAddedDate))
         }
         isNewExpense = !expenseDetails.isIncome
     }
@@ -275,20 +312,30 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
     private fun setupDatePicker() {
         binding.addNewExpenseWidget.addExpenseDateView.setOnClickListener {
             val calendar = Calendar.getInstance()
-            DatePickerDialog(requireContext(), { _, year, month, dayOfMonth ->
-                TimePickerDialog(requireContext(), { _, hourOfDay, minute ->
-                    val selectedDate = Calendar.getInstance().apply {
-                        set(year, month, dayOfMonth, hourOfDay, minute)
-                    }
-                    val formattedDate = SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault()).format(selectedDate.time)
-                    binding.addNewExpenseWidget.addExpenseDateTextView.text = formattedDate
-                }, calendar[Calendar.HOUR_OF_DAY], calendar[Calendar.MINUTE], false).show()
-            }, calendar[Calendar.YEAR], calendar[Calendar.MONTH], calendar[Calendar.DAY_OF_MONTH]).show()
+            DatePickerDialog(
+                requireContext(),
+                { _, year, month, dayOfMonth ->
+                    TimePickerDialog(requireContext(), { _, hourOfDay, minute ->
+                        val selectedDate = Calendar.getInstance().apply {
+                            set(year, month, dayOfMonth, hourOfDay, minute)
+                        }
+                        val formattedDate = SimpleDateFormat(
+                            AppConstants.DATE_FORMAT_STRING,
+                            Locale.getDefault()
+                        ).format(selectedDate.time)
+                        binding.addNewExpenseWidget.addExpenseDateTextView.text = formattedDate
+                    }, calendar[Calendar.HOUR_OF_DAY], calendar[Calendar.MINUTE], false).show()
+                },
+                calendar[Calendar.YEAR],
+                calendar[Calendar.MONTH],
+                calendar[Calendar.DAY_OF_MONTH]
+            ).show()
         }
     }
 
     private fun setCurrentDate() {
-        val currentDate = SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault()).format(Date())
+        val currentDate =
+            SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault()).format(Date())
         binding.addNewExpenseWidget.addExpenseDateTextView.text = currentDate
     }
 
@@ -296,7 +343,10 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         val widget = binding.addNewExpenseWidget
         val expenseName = widget.addExpenseNameTextView.text.toString()
         val expenseDescription = widget.addExpenseDescriptionTextView.text.toString()
-        val expenseAmount = getNumericValueFromText(widget.addExpenseAmountTextView.text.toString(), selectedCurrency)
+        val expenseAmount = getNumericValueFromText(
+            widget.addExpenseAmountTextView.text.toString(),
+            selectedCurrency
+        )
         val selectedCategory = categories[widget.spinnerCategoryType.selectedItemPosition]
         val selectedDate = widget.addExpenseDateTextView.text.toString()
 
@@ -313,7 +363,10 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
             return
         }
 
-        val expenseAmountValue = getNumericValueFromText(widget.addExpenseAmountTextView.text.toString(), selectedCurrency)
+        val expenseAmountValue = getNumericValueFromText(
+            widget.addExpenseAmountTextView.text.toString(),
+            selectedCurrency
+        )
         if (expenseAmountValue <= 0) {
             widget.addExpenseAmountTextView.error = "Amount must be greater than 0"
             widget.addExpenseAmountTextView.requestFocus()
@@ -321,7 +374,8 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         }
 
         if (selectedDate.isEmpty()) {
-            Toast.makeText(requireContext(), "Please select a valid date", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Please select a valid date", Toast.LENGTH_SHORT)
+                .show()
             widget.addExpenseDateView.performClick() // Open date picker
             return
         }
@@ -352,9 +406,19 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         )
 
         if (expenseDetailToSave.expenseID != null) {
-            homeDetailsViewModel.updateExpense(requireContext(), expenseDetailToSave, invoiceImage, selectedCategory.name)
+            homeDetailsViewModel.updateExpense(
+                requireContext(),
+                expenseDetailToSave,
+                invoiceImage,
+                selectedCategory.name
+            )
         } else {
-            homeDetailsViewModel.insertExpense(requireContext(), expenseDetailToSave, invoiceImage, selectedCategory.name)
+            homeDetailsViewModel.insertExpense(
+                requireContext(),
+                expenseDetailToSave,
+                invoiceImage,
+                selectedCategory.name
+            )
         }
 
         dismiss()
@@ -378,14 +442,26 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
     }
 
     private fun requestMediaPermission() {
+        Log.d("AddNewExpenseActivity", "requestMediaPermission:")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             PermissionManager.requestPermission(
                 requireContext(),
                 Manifest.permission.READ_MEDIA_IMAGES,
-                onGranted = { showPhotoPicker() },
-                onDenied = { Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show() }
+                onGranted = {
+                    Log.d("AddNewExpenseActivity", "Permission granted")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                        SdkExtensions.getExtensionVersion(Build.VERSION_CODES.R) >= 2) {
+                        showPhotoPicker()
+                    } else {
+                        accessMedia()
+                    }
+                },
+                onDenied = {
+                    Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
+                }
             )
         } else {
+            Log.d("AddNewExpenseActivity", "Fallback for lower API versions")
             accessMedia()
         }
     }
@@ -425,29 +501,46 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
             if (imageUris.isNotEmpty()) {
                 handleSelectedPhotos(imageUris)
+            } else {
+                Log.d("AddNewExpenseActivity", "No images found in media")
             }
         }
     }
 
     private fun showPhotoPicker() {
-        val intent = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
-            type = "image/*"
-            putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, 10)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // For Android 14+, we use ACTION_PICK_IMAGES to open the new photo picker UI
+            val intent = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
+                type = "image/*" // Setting image type for the picker
+                putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, 10) // Allowing the user to pick up to 10 images
+            }
+            photoPickerLauncher.launch(intent)
+        } else {
+            // For devices below Android 14, use the traditional approach (as already implemented)
+            accessMedia()
         }
-        photoPickerLauncher.launch(intent)
     }
 
     private fun handleSelectedPhotos(selectedUris: List<Uri>) {
         if (selectedUris.isNotEmpty()) {
             val inputStream = context?.contentResolver?.openInputStream(selectedUris[0])
             invoiceImage = BitmapFactory.decodeStream(inputStream)
-            binding.addNewExpenseWidget.addInvoiceImageView.setImageBitmap(invoiceImage)
+
+            if (invoiceImage != null) {
+                binding.addNewExpenseWidget.addExpenseAddInvoiceView.apply {
+                    binding.addNewExpenseWidget.addInvoiceImageView.setImageBitmap(invoiceImage)
+                    visibility = View.VISIBLE
+                }
+            }
         } else {
             Toast.makeText(context, "No photos selected", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun createCurrencyTextWatcher(currencySymbol: String, editText: TextInputEditText): TextWatcher {
+    private fun createCurrencyTextWatcher(
+        currencySymbol: String,
+        editText: TextInputEditText
+    ): TextWatcher {
         return object : TextWatcher {
             private var isUpdating = false
 
@@ -463,7 +556,8 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
                 val requiredPrefix = "$currencySymbol "
 
                 if (!inputText.startsWith(requiredPrefix)) {
-                    val updatedText = "$requiredPrefix${inputText.replace(currencySymbol, "").trim()}"
+                    val updatedText =
+                        "$requiredPrefix${inputText.replace(currencySymbol, "").trim()}"
                     editText.setText(updatedText)
                     editText.setSelection(updatedText.length)
                 }

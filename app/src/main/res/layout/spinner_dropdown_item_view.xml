@@ -6,15 +6,27 @@
     android:orientation="horizontal"
     android:padding="4dp">
 
-    <ImageView
-        android:id="@+id/spinner_icon"
-        android:layout_width="38dp"
-        android:layout_height="38dp"
-        android:layout_marginEnd="2dp"
-        android:contentDescription="@string/text_category"
+    <FrameLayout
+        android:id="@+id/expenseCategoryImageGroup"
+        android:layout_width="40dp"
+        android:layout_height="41dp"
+        android:background="@drawable/rectangle_background"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/spinner_icon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/text_category"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_other_expenses"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/spinner_text"
@@ -24,6 +36,6 @@
         android:text="@string/text_category"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/spinner_icon"
+        app:layout_constraintStart_toEndOf="@+id/expenseCategoryImageGroup"
         app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

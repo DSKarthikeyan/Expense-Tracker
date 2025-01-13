@@ -13,10 +13,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.TransactionDetailsBinding
 import com.dsk.myexpense.databinding.TransactionDetailsItemViewBinding
@@ -30,6 +32,8 @@ import com.dsk.myexpense.expense_module.util.CurrencyCache
 import com.dsk.myexpense.expense_module.util.NotificationUtils
 import com.dsk.myexpense.expense_module.util.Utility
 import com.dsk.myexpense.expense_module.util.Utility.dp
+import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarView
+import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CoroutineScope
@@ -54,15 +58,9 @@ class TransactionDetailsBottomView(
             AppLoadingViewModel((requireActivity().application as ExpenseApplication).expenseRepository)
         }
     }
-    private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
-        GenericViewModelFactory {
-            HomeDetailsViewModel(
-                requireContext(),
-                (requireActivity().application as ExpenseApplication).expenseRepository,
-                (requireActivity().application as ExpenseApplication).settingsRepository
-            )
-        }
-    }
+
+    private lateinit var headerBarViewModel: HeaderBarViewModel
+    private lateinit var headerBarView: HeaderBarView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -82,13 +80,53 @@ class TransactionDetailsBottomView(
             dismiss()
         }
 
-        bindingView.editExpense.setOnClickListener {
-            navigateToAddNewExpenseActivity()
+        headerBarViewModel = ViewModelProvider(this)[HeaderBarViewModel::class.java]
+        headerBarView = bindingView.headerBarLayout
+
+        // Bind ViewModel LiveData to the HeaderBarView
+        headerBarViewModel.headerTitle.observe(this) { title ->
+            headerBarView.setHeaderTitle(title)
         }
 
-        bindingView.iconBack.setOnClickListener {
-            dismiss()
+        headerBarViewModel.leftIconResource.observe(this) { iconResId ->
+            headerBarView.setLeftIcon(iconResId)
         }
+
+        headerBarViewModel.rightIconResource.observe(this) { iconResId ->
+            headerBarView.setRightIcon(iconResId)
+        }
+
+        headerBarViewModel.isLeftIconVisible.observe(this) { isVisible ->
+            headerBarView.setLeftIconVisibility(isVisible)
+        }
+
+        headerBarViewModel.isRightIconVisible.observe(this) { isVisible ->
+            headerBarView.setRightIconVisibility(isVisible)
+        }
+
+        // Example: Updating the header dynamically
+        headerBarViewModel.setHeaderTitle(getString(R.string.text_string_statistics))
+        headerBarViewModel.setLeftIconResource(R.drawable.ic_arrow_down_24)
+        headerBarViewModel.setRightIconResource(R.drawable.ic_edit)
+        headerBarViewModel.setLeftIconVisibility(true)
+        headerBarViewModel.setRightIconVisibility(true)
+
+        // Handle icon clicks
+        headerBarView.setOnLeftIconClickListener {
+            onLeftIconClick()
+        }
+
+        headerBarView.setOnRightIconClickListener {
+            onRightIconClick()
+        }
+    }
+
+    private fun onLeftIconClick() {
+        dismiss()
+    }
+
+    private fun onRightIconClick() {
+        navigateToAddNewExpenseActivity()
     }
 
     override fun onStart() {
@@ -219,10 +257,10 @@ class TransactionDetailsBottomView(
                         canvas.drawText("Transaction Details", 50f, 50f, paint)
 
                         // Back Button
-                        drawImage(canvas, iconBack, paint, 10f, 20f)
-
-                        // Edit Button
-                        drawImage(canvas, editExpense, paint, getImageXPosition(editExpense), 20f)
+//                        drawImage(canvas, headerBarViewModel.rightIconResource.value, paint, 10f, 20f)
+//
+//                        // Edit Button
+//                        drawImage(canvas, editExpense, paint, getImageXPosition(editExpense), 20f)
 
                         // Transaction Icon
                         drawImage(
@@ -364,7 +402,7 @@ class TransactionDetailsBottomView(
     private fun getImageXPosition(view: View): Float {
         return when (view.id) {
             R.id.iconBack -> 10f
-            R.id.editExpense -> 575f // Right side position
+//            R.id.editExpense -> 575f // Right side position
             else -> 0f
         }
     }
@@ -387,7 +425,7 @@ class TransactionDetailsBottomView(
 
     private fun drawButton(
         canvas: Canvas,
-        button: MaterialButton,
+        button: Button,
         paint: Paint,
         x: Float,
         y: Float

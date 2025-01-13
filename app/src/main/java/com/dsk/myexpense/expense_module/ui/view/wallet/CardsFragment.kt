@@ -1,6 +1,7 @@
 package com.dsk.myexpense.expense_module.ui.view.wallet
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,14 +9,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.FragmentWalletCardsBinding
 import com.dsk.myexpense.expense_module.data.model.CardEntity
 import com.dsk.myexpense.expense_module.ui.adapter.CardAdapter
 import com.dsk.myexpense.expense_module.ui.viewmodel.WalletViewModel
-import com.dsk.myexpense.expense_module.util.swipeLayout.StackLayoutManager
-import kotlin.math.abs
-import kotlin.random.Random
 
 class CardsFragment : Fragment() {
 
@@ -24,10 +23,6 @@ class CardsFragment : Fragment() {
     private val viewModel: WalletViewModel by viewModels()
 
     private lateinit var cardAdapter: CardAdapter
-    private lateinit var selectItems: Array<String>
-    private val stackCount = 30
-    private var randomPosition = 0
-    private var stackLayoutManager: StackLayoutManager? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,53 +35,41 @@ class CardsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize RecyclerView components
-        stackLayoutManager = StackLayoutManager()
-
         cardAdapter = CardAdapter { card ->
             onCardClicked(card)
         }
 
-//        binding.cardList.apply {
-//            layoutManager = stackLayoutManager
-//            adapter = cardAdapter
-//        }
+        val linearLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        fragmentCardsBinding.cardList.apply {
+            layoutManager = linearLayoutManager
+            adapter = cardAdapter
+        }
 
-        // Add button click listener
-//        binding.addCardButton.setOnClickListener {
-//            handleAddCard()
-//        }
-
-        selectItems = resources.getStringArray(R.array.items)
-        resetRandom()
+        fragmentCardsBinding.addCardButton.setOnClickListener {
+            handleAddCard()
+        }
 
         observeViewModel()
     }
 
     private fun observeViewModel() {
-//        viewModel.cards.observe(viewLifecycleOwner) { cards ->
-//            if (!cards.isNullOrEmpty()) {
-//                Log.d("CardsFragment", "Loaded ${cards.size} cards.")
-//                updateCardList(cards)
-//                binding.cardList.visibility = View.VISIBLE
-//                binding.emptyText.visibility = View.GONE
-//            } else {
-//                Log.d("CardsFragment", "No cards found.")
-//                binding.cardList.visibility = View.GONE
-//                binding.emptyText.visibility = View.VISIBLE
-//                Toast.makeText(requireContext(), "No cards available", Toast.LENGTH_SHORT).show()
-//            }
-//        }
+        viewModel.cards.observe(viewLifecycleOwner) { cards ->
+            if (!cards.isNullOrEmpty()) {
+                Log.d("CardsFragment", "Loaded ${cards.size} cards.")
+                updateCardList(cards)
+                fragmentCardsBinding.cardList.visibility = View.VISIBLE
+                fragmentCardsBinding.emptyText.visibility = View.GONE
+            } else {
+                Log.d("CardsFragment", "No cards found.")
+                fragmentCardsBinding.cardList.visibility = View.GONE
+                fragmentCardsBinding.emptyText.visibility = View.VISIBLE
+                Toast.makeText(requireContext(), "No cards available", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun updateCardList(cards: List<CardEntity>) {
-        cardAdapter.submitList(cards)  // Use ListAdapter's submitList for updating data
-    }
-
-    private fun resetRandom() {
-        randomPosition = abs(Random.nextInt() % stackCount)
-        selectItems[0] = getString(R.string.smooth_scroll, randomPosition)
-        selectItems[1] = getString(R.string.scroll, randomPosition)
+        cardAdapter.submitList(cards)
     }
 
     private fun onCardClicked(card: CardEntity) {
@@ -95,7 +78,6 @@ class CardsFragment : Fragment() {
     }
 
     private fun handleAddCard() {
-        // Get the values from input fields
         val nameOnCard = fragmentCardsBinding.nameOnCardInputLayout.editText?.text.toString()
         val cardNumber = fragmentCardsBinding.cardNumberInputLayout.editText?.text.toString()
         val expiryDate = fragmentCardsBinding.expiryDateInputLayout.editText?.text.toString()
@@ -109,8 +91,10 @@ class CardsFragment : Fragment() {
         }
 
         if (!isValidCardNumber(cardNumber)) {
-            Toast.makeText(requireContext(), "Invalid Card Number", Toast.LENGTH_SHORT).show()
+            fragmentCardsBinding.cardNumberInputLayout.error = "Invalid Card Number"
             return
+        } else {
+            fragmentCardsBinding.cardNumberInputLayout.error = null
         }
 
         if (!isValidExpiryDate(expiryDate)) {
@@ -128,7 +112,6 @@ class CardsFragment : Fragment() {
             return
         }
 
-        // Create a new CardEntity
         val newCard = CardEntity(
             nameOnCard = nameOnCard,
             cardNumber = cardNumber,
@@ -137,21 +120,37 @@ class CardsFragment : Fragment() {
             zip = zip
         )
 
-        // Add the card to the database
         viewModel.addCard(newCard)
-
         Toast.makeText(requireContext(), "Card added successfully!", Toast.LENGTH_SHORT).show()
-
-        // Clear the input fields
         clearInputFields()
     }
 
     private fun isValidCardNumber(cardNumber: String): Boolean {
-        return cardNumber.length == 16 && cardNumber.all { it.isDigit() }
+        if (cardNumber.length != 16 || cardNumber.any { !it.isDigit() }) {
+            return false
+        }
+
+        var sum = 0
+        var shouldDouble = false
+
+        for (i in cardNumber.length - 1 downTo 0) {
+            var digit = cardNumber[i].toString().toInt()
+
+            if (shouldDouble) {
+                digit *= 2
+                if (digit > 9) {
+                    digit -= 9
+                }
+            }
+
+            sum += digit
+            shouldDouble = !shouldDouble
+        }
+
+        return sum % 10 == 0
     }
 
     private fun isValidExpiryDate(expiryDate: String): Boolean {
-        // Validate expiry date format MM/YY
         val regex = Regex("^\\d{2}/\\d{2}$")
         if (!expiryDate.matches(regex)) return false
 
@@ -177,9 +176,7 @@ class CardsFragment : Fragment() {
                         "CVC: ${card.cvc}\n" +
                         "Zip Code: ${card.zip}"
             )
-            .setPositiveButton("OK") { dialog, _ ->
-                dialog.dismiss()
-            }
+            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
         dialogBuilder.create().show()
     }
 

@@ -276,12 +276,13 @@
 
             <Button
                 android:id="@+id/addExpenseButton"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_marginTop="20dp"
-                android:gravity="center"
-                android:includeFontPadding="false"
-                android:text="@string/text_add_expense"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="30dp"
+                android:text="@string/text_download_receipt"
+                android:textColor="@color/teal_800"
+                android:background="@drawable/button_background"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/addExpenseAddInvoiceView" />

@@ -1,57 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="324dp"
-    android:layout_height="209dp"
-    android:layout_gravity="center"
-    android:background="@drawable/card_background_wallet"
-    android:padding="16dp">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <ViewFlipper
-        android:id="@+id/viewFlipper"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardPreview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="200dp"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Card Name -->
-        <TextView
-            android:id="@+id/cardName"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Card Name"
-            android:textColor="@android:color/white"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="IRVAN MOSES" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/debit_card_background"
+            android:padding="16dp">
 
-        <!-- Card Number -->
-        <TextView
-            android:id="@+id/cardNumber"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Card Number"
-            android:textColor="@android:color/white"
-            android:textSize="16sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/cardName"
-            tools:text="**** **** **** 8075" />
+            <!-- Card Network Logo -->
+            <TextView
+                android:id="@+id/cardCompanyName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="8dp"
+                android:text="@string/text_debit_card_company_name" />
 
-        <!-- Expiration Date -->
-        <TextView
-            android:id="@+id/cardExpiry"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Expiry"
-            android:textColor="@android:color/white"
-            android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/cardNumber"
-            tools:text="22/01" />
-    </ViewFlipper>
+            <!-- Card Type -->
+            <TextView
+                android:id="@+id/cardType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/text_debit_card"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <!-- Card Number -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:weightSum="2"
+                android:layout_centerInParent="true">
+
+                <TextView
+                    android:id="@+id/cardNumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.1"
+                    android:textAlignment="center"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_weight="1"
+                    android:text="@string/text_debit_card_sample_number" />
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/switchShowCardNumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Show" />
+            </LinearLayout>
+
+            <!-- Card Holder Name -->
+            <TextView
+                android:id="@+id/cardHolderName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="16dp"
+                android:text="@string/text_user_name"
+                android:textSize="14sp" />
+
+            <!-- Expiry Date -->
+            <TextView
+                android:id="@+id/cardExpiry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="16dp"
+                android:text="@string/text_expiry_date"
+                android:textSize="14sp" />
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

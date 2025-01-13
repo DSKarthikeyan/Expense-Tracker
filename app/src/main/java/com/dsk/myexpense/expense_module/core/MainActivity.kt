@@ -28,7 +28,10 @@ import com.dsk.myexpense.expense_module.ui.view.settings.SettingsDataStore
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import kotlinx.coroutines.launch
-import org.json.JSONObject
+import android.app.AlertDialog
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 
 class MainActivity : AppCompatActivity() {
 
@@ -58,7 +61,7 @@ class MainActivity : AppCompatActivity() {
         // Initialize binding and set content view
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
 
         // Handle window insets for padding
         applyWindowInsets()
@@ -144,20 +147,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAndRequestPermissions() {
-        if (!smsViewModel.checkPermissions(this)) {
-            val permissions = getRequiredPermissions()
-            if (permissions.isNotEmpty()) {
-                ActivityCompat.requestPermissions(
-                    this, permissions.toTypedArray(), permissionRequestCode
-                )
-            }
+        val permissions = getRequiredPermissions()
+        if (permissions.isNotEmpty()) {
+            ActivityCompat.requestPermissions(
+                this, permissions.toTypedArray(), permissionRequestCode
+            )
         } else {
-            Log.d("MainActivity", "Permissions already granted")
+            Log.d("MainActivity", "All necessary permissions are already granted.")
         }
     }
 
     private fun getRequiredPermissions(): List<String> {
         val permissions = mutableListOf<String>()
+
         val permissionList = listOf(
             Manifest.permission.RECEIVE_SMS,
             Manifest.permission.READ_SMS,
@@ -166,14 +168,13 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.CAMERA
         )
+
         permissionList.forEach { permission ->
-            if (ContextCompat.checkSelfPermission(
-                    this, permission
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
                 permissions.add(permission)
             }
         }
+
         return permissions
     }
 
@@ -185,8 +186,22 @@ class MainActivity : AppCompatActivity() {
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 Log.d("MainActivity", "All permissions granted!")
             } else {
-                Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Permissions Denied", Toast.LENGTH_SHORT).show()
+
+                // Notify user why permissions are necessary
+                AlertDialog.Builder(this)
+                    .setMessage("We need these permissions to access SMS data and other features.")
+                    .setPositiveButton("Grant") { _, _ ->
+                        // Redirect user to app settings if they deny
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        val uri = Uri.fromParts("package", packageName, null)
+                        intent.data = uri
+                        startActivity(intent)
+                    }
+                    .setNegativeButton("Deny", null)
+                    .show()
             }
         }
     }
 }
+

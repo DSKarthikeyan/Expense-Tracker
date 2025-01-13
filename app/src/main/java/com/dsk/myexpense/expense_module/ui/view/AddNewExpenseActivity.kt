@@ -17,6 +17,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
@@ -28,10 +29,13 @@ import com.dsk.myexpense.expense_module.core.ExpenseApplication
 import com.dsk.myexpense.expense_module.data.model.Category
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.ui.adapter.CategorySpinnerAdapter
+import com.dsk.myexpense.expense_module.ui.view.settings.SettingsViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
+import com.dsk.myexpense.expense_module.ui.viewmodel.CategoryViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.AppConstants
+import com.dsk.myexpense.expense_module.util.CommonDialog
 import com.dsk.myexpense.expense_module.util.CurrencyCache
 import com.dsk.myexpense.expense_module.util.PermissionManager
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarView
@@ -39,27 +43,45 @@ import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+
 class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
-    private lateinit var addExpenseView: ActivityAddNewExpenseBinding
+    private lateinit var binding: ActivityAddNewExpenseBinding
     private lateinit var categories: List<Category>
     private var invoiceImage: Bitmap? = null
     private var isNewExpense = true
-    private lateinit var selectedCurrency: String
     private var preloadedExpenseDetails: ExpenseDetails? = null
+    private lateinit var selectedCurrency: String
     private lateinit var headerBarViewModel: HeaderBarViewModel
     private lateinit var headerBarView: HeaderBarView
+    private val settingsRepository by lazy {
+        (requireActivity().application as ExpenseApplication).settingsRepository
+    }
 
+    private val expenseRepository by lazy {
+        (requireActivity().application as ExpenseApplication).expenseRepository
+    }
+
+    private val settingsViewModel: SettingsViewModel by viewModels {
+        GenericViewModelFactory { SettingsViewModel(settingsRepository, expenseRepository) }
+    }
+    private val categoryViewModel: CategoryViewModel by viewModels {
+        GenericViewModelFactory { CategoryViewModel(expenseRepository) }
+    }
+    // Flag to check if the dialog is already shown
+    private var isCategoryDialogOpen = false
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
         GenericViewModelFactory {
-            HomeDetailsViewModel(requireContext(),(requireActivity().application as ExpenseApplication).expenseRepository
-                ,(requireActivity().application as ExpenseApplication).settingsRepository)
+            HomeDetailsViewModel(
+                requireContext(),
+                (requireActivity().application as ExpenseApplication).expenseRepository,
+                (requireActivity().application as ExpenseApplication).settingsRepository
+            )
         }
     }
 
@@ -69,15 +91,11 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         }
     }
 
-    // Activity result launcher for photo picker
-    private val photoPickerLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
+    private val photoPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             val selectedUris = result.data?.clipData?.let { clipData ->
                 (0 until clipData.itemCount).map { clipData.getItemAt(it).uri }
             } ?: listOfNotNull(result.data?.data)
-
             handleSelectedPhotos(selectedUris)
         }
     }
@@ -89,127 +107,153 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        addExpenseView = ActivityAddNewExpenseBinding.inflate(inflater, container, false)
-        return addExpenseView.root
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        binding = ActivityAddNewExpenseBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupViews()
+        setupHeaderBar()
         setupListeners()
         setupDropdown()
         setupDatePicker()
 
         preloadedExpenseDetails?.let { preloadData(it) } ?: setCurrentDate()
 
-        headerBarViewModel = ViewModelProvider(this)[HeaderBarViewModel::class.java]
-        headerBarView = addExpenseView.addNewExpenseWidget.headerBarLayout
-
-        // Bind ViewModel LiveData to the HeaderBarView
-        headerBarViewModel.headerTitle.observe(this, { title ->
-            headerBarView.setHeaderTitle(title)
-        })
-
-        headerBarViewModel.leftIconResource.observe(this, { iconResId ->
-            headerBarView.setLeftIcon(iconResId)
-        })
-
-        headerBarViewModel.rightIconResource.observe(this, { iconResId ->
-            headerBarView.setRightIcon(iconResId)
-        })
-
-        headerBarViewModel.isLeftIconVisible.observe(this, { isVisible ->
-            headerBarView.setLeftIconVisibility(isVisible)
-        })
-
-        headerBarViewModel.isRightIconVisible.observe(this, { isVisible ->
-            headerBarView.setRightIconVisibility(isVisible)
-        })
-
-        // Example: Updating the header dynamically
-        updateUIBasedOnSelection()
-        headerBarViewModel.setLeftIconResource(R.drawable.ic_arrow_down_24)
-        headerBarViewModel.setRightIconResource(R.drawable.ic_menu_24)
-        headerBarViewModel.setLeftIconVisibility(true)
-        headerBarViewModel.setRightIconVisibility(true)
-
-        // Handle icon clicks
-        headerBarView.setOnLeftIconClickListener {
-            onLeftIconClick()
-        }
-
-        headerBarView.setOnRightIconClickListener {
-            onRightIconClick()
-        }
-
         selectedCurrency = CurrencyCache.getCurrencySymbol(requireContext()).toString()
-
-        // Assign the TextWatcher variable to the TextInputEditText
-        addExpenseView.addNewExpenseWidget.addExpenseAmountTextView.apply {
-            hint = "$selectedCurrency 7.00"
+        binding.addNewExpenseWidget.addExpenseAmountTextView.apply {
+            hint = "$selectedCurrency 48.00"
             addTextChangedListener(createCurrencyTextWatcher(selectedCurrency, this))
         }
     }
 
-    private fun onLeftIconClick() {
-        dismiss()
+    private fun setupHeaderBar() {
+        headerBarViewModel = ViewModelProvider(this)[HeaderBarViewModel::class.java]
+        headerBarView = binding.addNewExpenseWidget.headerBarLayout
+
+        headerBarViewModel.apply {
+            headerTitle.observe(viewLifecycleOwner) { headerBarView.setHeaderTitle(it) }
+            leftIconResource.observe(viewLifecycleOwner) { headerBarView.setLeftIcon(it) }
+            rightIconResource.observe(viewLifecycleOwner) { headerBarView.setRightIcon(it) }
+            isLeftIconVisible.observe(viewLifecycleOwner) { headerBarView.setLeftIconVisibility(it) }
+            isRightIconVisible.observe(viewLifecycleOwner) { headerBarView.setRightIconVisibility(it) }
+        }
+        headerBarViewModel.setLeftIconResource(R.drawable.ic_arrow_down_24)
+        headerBarViewModel.setRightIconResource(R.drawable.ic_menu_24)
+        headerBarView.apply {
+            setOnLeftIconClickListener { dismiss() }
+            setOnRightIconClickListener { onRightIconClick() }
+        }
+
+        updateUIBasedOnSelection()
     }
 
     private fun onRightIconClick() {
-        // Logic for right icon click
+        showPopupMenu(headerBarView.getRightIcon())
     }
 
-    override fun onStart() {
-        super.onStart()
-        dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.layoutParams?.height =
-            ViewGroup.LayoutParams.MATCH_PARENT
-    }
+    private fun showPopupMenu(view: View) {
+        val popupMenu = PopupMenu(requireContext(), view)
+        popupMenu.menuInflater.inflate(R.menu.category_menu, popupMenu.menu)
 
-    private fun setupViews() {
-        PermissionManager.init(this)
-    }
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            // Prevent multiple clicks while the dialog is open
+            if (isCategoryDialogOpen) {
+                Log.d("SettingsFragment", "Category dialog already open, ignoring click.")
+                false
+            }
 
-    private fun setupListeners() {
-        addExpenseView.addNewExpenseWidget.apply {
-            addExpenseButton.setOnClickListener { validateAndSubmitExpense() }
-            addExpenseAddInvoiceView.setOnClickListener { requestMediaPermission() }
-            radioGroup.setOnCheckedChangeListener { _, checkedId ->
-                isNewExpense = when (checkedId) {
-                    R.id.addNewIncome -> false
-                    R.id.addNewExpense -> true
-                    else -> isNewExpense
+            Log.d("SettingsFragment", "categoryLayout: clicked")
+
+            // Set the flag to indicate the dialog is open
+            isCategoryDialogOpen = true
+
+            // Show the category selection dialog
+            CommonDialog().showCategorySelectionDialog(
+                requireContext(),
+                categoryViewModel,
+                onCategorySelected = { selectedCategory ->
+                    // Handle the selected category
+                    selectedCategory?.let {
+                        // Save the selected category to the ViewModel and DB
+                        settingsViewModel.setSelectedCategory(it)
+                    }
+                },
+                onDismissDialog = { isCategorySelected ->
+                    // Reset the flag after the dialog is dismissed
+                    isCategoryDialogOpen = false
+
+                    // Optionally, log or perform actions based on whether a category was selected
+                    if (isCategorySelected == true) {
+                        Log.d("SettingsFragment", "Category selected successfully.")
+                    } else {
+                        Log.d(
+                            "SettingsFragment",
+                            "Category selection was canceled or no category selected."
+                        )
+                    }
                 }
-                setupDropdown()
-                updateUIBasedOnSelection()
+            )
+            true
+        }
+
+        popupMenu.show()
+    }
+
+    private fun updateUIBasedOnSelection() {
+        binding.addNewExpenseWidget.apply {
+            if (isNewExpense) {
+                headerBarViewModel.setHeaderTitle(getString(R.string.text_expense))
+                addExpenseButton.text = getString(R.string.text_add_expense)
+            } else {
+                headerBarViewModel.setHeaderTitle(getString(R.string.text_invoice))
+                addExpenseButton.text = getString(R.string.text_add_invoice)
             }
         }
     }
 
+    private fun setupListeners() {
+        binding.addNewExpenseWidget.apply {
+            addExpenseButton.setOnClickListener { validateAndSubmitExpense() }
+            addExpenseAddInvoiceView.setOnClickListener { requestMediaPermission() }
+            radioGroupTabLayout.setOnCheckedChangeListener { _, checkedId ->
+                isNewExpense = checkedId == R.id.addNewExpense
+                setupDropdown()
+                updateUIBasedOnSelection()
+                when (checkedId) {
+                    R.id.addNewExpense -> {
+                        binding.addNewExpenseWidget.addNewExpense.setBackgroundResource(R.drawable.radio_button_background)
+                        binding.addNewExpenseWidget.addNewIncome.setBackgroundColor(resources.getColor(R.color.transparent,null))
+                    }
+                    R.id.addNewIncome -> {
+                        binding.addNewExpenseWidget.addNewExpense.setBackgroundColor(resources.getColor(R.color.transparent,null))
+                        binding.addNewExpenseWidget.addNewIncome.setBackgroundResource(R.drawable.radio_button_background)
+                    }
+                }
+            }
+
+        }
+    }
+
     private fun preloadData(expenseDetails: ExpenseDetails) {
-        addExpenseView.addNewExpenseWidget.apply {
+        binding.addNewExpenseWidget.apply {
             addExpenseNameTextView.setText(expenseDetails.expenseSenderName)
             addExpenseDescriptionTextView.setText(expenseDetails.expenseDescription)
             addExpenseAmountTextView.setText(expenseDetails.amount.toString())
-            // Preload category
-            appLoadingViewModel.viewModelScope.launch {
-                categories = appLoadingViewModel.getCategoriesByType(if (isNewExpense) getString(R.string.text_expense) else getString(R.string.text_income))
 
-                // Set spinner adapter and preselect category
+            appLoadingViewModel.viewModelScope.launch {
+                categories = appLoadingViewModel.getCategoriesByType(getCategoryType())
                 val adapter = CategorySpinnerAdapter(requireContext(), categories)
-                addExpenseView.addNewExpenseWidget.spinnerCategoryType.adapter = adapter
+                spinnerCategoryType.adapter = adapter
 
                 val selectedCategoryIndex = categories.indexOfFirst { it.id == expenseDetails.categoryId }
                 if (selectedCategoryIndex != -1) {
-                    addExpenseView.addNewExpenseWidget.spinnerCategoryType.setSelection(selectedCategoryIndex)
+                    spinnerCategoryType.setSelection(selectedCategoryIndex)
                 }
             }
-            // Convert milliseconds to date and display it
+
             val dateFormatter = SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault())
             addExpenseDateTextView.text = dateFormatter.format(Date(expenseDetails.expenseAddedDate))
         }
@@ -218,73 +262,82 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
     private fun setupDropdown() {
         appLoadingViewModel.viewModelScope.launch {
-            val categoryType = if (isNewExpense) getString(R.string.text_expense) else getString(R.string.text_income)
-            categories = appLoadingViewModel.getCategoriesByType(categoryType)
-            addExpenseView.addNewExpenseWidget.spinnerCategoryType.adapter =
-                CategorySpinnerAdapter(requireContext(), categories)
+            categories = appLoadingViewModel.getCategoriesByType(getCategoryType())
+            val adapter = CategorySpinnerAdapter(requireContext(), categories)
+            binding.addNewExpenseWidget.spinnerCategoryType.adapter = adapter
         }
     }
 
     private fun setupDatePicker() {
-        addExpenseView.addNewExpenseWidget.addExpenseDateView.setOnClickListener {
+        binding.addNewExpenseWidget.addExpenseDateView.setOnClickListener {
             val calendar = Calendar.getInstance()
-            val datePickerDialog = context?.let { context ->
-                DatePickerDialog(context, { _, year, month, dayOfMonth ->
-                    val timePickerDialog = TimePickerDialog(context, { _, hourOfDay, minute ->
-                        val selectedDate = Calendar.getInstance().apply {
-                            set(year, month, dayOfMonth, hourOfDay, minute)
-                        }
-                        val formattedDate = SimpleDateFormat(
-                            AppConstants.DATE_FORMAT_STRING,
-                            Locale.getDefault()
-                        ).format(selectedDate.time)
-                        addExpenseView.addNewExpenseWidget.addExpenseDateTextView.text = formattedDate
-                    }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false)
-
-                    timePickerDialog.show()
-                }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
-            }
-            datePickerDialog?.show()
+            DatePickerDialog(requireContext(), { _, year, month, dayOfMonth ->
+                TimePickerDialog(requireContext(), { _, hourOfDay, minute ->
+                    val selectedDate = Calendar.getInstance().apply {
+                        set(year, month, dayOfMonth, hourOfDay, minute)
+                    }
+                    val formattedDate = SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault()).format(selectedDate.time)
+                    binding.addNewExpenseWidget.addExpenseDateTextView.text = formattedDate
+                }, calendar[Calendar.HOUR_OF_DAY], calendar[Calendar.MINUTE], false).show()
+            }, calendar[Calendar.YEAR], calendar[Calendar.MONTH], calendar[Calendar.DAY_OF_MONTH]).show()
         }
     }
 
     private fun setCurrentDate() {
         val currentDate = SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault()).format(Date())
-        addExpenseView.addNewExpenseWidget.addExpenseDateTextView.text = currentDate
-    }
-
-    private fun getNumericValueFromText(input: String, currencySymbol: String): Double {
-        // Remove the currency symbol and space
-        val numericPart = input.replace("$currencySymbol ", "").trim()
-        // Parse the remaining text to a Double
-        return numericPart.toDoubleOrNull() ?: 0.0 // Return 0.0 if parsing fails
+        binding.addNewExpenseWidget.addExpenseDateTextView.text = currentDate
     }
 
     private fun validateAndSubmitExpense() {
-        val widget = addExpenseView.addNewExpenseWidget
+        val widget = binding.addNewExpenseWidget
         val expenseName = widget.addExpenseNameTextView.text.toString()
         val expenseDescription = widget.addExpenseDescriptionTextView.text.toString()
-        val rawInput = widget.addExpenseAmountTextView.text.toString()
-        val expenseAmount = getNumericValueFromText(rawInput, selectedCurrency)
+        val expenseAmount = getNumericValueFromText(widget.addExpenseAmountTextView.text.toString(), selectedCurrency)
         val selectedCategory = categories[widget.spinnerCategoryType.selectedItemPosition]
         val selectedDate = widget.addExpenseDateTextView.text.toString()
 
-        Log.d("AddNewExpense", "Expense Name: $expenseName")
-        Log.d("AddNewExpense", "Description: $expenseDescription")
-        Log.d("AddNewExpense", "Amount: $expenseAmount")
-        Log.d("AddNewExpense", "Category: ${selectedCategory.id}")
-        Log.d("AddNewExpense", "Date: $selectedDate")
+        // Validate fields
+        if (expenseName.isEmpty()) {
+            widget.addExpenseNameTextView.error = "Name cannot be empty"
+            widget.addExpenseNameTextView.requestFocus()
+            return
+        }
+
+        if (widget.addExpenseAmountTextView.text.toString().isEmpty()) {
+            widget.addExpenseAmountTextView.error = "Amount cannot be empty"
+            widget.addExpenseAmountTextView.requestFocus()
+            return
+        }
+
+        val expenseAmountValue = getNumericValueFromText(widget.addExpenseAmountTextView.text.toString(), selectedCurrency)
+        if (expenseAmountValue <= 0) {
+            widget.addExpenseAmountTextView.error = "Amount must be greater than 0"
+            widget.addExpenseAmountTextView.requestFocus()
+            return
+        }
+
+        if (selectedDate.isEmpty()) {
+            Toast.makeText(requireContext(), "Please select a valid date", Toast.LENGTH_SHORT).show()
+            widget.addExpenseDateView.performClick() // Open date picker
+            return
+        }
 
         val dateInMilliseconds = getDateInMilliseconds(selectedDate)
+        if (dateInMilliseconds <= 0) {
+            Toast.makeText(requireContext(), "Invalid date selected", Toast.LENGTH_SHORT).show()
+            widget.addExpenseDateView.performClick()
+            return
+        }
+
         val expenseDetailToSave = preloadedExpenseDetails?.copy(
-            amount = expenseAmount!!,
+            amount = expenseAmount,
             expenseAddedDate = dateInMilliseconds,
             isIncome = !isNewExpense,
             categoryId = selectedCategory.id,
             expenseSenderName = expenseName,
             expenseDescription = expenseDescription
         ) ?: ExpenseDetails(
-            amount = expenseAmount!!,
+            amount = expenseAmount,
             expenseAddedDate = dateInMilliseconds,
             isIncome = !isNewExpense,
             categoryId = selectedCategory.id,
@@ -293,8 +346,6 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
             expenseDescription = expenseDescription,
             expenseMessageSenderName = "Direct App"
         )
-
-        Log.d("AddNewExpense", "Final Expense Details: $expenseDetailToSave")
 
         if (expenseDetailToSave.expenseID != null) {
             homeDetailsViewModel.updateExpense(requireContext(), expenseDetailToSave, invoiceImage, selectedCategory.name)
@@ -305,49 +356,21 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         dismiss()
     }
 
+    private fun getNumericValueFromText(input: String, currencySymbol: String): Double {
+        return input.replace("$currencySymbol ", "").trim().toDoubleOrNull() ?: 0.0
+    }
 
     private fun getDateInMilliseconds(selectedDate: String): Long {
-        val dateWithTimeFormatter = SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault())
-        val dateWithoutTimeFormatter = SimpleDateFormat("EEE, d MMM yyyy", Locale.getDefault())
-
+        val formatter = SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault())
         return try {
-            val parsedDate = try {
-                // Try parsing with time first
-                dateWithTimeFormatter.parse(selectedDate)
-            } catch (e: ParseException) {
-                // Fallback to parsing without time
-                dateWithoutTimeFormatter.parse(selectedDate)?.let {
-                    // Add current time to the parsed date
-                    val calendar = Calendar.getInstance().apply {
-                        time = it
-                        val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-                        val currentMinute = Calendar.getInstance().get(Calendar.MINUTE)
-                        set(Calendar.HOUR_OF_DAY, currentHour)
-                        set(Calendar.MINUTE, currentMinute)
-                        set(Calendar.SECOND, 0)
-                    }
-                    return@let Date(calendar.timeInMillis)
-                }
-            }
-            parsedDate?.time ?: 0L
+            formatter.parse(selectedDate)?.time ?: 0L
         } catch (e: Exception) {
-            e.printStackTrace()
             0L
         }
     }
 
-    private fun Editable?.parseToDouble(): Double? {
-        return this?.toString()?.toDoubleOrNull()
-    }
-
-    private fun updateUIBasedOnSelection() {
-        if (isNewExpense) {
-            headerBarViewModel.setHeaderTitle(getString(R.string.text_expense))
-            addExpenseView.addNewExpenseWidget.addExpenseButton.text = getString(R.string.text_add_expense)
-        } else {
-            headerBarViewModel.setHeaderTitle(getString(R.string.text_invoice))
-            addExpenseView.addNewExpenseWidget.addExpenseButton.text = getString(R.string.text_add_invoice)
-        }
+    private fun getCategoryType(): String {
+        return if (isNewExpense) getString(R.string.text_expense) else getString(R.string.text_income)
     }
 
     private fun requestMediaPermission() {
@@ -360,25 +383,6 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
             )
         } else {
             accessMedia()
-        }
-    }
-
-    private fun showPhotoPicker() {
-        val intent = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
-            type = "image/*"
-            putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, 10)
-        }
-        photoPickerLauncher.launch(intent)
-    }
-
-    private fun handleSelectedPhotos(selectedUris: List<Uri>) {
-        if (selectedUris.isNotEmpty()) {
-            val firstUri = selectedUris[0]
-            val inputStream = context?.contentResolver?.openInputStream(firstUri)
-            invoiceImage = BitmapFactory.decodeStream(inputStream)
-            addExpenseView.addNewExpenseWidget.addInvoiceImageView.setImageBitmap(invoiceImage)
-        } else {
-            Toast.makeText(context, "No photos selected", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -421,10 +425,25 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         }
     }
 
-    private fun createCurrencyTextWatcher(
-        currencySymbol: String,
-        editText: TextInputEditText
-    ): TextWatcher {
+    private fun showPhotoPicker() {
+        val intent = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
+            type = "image/*"
+            putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, 10)
+        }
+        photoPickerLauncher.launch(intent)
+    }
+
+    private fun handleSelectedPhotos(selectedUris: List<Uri>) {
+        if (selectedUris.isNotEmpty()) {
+            val inputStream = context?.contentResolver?.openInputStream(selectedUris[0])
+            invoiceImage = BitmapFactory.decodeStream(inputStream)
+            binding.addNewExpenseWidget.addInvoiceImageView.setImageBitmap(invoiceImage)
+        } else {
+            Toast.makeText(context, "No photos selected", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun createCurrencyTextWatcher(currencySymbol: String, editText: TextInputEditText): TextWatcher {
         return object : TextWatcher {
             private var isUpdating = false
 
@@ -436,17 +455,11 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
                 if (isUpdating) return
 
                 isUpdating = true
-
                 val inputText = s.toString()
-
-                // Ensure the text always starts with the currency symbol followed by a space
                 val requiredPrefix = "$currencySymbol "
-                if (!inputText.startsWith(requiredPrefix)) {
-                    // Remove any incorrect prefix or adjust to add the correct one
-                    val textWithoutSymbol = inputText.replace(currencySymbol, "").trim()
-                    val updatedText = "$requiredPrefix$textWithoutSymbol"
 
-                    // Update the TextInputEditText with the corrected text
+                if (!inputText.startsWith(requiredPrefix)) {
+                    val updatedText = "$requiredPrefix${inputText.replace(currencySymbol, "").trim()}"
                     editText.setText(updatedText)
                     editText.setSelection(updatedText.length)
                 }
@@ -455,5 +468,4 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
             }
         }
     }
-
 }

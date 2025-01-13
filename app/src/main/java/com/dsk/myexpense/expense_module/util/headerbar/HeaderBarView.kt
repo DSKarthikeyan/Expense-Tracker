@@ -3,6 +3,7 @@ package com.dsk.myexpense.expense_module.util.headerbar
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.dsk.myexpense.databinding.HeaderBarViewBinding
 
@@ -42,6 +43,10 @@ class HeaderBarView @JvmOverloads constructor(
 
     fun setRightIconVisibility(isVisible: Boolean) {
         binding.rightIcon.visibility = if (isVisible) VISIBLE else GONE
+    }
+
+    fun getRightIcon(): ImageView {
+        return binding.rightIcon
     }
 
     fun setOnLeftIconClickListener(listener: OnClickListener) {

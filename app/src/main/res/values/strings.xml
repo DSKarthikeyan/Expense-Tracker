@@ -150,4 +150,10 @@
     <string name="scroll">scroll to %d</string>
 
     <string name="no_data_available">No Data Available</string>
+
+    <string name="error_empty_name">Name cannot be empty</string>
+    <string name="error_select_category">Please select a category</string>
+    <string name="error_empty_amount">Amount cannot be empty</string>
+    <string name="error_invalid_amount">Amount must be greater than zero</string>
+    <string name="error_empty_date">Please select a date</string>
 </resources>

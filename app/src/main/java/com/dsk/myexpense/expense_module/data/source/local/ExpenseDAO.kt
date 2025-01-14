@@ -18,6 +18,9 @@ interface ExpenseDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(todo: ExpenseDetails): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllExpense(todo: List<ExpenseDetails>)
+
     @Query("SELECT * FROM expense_details WHERE expenseID = :expenseID")
     suspend fun getExpenseById(expenseID: Int): ExpenseDetails
 

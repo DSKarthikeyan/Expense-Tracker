@@ -13,6 +13,9 @@ interface CurrencyDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(currencies: List<Currency>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCurrency(currencies: Currency)
+
     @Query("SELECT * FROM currencies")
     fun getAllCurrencies(): LiveData<List<Currency>>
 

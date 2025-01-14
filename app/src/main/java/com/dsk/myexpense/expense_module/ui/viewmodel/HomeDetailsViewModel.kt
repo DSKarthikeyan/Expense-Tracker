@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.dsk.myexpense.expense_module.data.model.Category
+import com.dsk.myexpense.expense_module.data.model.Currency
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
 import com.dsk.myexpense.expense_module.data.source.local.DailyExpenseWithTime
@@ -162,8 +163,22 @@ class HomeDetailsViewModel(
         }
     }
 
-    suspend fun getCategoryNameByID(categoryId: Int): Category? {
-        return expenseRepository.getCategoryNameByID(categoryId)
+    fun insertExpenseDetails(expenseDetails: List<ExpenseDetails>) {
+        viewModelScope.launch {
+            expenseRepository.insertAllExpense(expenseDetails)
+        }
+    }
+
+    fun insertCategory(category: Category) {
+        viewModelScope.launch {
+            expenseRepository.insertCategory(category)
+        }
+    }
+
+    fun insertAllCurrency(category: Currency) {
+        viewModelScope.launch {
+            expenseRepository.insertCurrencies(category)
+        }
     }
 
 

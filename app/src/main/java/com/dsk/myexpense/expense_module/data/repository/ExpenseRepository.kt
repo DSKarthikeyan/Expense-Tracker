@@ -83,6 +83,10 @@ class ExpenseRepository(
         transactionDao.insert(expenseDetails)
     }
 
+    suspend fun insertAllExpense(expenseDetails: List<ExpenseDetails>) {
+        expenseDAO.insertAllExpense(expenseDetails)
+    }
+
     suspend fun deleteExpenseDetails(expenseDetails: ExpenseDetails) {
         expenseDAO.delete(expenseDetails)
     }
@@ -99,6 +103,8 @@ class ExpenseRepository(
         categoryDao.getCategoryByNameAndType(type = type, name = name)
 
     suspend fun insertAll(categories: List<Category>) = categoryDao.insertAll(categories)
+
+    suspend fun insertCategory(categories: Category) = categoryDao.insertCategory(categories)
 
     suspend fun fetchCurrenciesFromAPI(apiKey: String, currencySymbolsFromJSON: Map<String, String>): ApiResponse<List<Currency>> {
         return try {
@@ -152,6 +158,11 @@ class ExpenseRepository(
     suspend fun saveCurrenciesToLocalDB(currencies: List<Currency>) {
         currencyDao.insertAll(currencies)
     }
+
+    suspend fun insertCurrencies(currencies: Currency) {
+        currencyDao.insertCurrency(currencies)
+    }
+
 
     // Get currencies from local database
     fun getCurrenciesFromLocalDB(): List<Currency> {

@@ -6,6 +6,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -13,10 +16,15 @@ import androidx.lifecycle.ViewModelProvider
 import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.FragmentSettingsBinding
 import com.dsk.myexpense.expense_module.core.ExpenseApplication
+import com.dsk.myexpense.expense_module.data.model.Category
+import com.dsk.myexpense.expense_module.data.model.Currency
+import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.CategoryViewModel
+import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.CommonDialog
+import com.dsk.myexpense.expense_module.util.Utility
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarView
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarViewModel
 
@@ -42,6 +50,16 @@ class SettingsFragment : Fragment() {
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
             AppLoadingViewModel(expenseRepository)
+        }
+    }
+
+    private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
+        GenericViewModelFactory {
+            HomeDetailsViewModel(
+                requireContext(),
+                (requireActivity().application as ExpenseApplication).expenseRepository,
+                (requireActivity().application as ExpenseApplication).settingsRepository
+            )
         }
     }
 
@@ -169,7 +187,118 @@ class SettingsFragment : Fragment() {
         headerBarView.setOnRightIconClickListener {
             onRightIconClick()
         }
+        setupExportFormatSpinner()
+        setupButtons()
+        setupCloudSyncSwitch()
     }
+
+    private fun setupExportFormatSpinner() {
+        val formats = listOf("CSV", "JSON")
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, formats)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerExportFormat.adapter = adapter
+
+        binding.spinnerExportFormat.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    Toast.makeText(
+                        requireContext(),
+                        "Selected format: ${formats[position]}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                    // No action needed
+                }
+            }
+    }
+
+    private fun setupButtons() {
+        binding.btnExport.setOnClickListener {
+            handleExport()
+        }
+
+//        binding.btnImport.setOnClickListener {
+//            val format = binding.spinnerExportFormat.selectedItem.toString()
+//            handleImport(format)
+//        }
+    }
+
+    private fun setupCloudSyncSwitch() {
+        binding.switchCloudUpload.setOnCheckedChangeListener { _, isChecked ->
+            handleCloudSync(isChecked)
+        }
+    }
+
+    private fun handleExport() {
+        val format = binding.spinnerExportFormat.selectedItem.toString()
+        when (format) {
+            "CSV" -> exportToCsv()
+            "JSON" -> exportToJson()
+            else -> Toast.makeText(requireContext(), "Unsupported format", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+    private fun handleImport(format: String) {
+        when (format) {
+            "CSV" -> importFromCsv()
+            "JSON" -> importFromJson()
+            else -> Toast.makeText(requireContext(), "Unsupported format", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+    private fun handleCloudSync(isEnabled: Boolean) {
+        if (isEnabled) {
+            Toast.makeText(requireContext(), "Cloud Sync Enabled", Toast.LENGTH_SHORT).show()
+            // Logic to enable cloud sync
+        } else {
+            Toast.makeText(requireContext(), "Cloud Sync Disabled", Toast.LENGTH_SHORT).show()
+            // Logic to disable cloud sync
+        }
+    }
+
+    private fun exportToCsv() {
+        // Replace with actual data
+        val expenseDetails = homeDetailsViewModel.allExpenseDetails.value // Populate with real data
+        val categories = homeDetailsViewModel.getAllCategories().value       // Populate with real data
+        val currencies = listOf<Currency>()          // Populate with real data
+
+        if (expenseDetails != null) {
+            if (categories != null) {
+                Utility.exportToCsv(requireContext(), expenseDetails, categories, currencies)
+            }
+        }
+    }
+
+    private fun exportToJson() {
+        // Replace with actual data
+        val expenseDetails = listOf<ExpenseDetails>() // Populate with real data
+        val categories = listOf<Category>()           // Populate with real data
+        val currencies = listOf<Currency>()           // Populate with real data
+
+        Utility.exportToJson(requireContext(), expenseDetails, categories, currencies)
+    }
+
+    private fun importFromCsv() {
+        val (expenseDetails, categories, currencies) = Utility.importFromCsv(requireContext())
+        // Use imported data as needed
+        Toast.makeText(requireContext(), "Data imported successfully", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun importFromJson() {
+        val (expenseDetails, categories, currencies) = Utility.importFromJson(requireContext())
+        // Use imported data as needed
+        Toast.makeText(requireContext(), "Data imported successfully", Toast.LENGTH_SHORT).show()
+    }
+
 
     private fun onLeftIconClick() {
         activity?.onBackPressed()

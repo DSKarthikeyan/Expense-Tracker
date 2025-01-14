@@ -158,4 +158,8 @@
     <string name="error_empty_amount">Amount cannot be empty</string>
     <string name="error_invalid_amount">Amount must be greater than zero</string>
     <string name="error_empty_date">Please select a date</string>
+
+    <string name="export_data">Export Data</string>
+    <string name="import_csv">Import CSV</string>
+    <string name="import_json">Import JSON</string>
 </resources>

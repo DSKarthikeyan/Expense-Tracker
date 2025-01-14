@@ -6,7 +6,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.dsk.myexpense.databinding.ItemExpenseBinding
+import com.dsk.myexpense.expense_module.data.model.Currency
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
+import com.dsk.myexpense.expense_module.util.CurrencyCache
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -28,9 +30,10 @@ class ExpenseAdapter : ListAdapter<ExpenseDetails, ExpenseAdapter.ExpenseViewHol
 
         fun bind(expense: ExpenseDetails) {
             binding.senderName.text = expense.expenseSenderName
+
             binding.receiverName.text = expense.expenseReceiverName
-            binding.amount.text = expense.amount.toString()
-            binding.description.text = expense.expenseDescription
+            binding.amount.text = CurrencyCache.getCurrencySymbol(binding.amount.context) + " "+
+                    expense.amount.toString()
             binding.date.text = formatDate(expense.expenseAddedDate)
 
         }

@@ -130,6 +130,7 @@
     <string name="text_income_category_other_income">Other Income</string>
 
     <string name="text_status">Status</string>
+    <string name="text_amount_value">%s %.2f</string>
     <string name="text_from">From</string>
     <string name="text_pay">Pay</string>
     <string name="text_send">Send</string>

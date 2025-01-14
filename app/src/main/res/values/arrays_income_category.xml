@@ -34,8 +34,8 @@
     </string-array>
 
     <string-array name="filter_options">
-        <item>Expense</item>
-        <item>Income</item>
+        <item>@string/text_expense</item>
+        <item>@string/text_income</item>
     </string-array>
 
     <string-array name="filter_options_expense">

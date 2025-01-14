@@ -47,8 +47,7 @@ interface ExpenseDAO {
 
     @Transaction
     suspend fun updateExpenseWithInvoice(
-        expenseDetails: ExpenseDetails,
-        expenseInvoiceImage: ExpenseInvoiceImage
+        expenseDetails: ExpenseDetails, expenseInvoiceImage: ExpenseInvoiceImage
     ) {
         val existingExpense = expenseDetails.expenseID?.let { getExpenseById(it) }
         val expenseDescription = expenseDetails.expenseDescription
@@ -69,50 +68,62 @@ interface ExpenseDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateInvoiceImage(expenseInvoiceImage: ExpenseInvoiceImage)
 
-    @Query("""
+    @Query(
+        """
     SELECT 
         date / 1000 * 1000 AS day,  -- Return the day in milliseconds
         amount AS amount,  -- The expense amount
-        date AS time  -- Exact timestamp of the expense
+        date AS time,  -- Exact timestamp of the expense
+        isIncome AS isIncome
     FROM expense_details
     WHERE strftime('%Y-%m-%d', date / 1000, 'unixepoch') = strftime('%Y-%m-%d', 'now')  -- Filter for current day
     ORDER BY amount DESC  -- Order by highest amount
     LIMIT 10  -- Limit to top 10
-""")
+"""
+    )
     fun getDailyExpenseSum(): List<DailyExpenseWithTime>
 
-    @Query("""
+    @Query(
+        """
     SELECT 
         date AS day, 
-        amount AS sum
+        amount AS sum,
+        isIncome AS isIncome
     FROM expense_details 
     ORDER BY amount DESC 
-""")
+"""
+    )
     fun getWeeklyExpenseSum(): List<WeeklyExpenseSum>
 
-    @Query("""
+    @Query(
+        """
     SELECT 
         (strftime('%Y-%m', date / 1000, 'unixepoch') || '-01') AS firstDayOfMonth,  -- First day of the current month
         CAST((strftime('%d', date / 1000, 'unixepoch') - 1) / 7 + 1 AS INTEGER) AS weekOfMonth,  -- Calculate the week of the month
         MIN(date) AS day,  -- Earliest date within each week as representative day
-        SUM(amount) AS sum
+        SUM(amount) AS sum,
+        isIncome AS isIncome
     FROM expense_details
     WHERE strftime('%Y-%m', date / 1000, 'unixepoch') = strftime('%Y-%m', 'now')  -- Only current month's data
     GROUP BY weekOfMonth
     ORDER BY weekOfMonth
-""")
+"""
+    )
     fun getMonthlyExpenseSum(): List<WeeklyExpenseSum>
 
-    @Query("""
+    @Query(
+        """
     SELECT 
         strftime('%Y-%m', date / 1000, 'unixepoch') AS month,  -- Year-Month as identifier
         SUM(amount) AS amount,  -- Sum of amounts for the month
-        MIN(date) AS time  -- First date in the month as representative time
+        MIN(date) AS time,
+        isIncome AS isIncome-- First date in the month as representative time
     FROM expense_details
     WHERE strftime('%Y', date / 1000, 'unixepoch') = strftime('%Y', 'now')  -- Only current year data
     GROUP BY month
     ORDER BY month
-""")
+"""
+    )
     fun getYearlyExpenseSum(): List<MonthlyExpenseWithTime>
 
 

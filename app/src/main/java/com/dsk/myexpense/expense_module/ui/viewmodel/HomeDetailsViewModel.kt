@@ -197,4 +197,8 @@ class HomeDetailsViewModel(
         }
     }
 
+    fun getCurrencySymbol(context: Context): String{
+        return CurrencyCache.getCurrencySymbol(context) ?: "$"
+    }
+
 }

@@ -101,7 +101,7 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
 
         // Adding item divider decoration
         binding.rvTransactions.layoutManager = LinearLayoutManager(context)
-        adapter = MyItemRecyclerViewAdapter(requireContext(), appLoadingViewModel, this)
+        adapter = MyItemRecyclerViewAdapter(appLoadingViewModel, this)
         binding.rvTransactions.adapter = adapter
 
         checkForNotificationCount()

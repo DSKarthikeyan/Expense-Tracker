@@ -111,8 +111,8 @@ class CommonDialog {
                             // Get category and set up the views
                             val category = getItem(position)
                             val categoryNameTextView =
-                                view.findViewById<TextView>(R.id.category_name)
-                            val deleteButton = view.findViewById<ImageView>(R.id.delete_button)
+                                view.findViewById<TextView>(R.id.categoryName)
+                            val deleteButton = view.findViewById<ImageView>(R.id.deleteButton)
 
                             categoryNameTextView.text = category?.name
 

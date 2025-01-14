@@ -44,22 +44,16 @@ class ExpenseRepository(
     ) {
         val type = if (expenseDetails.isIncome) context.resources.getString(R.string.text_income)
                     else context.resources.getString(R.string.text_expense)
-        Log.d("DsK","category expenseDetails ${expenseDetails.amount}")
         val updatedExpenseDetails = Utility.convertExpenseAmountToUSD(context, expenseDetails)
-        Log.d("DsK","category updatedExpenseDetails ${updatedExpenseDetails.amount}")
         val category = categoryDao.getCategoryByNameAndType(categoryName, type) ?: run {
-            Log.d("DsK","category $this $categoryName $type")
             val existingCategory = categoryDao.getCategoriesByType(type).firstOrNull()
-            Log.d("DsK","category existingCategory $existingCategory")
             if (existingCategory == null) {
-                Log.d("DsK","category in")
                 val defaultCategory = Category(
                     name = "Default $type", type = type, iconResId = R.drawable.ic_other_expenses
                 )
                 val newCategoryId = categoryDao.insertCategory(defaultCategory)
                 defaultCategory.copy(id = newCategoryId.toInt())
             } else {
-                Log.d("DsK","category in m22")
                 val newCategory = Category(
                     name = categoryName, type = type, iconResId = existingCategory.iconResId
                 )
@@ -68,10 +62,7 @@ class ExpenseRepository(
             }
         }
 
-        Log.d("DsK","category category--- $category ${updatedExpenseDetails.amount}")
-
         val expenseWithCategory = updatedExpenseDetails.copy(categoryId = category.id)
-        Log.d("DsK","category expenseWithCategory ${expenseWithCategory.amount}")
 
         var invoiceImage: ExpenseInvoiceImage? = null
         if (bitmap != null) {
@@ -80,8 +71,6 @@ class ExpenseRepository(
                 expenseID = 0, expenseInvoiceImage = byteArray, expenseImageFilePath = ""
             )
         }
-
-        Log.d("DsK","category category $category")
 
         if (invoiceImage != null) {
             transactionDao.insertExpenseWithInvoice(expenseWithCategory, invoiceImage)
@@ -258,7 +247,4 @@ class ExpenseRepository(
         expenseDAO.getExpensesBetweenDates(startDate, endDate)
 
     suspend fun getExpensesByCategory(categoryId: Int) = expenseDAO.getExpensesByCategory(categoryId)
-
-    suspend fun getAllCategoriesList() = categoryDao.getAllCategoriesValue()
-
 }

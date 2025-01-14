@@ -4,8 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.ImageView
 import android.widget.PopupMenu
+import android.widget.TextView
 import android.widget.Toast
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
@@ -17,6 +22,7 @@ import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.data.source.local.DailyExpenseWithTime
 import com.dsk.myexpense.expense_module.data.source.local.MonthlyExpenseWithTime
 import com.dsk.myexpense.expense_module.data.source.local.WeeklyExpenseSum
+import com.dsk.myexpense.expense_module.data.source.local.WeeklyExpenseWithTime
 import com.dsk.myexpense.expense_module.ui.adapter.MyItemRecyclerViewAdapter
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
 import com.dsk.myexpense.expense_module.util.CustomDividerItemDecoration
@@ -32,36 +38,45 @@ import java.util.Locale
 class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailClickListener {
 
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
-        GenericViewModelFactory { HomeDetailsViewModel(requireContext(),
-            (requireActivity().application as ExpenseApplication).expenseRepository
-            ,(requireActivity().application as ExpenseApplication).settingsRepository) }
+        GenericViewModelFactory {
+            HomeDetailsViewModel(
+                requireContext(),
+                (requireActivity().application as ExpenseApplication).expenseRepository,
+                (requireActivity().application as ExpenseApplication).settingsRepository
+            )
+        }
     }
+
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
             AppLoadingViewModel((requireActivity().application as ExpenseApplication).expenseRepository)
         }
     }
+
     private lateinit var adapter: MyItemRecyclerViewAdapter
-    private lateinit var fragmentStatisticsDetailsFragment: FragmentStatisticsDetailsBinding
+    private lateinit var binding: FragmentStatisticsDetailsBinding
     private lateinit var headerBarViewModel: HeaderBarViewModel
     private lateinit var headerBarView: HeaderBarView
-    
+
+    private var selectedFilter = "All" // Default filter for dropdown
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        fragmentStatisticsDetailsFragment = FragmentStatisticsDetailsBinding.inflate(inflater, container, false)
-        return fragmentStatisticsDetailsFragment.root
+        binding = FragmentStatisticsDetailsBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         initUI()
+        setupDropdownFilter()
         setupObservers()
         updateChart(homeDetailsViewModel.getDailyExpenses()) { prepareDayChartData(it) }
-        fragmentStatisticsDetailsFragment.toggleGroup.check(fragmentStatisticsDetailsFragment.dayButton.id)
+        binding.toggleGroup.check(binding.dayButton.id)
 
         setupChartFilters()
         setupSortButton()
@@ -70,7 +85,7 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
 
     private fun prepareHeaderBarData(){
         headerBarViewModel = ViewModelProvider(this)[HeaderBarViewModel::class.java]
-        headerBarView = fragmentStatisticsDetailsFragment.headerBarLayout
+        headerBarView = binding.headerBarLayout
 
         // Bind ViewModel LiveData to the HeaderBarView
         headerBarViewModel.headerTitle.observe(viewLifecycleOwner, { title ->
@@ -119,11 +134,11 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
     }
     
     private fun initUI() {
-        // Initialize RecyclerView
-        fragmentStatisticsDetailsFragment.apply {
+        binding.apply {
+            // Initialize RecyclerView
             topSpendingRecycler.setHasFixedSize(true)
             topSpendingRecycler.layoutManager = LinearLayoutManager(context)
-            adapter = MyItemRecyclerViewAdapter(requireContext(), appLoadingViewModel ,this@StatisticsDetailsFragment)
+            adapter = MyItemRecyclerViewAdapter( appLoadingViewModel = appLoadingViewModel ,this@StatisticsDetailsFragment)
             topSpendingRecycler.adapter = adapter
         }
     }
@@ -131,7 +146,7 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
     private fun setupObservers() {
         // Observe RecyclerView data
         homeDetailsViewModel.allExpenseDetails.observe(viewLifecycleOwner) { list ->
-            fragmentStatisticsDetailsFragment.apply {
+            binding.apply {
                 if (list.isNullOrEmpty()) {
                     topSpendingRecycler.visibility = View.GONE
                     noDataRecyclerText.visibility = View.VISIBLE
@@ -146,17 +161,83 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
         }
     }
 
+    private fun setupDropdownFilter() {
+        val filterOptions = listOf("All", getString(R.string.text_income), getString(R.string.text_expense))
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, filterOptions).apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
+
+        binding.dropdownFilter.adapter = adapter
+        binding.dropdownFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                selectedFilter = filterOptions[position]
+                filterChartData()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+    }
+
+
+    private fun filterChartData() {
+        // Fetch all data based on the selected toggle group button
+        val rawData: List<Any> = when (binding.toggleGroup.checkedButtonId) {
+            binding.dayButton.id -> homeDetailsViewModel.getDailyExpenses()
+            binding.weekButton.id -> homeDetailsViewModel.getWeeklyExpenses()
+            binding.monthButton.id -> homeDetailsViewModel.getMonthlyExpenses()
+            binding.yearButton.id -> homeDetailsViewModel.getYearlyExpenses()
+            else -> listOf()
+        }
+
+        // Filter data based on the dropdown selection
+        val filteredData: List<Any> = when (selectedFilter) {
+            getString(R.string.text_expense) -> rawData.filter { !it.isIncome() } // Only expenses
+            getString(R.string.text_income) -> rawData.filter { it.isIncome() } // Only incomes
+            else -> rawData // All data
+        }
+
+        // Update the chart based on the current toggle button selection
+        updateChart(filteredData) { data ->
+            when (binding.toggleGroup.checkedButtonId) {
+                binding.dayButton.id -> prepareDayChartData(data as List<DailyExpenseWithTime>)
+                binding.weekButton.id -> prepareWeekChartData(data as List<WeeklyExpenseSum>)
+                binding.monthButton.id -> convertDayToWeekOfMonth(data as List<WeeklyExpenseSum>)
+                binding.yearButton.id -> prepareYearChartData(data as List<MonthlyExpenseWithTime>)
+                else -> listOf()
+            }
+        }
+    }
+
+    // Extension function to safely access `isExpense`
+    private fun Any.isIncome(): Boolean {
+        return when (this) {
+            is DailyExpenseWithTime -> this.isIncome
+            is WeeklyExpenseSum -> this.isIncome
+            is WeeklyExpenseWithTime -> this.isIncome
+            is MonthlyExpenseWithTime -> this.isIncome
+            else -> throw IllegalArgumentException("Unknown data type: ${this::class.java.simpleName}")
+        }
+    }
+
     private fun setupChartFilters() {
-        fragmentStatisticsDetailsFragment.apply {
-            dayButton.setOnClickListener { updateChart(homeDetailsViewModel.getDailyExpenses()) { prepareDayChartData(it) } }
-            weekButton.setOnClickListener { updateChart(homeDetailsViewModel.getWeeklyExpenses()) { prepareWeekChartData(it) } }
-            monthButton.setOnClickListener { updateChart(homeDetailsViewModel.getMonthlyExpenses()) { convertDayToWeekOfMonth(it) } }
-            yearButton.setOnClickListener { updateChart(homeDetailsViewModel.getYearlyExpenses()) { prepareYearChartData(it) } }
+        binding.apply {
+            dayButton.setOnClickListener {
+                updateChart(homeDetailsViewModel.getDailyExpenses()) { prepareDayChartData(it) }
+            }
+            weekButton.setOnClickListener {
+                updateChart(homeDetailsViewModel.getWeeklyExpenses()) { prepareWeekChartData(it) }
+            }
+            monthButton.setOnClickListener {
+                updateChart(homeDetailsViewModel.getMonthlyExpenses()) { convertDayToWeekOfMonth(it) }
+            }
+            yearButton.setOnClickListener {
+                updateChart(homeDetailsViewModel.getYearlyExpenses()) { prepareYearChartData(it) }
+            }
         }
     }
 
     private fun <T> updateChart(data: List<T>, transform: (List<T>) -> List<Pair<String, Int>>) {
-        fragmentStatisticsDetailsFragment.apply {
+        binding.apply {
             val transformedData = transform(data)
             if (transformedData.isEmpty()) {
                 lineChartView.visibility = View.GONE
@@ -168,7 +249,7 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
     }
 
     private fun setupSortButton() {
-        fragmentStatisticsDetailsFragment.expenseTypeSort.setOnClickListener { showSortPopup(it) }
+        binding.expenseTypeSort.setOnClickListener { showSortPopup(it) }
     }
 
     private fun showSortPopup(view: View) {
@@ -196,11 +277,11 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
     private fun prepareWeekChartData(expenseData: List<WeeklyExpenseSum>): List<Pair<String, Int>> =
         expenseData.map { expense ->
             val dayInMillis = expense.day ?: 0L
-                val dateFormat = SimpleDateFormat("d", Locale.getDefault())
+            val dateFormat = SimpleDateFormat("d", Locale.getDefault())
 
-                // Convert milliseconds to Date and format them
-                val dayFormatted = dateFormat.format(Date(dayInMillis))
-                dayFormatted to (expense.sum ?: 0)
+            // Convert milliseconds to Date and format them
+            val dayFormatted = dateFormat.format(Date(dayInMillis))
+            dayFormatted to (expense.sum ?: 0)
         }
 
     private fun prepareYearChartData(expenseData: List<MonthlyExpenseWithTime>): List<Pair<String, Int>> =
@@ -209,41 +290,21 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
             formattedMonth to (expense.amount ?: 0)
         }
 
+    private fun convertDayToWeekOfMonth(data: List<WeeklyExpenseSum>): List<Pair<String, Int>> =
+        data.map {
+            val calendar = Calendar.getInstance().apply { timeInMillis = it.day ?: 0L }
+            val weekOfMonth = calendar.get(Calendar.WEEK_OF_MONTH)
+            val suffix = when (weekOfMonth) { 1 -> "st"; 2 -> "nd"; 3 -> "rd"; else -> "th" }
+            "${weekOfMonth}${suffix} wk" to (it.sum ?: 0)
+        }
+
     override fun onItemClicked(expenseDetails: ExpenseDetails) {
-//        NA
+        // Handle item click
     }
 
     override fun onItemLongClicked(expenseDetails: ExpenseDetails) {
-        // Optional: Handle long click logic
-    }
-
-    private fun convertDayToWeekOfMonth(expenses: List<WeeklyExpenseSum>): List<Pair<String, Int>> {
-        val resultList = mutableListOf<Pair<String, Int>>()
-
-        expenses.forEach { expense ->
-            val calendar = Calendar.getInstance().apply {
-                timeInMillis = expense.day ?: 0L
-            }
-
-            // Get the week of the month (1-based index)
-            val weekOfMonth = calendar.get(Calendar.WEEK_OF_MONTH)
-
-            // Determine the ordinal suffix for the week number
-            val suffix = when (weekOfMonth) {
-                1 -> "st"
-                2 -> "nd"
-                3 -> "rd"
-                else -> "th"
-            }
-
-            // Format week as "Xth w", "Xrd w", etc.
-            val formattedWeek = "${weekOfMonth}${suffix} wk"
-
-            // Add to result list with formatted week and the sum
-            resultList.add(Pair(formattedWeek, expense.sum ?: 0))
-        }
-
-        return resultList
+        // Handle item long-click
     }
 }
+
 

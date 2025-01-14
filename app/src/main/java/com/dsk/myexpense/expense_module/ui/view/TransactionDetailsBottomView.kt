@@ -58,6 +58,15 @@ class TransactionDetailsBottomView(
             AppLoadingViewModel((requireActivity().application as ExpenseApplication).expenseRepository)
         }
     }
+    private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
+        GenericViewModelFactory {
+            HomeDetailsViewModel(
+                requireContext(),
+                (requireActivity().application as ExpenseApplication).expenseRepository,
+                (requireActivity().application as ExpenseApplication).settingsRepository
+            )
+        }
+    }
 
     private lateinit var headerBarViewModel: HeaderBarViewModel
     private lateinit var headerBarView: HeaderBarView
@@ -146,9 +155,11 @@ class TransactionDetailsBottomView(
         bindingView.tvTransactionStatus.text =
             if (expenseDetails.isIncome) getString(R.string.text_income) else getString(R.string.text_expense)
 
-        bindingView.tvTransactionAmount.text = expenseDetails.amount.toString()
+        currencySymbol = homeDetailsViewModel.getCurrencySymbol(requireContext())
+        currencySymbol = getString(R.string.text_amount_value, currencySymbol, expenseDetails.amount)
+        bindingView.tvTransactionAmount.text = currencySymbol
         bindingView.totalLayout.transactionDetailLabel.text = getString(R.string.text_total)
-        bindingView.totalLayout.transactionDetailValue.text = expenseDetails.amount.toString()
+        bindingView.totalLayout.transactionDetailValue.text = currencySymbol
 
         bindingView.statusLayout.transactionDetailLabel.text = getString(R.string.text_status)
         // Set basic data dynamically

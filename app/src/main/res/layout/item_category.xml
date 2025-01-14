@@ -7,7 +7,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <TextView
-        android:id="@+id/category_name"
+        android:id="@+id/categoryName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -17,7 +17,7 @@
         android:text="@string/text_category" />
 
     <ImageView
-        android:id="@+id/delete_button"
+        android:id="@+id/deleteButton"
         android:src="@android:drawable/ic_menu_delete"
         android:contentDescription="@string/text_delete"
         app:layout_constraintEnd_toEndOf="parent"

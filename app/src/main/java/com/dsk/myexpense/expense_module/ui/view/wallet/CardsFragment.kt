@@ -128,7 +128,7 @@ class CardsFragment : Fragment() {
     /**
      * Validates a card number using the Luhn algorithm.
      * @param cardNumber The card number to validate.
-     * @return true if the card number is valid, false otherwise.
+     * @return true if the card number is valid(4532015112830366), false otherwise(1234567812345678).
      */
     private fun isValidCardNumber(cardNumber: String): Boolean {
         // Ensure the card number contains only digits and has a valid length

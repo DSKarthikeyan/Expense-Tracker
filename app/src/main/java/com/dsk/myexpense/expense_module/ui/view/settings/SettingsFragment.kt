@@ -266,38 +266,59 @@ class SettingsFragment : Fragment() {
     }
 
     private fun exportToCsv() {
-        // Replace with actual data
-        val expenseDetails = homeDetailsViewModel.allExpenseDetails.value // Populate with real data
-        val categories = homeDetailsViewModel.getAllCategories().value       // Populate with real data
-        val currencies = listOf<Currency>()          // Populate with real data
+        // Get data from ViewModel
+        val expenseDetails = homeDetailsViewModel.allExpenseDetails?.value
+        val categories = homeDetailsViewModel.getAllCategories()?.value
+        val currencies = listOf<Currency>() // If applicable, populate with real data
 
-        if (expenseDetails != null) {
-            if (categories != null) {
-                Utility.exportToCsv(requireContext(), expenseDetails, categories, currencies)
-            }
+        if (expenseDetails != null && categories != null) {
+            Utility.exportToCsv(requireContext(), expenseDetails, categories, currencies)
+            Toast.makeText(requireContext(), "Data exported to CSV successfully", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "Failed to fetch data for export", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun exportToJson() {
-        // Replace with actual data
-        val expenseDetails = listOf<ExpenseDetails>() // Populate with real data
-        val categories = listOf<Category>()           // Populate with real data
-        val currencies = listOf<Currency>()           // Populate with real data
+        // Get data from ViewModel
+        val expenseDetails = homeDetailsViewModel.allExpenseDetails?.value
+        val categories = homeDetailsViewModel.getAllCategories()?.value
+        val currencies = listOf<Currency>() // If applicable, populate with real data
 
-        Utility.exportToJson(requireContext(), expenseDetails, categories, currencies)
+        if (expenseDetails != null && categories != null) {
+            Utility.exportToJson(requireContext(), expenseDetails, categories, currencies)
+            Toast.makeText(requireContext(), "Data exported to JSON successfully", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "Failed to fetch data for export", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun importFromCsv() {
-        val (expenseDetails, categories, currencies) = Utility.importFromCsv(requireContext())
-        // Use imported data as needed
-        Toast.makeText(requireContext(), "Data imported successfully", Toast.LENGTH_SHORT).show()
+        try {
+            val (expenseDetails, categories, currencies) = Utility.importFromCsv(requireContext())
+            // Update ViewModel or use the imported data as needed
+//            homeDetailsViewModel.updateExpense(requireContext(),expenseDetails, null, "")
+//            homeDetailsViewModel.updateCategories(categories)
+
+            Toast.makeText(requireContext(), "Data imported from CSV successfully", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Failed to import data from CSV: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun importFromJson() {
-        val (expenseDetails, categories, currencies) = Utility.importFromJson(requireContext())
-        // Use imported data as needed
-        Toast.makeText(requireContext(), "Data imported successfully", Toast.LENGTH_SHORT).show()
+        try {
+            val (expenseDetails, categories, currencies) = Utility.importFromJson(requireContext())
+            // Update ViewModel or use the imported data as needed
+//            homeDetailsViewModel.updateExpenseDetails(expenseDetails)
+//            homeDetailsViewModel.updateCategories(categories)
+
+            Toast.makeText(requireContext(), "Data imported from JSON successfully", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Failed to import data from JSON: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
+
 
 
     private fun onLeftIconClick() {

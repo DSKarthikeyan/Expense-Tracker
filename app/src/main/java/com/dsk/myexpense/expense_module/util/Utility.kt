@@ -185,7 +185,8 @@ object Utility {
             currencyWriter.flush()
             currencyWriter.close()
 
-            Toast.makeText(context, "Exported to CSV successfully!", Toast.LENGTH_SHORT).show()
+            Log.d("DsK","$expenseFile -- $categoryFile -- $currencyFile")
+            Toast.makeText(context, "Exported to CSV successfully! $categoryFile", Toast.LENGTH_SHORT).show()
         } catch (e: IOException) {
             e.printStackTrace()
             Toast.makeText(context, "Failed to export to CSV", Toast.LENGTH_SHORT).show()
@@ -261,8 +262,8 @@ object Utility {
             val json = Gson().toJson(jsonData)
             val file = File(context.filesDir, "data.json")
             file.writeText(json)
-
-            Toast.makeText(context, "Exported to JSON successfully!", Toast.LENGTH_SHORT).show()
+            Log.d("DsK","JSON File Path $file")
+            Toast.makeText(context, "Exported to JSON successfully! JSON File Path $file", Toast.LENGTH_SHORT).show()
         } catch (e: IOException) {
             e.printStackTrace()
             Toast.makeText(context, "Failed to export to JSON", Toast.LENGTH_SHORT).show()

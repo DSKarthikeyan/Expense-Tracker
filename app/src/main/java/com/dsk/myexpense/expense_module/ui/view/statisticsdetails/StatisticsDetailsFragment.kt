@@ -158,12 +158,10 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
     private fun <T> updateChart(data: List<T>, transform: (List<T>) -> List<Pair<String, Int>>) {
         fragmentStatisticsDetailsFragment.apply {
             val transformedData = transform(data)
-            if (transformedData.isNullOrEmpty()) {
+            if (transformedData.isEmpty()) {
                 lineChartView.visibility = View.GONE
-                noDataChartText.visibility = View.VISIBLE
             } else {
                 lineChartView.visibility = View.VISIBLE
-                noDataChartText.visibility = View.GONE
                 lineChartView.setData(transformedData)
             }
         }

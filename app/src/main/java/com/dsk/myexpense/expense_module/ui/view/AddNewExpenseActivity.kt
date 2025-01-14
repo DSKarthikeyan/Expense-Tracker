@@ -224,6 +224,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
                 headerBarViewModel.setHeaderTitle(getString(R.string.text_income))
                 addExpenseButton.text = getString(R.string.text_add_income)
             }
+            addExpenseButton.setBackgroundResource(R.drawable.button_background)
         }
     }
 

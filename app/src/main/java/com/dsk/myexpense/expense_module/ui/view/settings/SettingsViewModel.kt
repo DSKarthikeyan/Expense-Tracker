@@ -1,7 +1,6 @@
 package com.dsk.myexpense.expense_module.ui.view.settings
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,13 +12,19 @@ import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import kotlinx.coroutines.launch
 
 
-class SettingsViewModel(private val settingsRepository: SettingsRepository, private val expenseRepository: ExpenseRepository,) : ViewModel() {
+class SettingsViewModel(
+    private val settingsRepository: SettingsRepository,
+    private val expenseRepository: ExpenseRepository,
+) : ViewModel() {
 
     private val _darkModeEnabled = MutableLiveData<Boolean>()
     val darkModeEnabled: LiveData<Boolean> get() = _darkModeEnabled
 
     private val _defaultCurrency = MutableLiveData<String>()
     val defaultCurrency: LiveData<String> get() = _defaultCurrency
+
+    private val _defaultCurrencyValue = MutableLiveData<Double>()
+    val defaultCurrencyValue: LiveData<Double> get() = _defaultCurrencyValue
 
     private val _selectedCategory = MutableLiveData<Category?>()
     val selectedCategory: LiveData<Category?> = _selectedCategory
@@ -35,6 +40,7 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository, priv
         viewModelScope.launch {
             _darkModeEnabled.value = settingsRepository.getDarkModeSetting()
             _defaultCurrency.value = settingsRepository.getDefaultCurrency()
+            _defaultCurrencyValue.value = settingsRepository.getDefaultCurrencyValue()
         }
     }
 
@@ -54,14 +60,18 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository, priv
     fun setDefaultCurrency(context: Context, currency: String, currencyValue: Double) {
         viewModelScope.launch {
             // Use the utility function to get the symbol from the XML
-            val symbol = CurrencyUtils.getCurrencySymbol(context, getFromCache = false, currencyCode = currency)
+            val symbol = CurrencyUtils.getCurrencySymbol(
+                context,
+                getFromCache = false,
+                currencyCode = currency
+            )
 //            Log.d("SettingsViewModel","Currency setDefaultCurrency: symbol $symbol -- currency $currency -- currencyValue $currencyValue")
             // Cache the symbol and base currency
             CurrencyCache.setCurrencySymbol(context, symbol)
             CurrencyCache.setBaseCurrency(context, currency, currencyValue)
 
             // Persist the default currency in the repository
-            settingsRepository.setDefaultCurrency(currency)
+            settingsRepository.setDefaultCurrency(currency, currencyValue)
 
             // Update the LiveData with the new default currency
             _defaultCurrency.value = currency

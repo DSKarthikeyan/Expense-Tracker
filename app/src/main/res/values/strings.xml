@@ -24,6 +24,7 @@
     <string name="home_title">Transactions</string>
 
     <string name="text_add_expense">Add Expense</string>
+    <string name="text_add_income">Add Income</string>
     <string name="text_expense">Expense</string>
     <string name="text_expenses_category_loans">Loan</string>
     <string name="text_okay">Okay</string>
@@ -99,7 +100,7 @@
     <string name="text_you_borrowed">you borrowed\n%s</string>
     <string name="text_you_lent">you lent\n%s</string>
 
-    <!-- Expense Category Name -->
+    <!-- Individual Expense Categories -->
     <string name="text_expenses_category_grocery">Grocery</string>
     <string name="text_expenses_category_netflix">Netflix</string>
     <string name="text_expenses_category_rent">Rent</string>
@@ -119,7 +120,7 @@
     <string name="text_expenses_category_travel">Travel</string>
     <string name="text_expenses_category_other">Other Expenses</string>
 
-    <!-- Income Category Name -->
+    <!-- Individual Income Categories -->
     <string name="text_income_category_paypal">Paypal</string>
     <string name="text_income_category_salary">Salary</string>
     <string name="text_income_category_freelance">Freelance</string>

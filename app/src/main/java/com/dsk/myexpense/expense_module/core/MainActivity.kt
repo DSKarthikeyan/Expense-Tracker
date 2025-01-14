@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     // Permissions and SMS Receiver
     private val permissionRequestCode = 101
     private lateinit var smsReceiver: SmsReceiver
+    private var shouldShowPermissionDialog = true // Flag to control dialog behavior
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,6 +78,11 @@ class MainActivity : AppCompatActivity() {
 
         // Register SMS Receiver
         registerSmsReceiver()
+
+        // Check and request permissions
+        if (!arePermissionsGranted()) {
+            requestPermissions()
+        }
     }
 
     private fun applyWindowInsets() {
@@ -104,15 +110,17 @@ class MainActivity : AppCompatActivity() {
     private fun setupObservers() {
         // Initialize the SMS Receiver
         smsReceiver = SmsReceiver()
-        // Check and request permissions
-        checkAndRequestPermissions()
         // Observe permission status
         smsViewModel.isPermissionGranted.observe(this) { granted ->
-            if (!granted) {
-                Toast.makeText(this, "Permissions not granted!", Toast.LENGTH_SHORT).show()
-                checkAndRequestPermissions()
+            if (granted) {
+                Log.d("MainActivity", "All permissions granted.")
             } else {
-                Log.d("MainActivity", "Permissions granted!")
+                val deniedPermissions = getRequiredPermissions().filter { permission ->
+                    ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
+                }
+                if (shouldShowPermissionDialog && deniedPermissions.isNotEmpty()) {
+                    showPermissionDialog(deniedPermissions)
+                }
             }
         }
 
@@ -146,62 +154,121 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkAndRequestPermissions() {
-        val permissions = getRequiredPermissions()
-        if (permissions.isNotEmpty()) {
-            ActivityCompat.requestPermissions(
-                this, permissions.toTypedArray(), permissionRequestCode
-            )
-        } else {
-            Log.d("MainActivity", "All necessary permissions are already granted.")
+    private fun arePermissionsGranted(): Boolean {
+        val requiredPermissions = getRequiredPermissions()
+        return requiredPermissions.all { permission ->
+            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
         }
     }
 
     private fun getRequiredPermissions(): List<String> {
         val permissions = mutableListOf<String>()
 
-        val permissionList = listOf(
-            Manifest.permission.RECEIVE_SMS,
-            Manifest.permission.READ_SMS,
-            Manifest.permission.POST_NOTIFICATIONS,
-            Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA
-        )
-
-        permissionList.forEach { permission ->
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                permissions.add(permission)
-            }
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            // Android 13 and above
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+            permissions.add(Manifest.permission.READ_MEDIA_IMAGES) // Access to images
+            permissions.add(Manifest.permission.READ_MEDIA_VIDEO)  // Access to videos
+            permissions.add(Manifest.permission.READ_MEDIA_AUDIO)  // Access to audio
+        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // Android 11 and above
+            permissions.add(Manifest.permission.MANAGE_EXTERNAL_STORAGE) // Broad external storage access
+        } else {
+            // Below Android 11
+            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
+
+        // Common permissions for all versions
+        permissions.addAll(
+            listOf(
+                Manifest.permission.RECEIVE_SMS,
+                Manifest.permission.READ_SMS,
+                Manifest.permission.READ_PHONE_STATE,
+                Manifest.permission.CAMERA
+            )
+        )
 
         return permissions
     }
+
+    private fun requestPermissions() {
+        val requiredPermissions = getRequiredPermissions().filter { permission ->
+            ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
+        }
+        if (requiredPermissions.isNotEmpty()) {
+            ActivityCompat.requestPermissions(
+                this, requiredPermissions.toTypedArray(), permissionRequestCode
+            )
+        }
+    }
+
+    private fun showPermissionDialog(deniedPermissions: List<String>) {
+        val permissionDescriptions = deniedPermissions.map { permission ->
+            when (permission) {
+                Manifest.permission.RECEIVE_SMS -> "Receive SMS"
+                Manifest.permission.READ_SMS -> "Read SMS"
+                Manifest.permission.POST_NOTIFICATIONS -> "Post Notifications (Android 13+)"
+                Manifest.permission.READ_MEDIA_IMAGES -> "Access Images (Android 13+)"
+                Manifest.permission.READ_MEDIA_VIDEO -> "Access Videos (Android 13+)"
+                Manifest.permission.READ_MEDIA_AUDIO -> "Access Audio Files (Android 13+)"
+                Manifest.permission.MANAGE_EXTERNAL_STORAGE -> "Manage External Storage (Android 11+)"
+                Manifest.permission.READ_EXTERNAL_STORAGE -> "Read External Storage"
+                Manifest.permission.WRITE_EXTERNAL_STORAGE -> "Write External Storage"
+                Manifest.permission.READ_PHONE_STATE -> "Read Phone State"
+                Manifest.permission.CAMERA -> "Camera"
+                else -> "Unknown Permission"
+            }
+        }
+
+        val message = "The following permissions are required for the app to function properly:\n\n" +
+                permissionDescriptions.joinToString("\n")
+
+        AlertDialog.Builder(this)
+            .setTitle("Permissions Required")
+            .setMessage(message)
+            .setPositiveButton("Grant") { _, _ ->
+                val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = android.net.Uri.parse("package:$packageName")
+                startActivity(intent)
+            }
+            .setNegativeButton("Cancel") { _, _ ->
+                Toast.makeText(this, "Permissions are required for proper functionality.", Toast.LENGTH_SHORT).show()
+            }
+            .show()
+    }
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == permissionRequestCode) {
-            if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                Log.d("MainActivity", "All permissions granted!")
-            } else {
-                Toast.makeText(this, "Permissions Denied", Toast.LENGTH_SHORT).show()
+            val deniedPermissions = permissions.zip(grantResults.toList())
+                .filter { it.second != PackageManager.PERMISSION_GRANTED }
+                .map { it.first }
 
-                // Notify user why permissions are necessary
-                AlertDialog.Builder(this)
-                    .setMessage("Necessary permissions to access SMS data and Images is Missing.\n Please give in app settings")
-                    .setPositiveButton("Grant") { _, _ ->
-                        // Redirect user to app settings if they deny
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        val uri = Uri.fromParts("package", packageName, null)
-                        intent.data = uri
-                        startActivity(intent)
-                    }
-                    .setNegativeButton("Deny", null)
-                    .show()
+            val allGranted = deniedPermissions.isEmpty()
+            smsViewModel.setPermissionGranted(allGranted)
+
+            if (!allGranted && shouldShowPermissionDialog) {
+                showPermissionDialog(deniedPermissions)
             }
         }
     }
+
+//    override fun onResume() {
+//        super.onResume()
+//        val deniedPermissions = getRequiredPermissions().filter { permission ->
+//            ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
+//        }
+//
+//        smsViewModel.setPermissionGranted(deniedPermissions.isEmpty())
+//
+//        if (deniedPermissions.isNotEmpty() && shouldShowPermissionDialog) {
+//            showPermissionDialog(deniedPermissions)
+//        }
+//    }
 }
+
 

@@ -60,13 +60,12 @@ class SmsReceiverViewModel(application: Application) : AndroidViewModel(applicat
                 expenseReceiverName = receiverName,
                 expenseAddedDate = date
             )
-
             // Save transaction with or without invoice
             repository.saveExpenseWithInvoice(
-                context = context,
-                expenseDetails = expenseDetails,
-                categoryName = categoryName,
-                bitmap = invoiceImage
+                    context = context,
+                    expenseDetails = expenseDetails,
+                    categoryName = categoryName,
+                    bitmap = invoiceImage
             )
         }
     }

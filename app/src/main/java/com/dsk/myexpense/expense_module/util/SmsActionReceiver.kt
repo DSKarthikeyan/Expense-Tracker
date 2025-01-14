@@ -65,10 +65,8 @@ class SmsActionReceiver : BroadcastReceiver() {
                 currentDateTime = System.currentTimeMillis()
             }
 
-
             Log.d("DsK", "handleAddAction Processing ADD action with details: messageSender=$messageSender, amount=$amount, date=$date")
 
-            Log.d("DsK","handleAddAction receiverName $receiverName, type $type, senderName $senderName, messageSender $messageSender,description $description,amount $amount,currentDateTime $currentDateTime, \"Other Expenses\", isIncome = $isIncome date=$date")
             // Initialize ViewModel
             val application = context.applicationContext as Application
             val viewModel = SmsReceiverViewModel(application)

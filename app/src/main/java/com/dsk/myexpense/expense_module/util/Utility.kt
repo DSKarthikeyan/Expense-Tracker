@@ -140,6 +140,7 @@ object Utility {
         val exchangeRate = CurrencyCache.getExchangeRate(context)
         val amountInUSD = CurrencyUtils.convertToUSD(expenseDetails.amount, exchangeRate)
 
+        Log.d("DsK","convertExpenseAmountToUSD $exchangeRate $amountInUSD")
         // Return a new ExpenseDetails instance with the updated amount
         return expenseDetails.copy(amount = amountInUSD)
     }

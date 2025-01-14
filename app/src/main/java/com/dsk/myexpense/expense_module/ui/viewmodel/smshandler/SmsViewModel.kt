@@ -12,6 +12,10 @@ class SmsViewModel(application: Application) : AndroidViewModel(application) {
     private val _isPermissionGranted = MutableLiveData<Boolean>()
     val isPermissionGranted: LiveData<Boolean> get() = _isPermissionGranted
 
+    fun setPermissionGranted(granted: Boolean) {
+        _isPermissionGranted.value = granted
+    }
+
     /**
      * Checks if all necessary permissions are granted.
      */

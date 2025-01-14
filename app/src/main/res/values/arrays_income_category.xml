@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Expense Category Names -->
     <string-array name="category_expense_name">
         <item>@string/text_expenses_category_grocery</item>
         <item>@string/text_expenses_category_netflix</item>
@@ -21,6 +22,7 @@
         <item>@string/text_expenses_category_other</item>
     </string-array>
 
+    <!-- Income Category Names -->
     <string-array name="category_income_name">
         <item>@string/text_income_category_paypal</item>
         <item>@string/text_income_category_salary</item>

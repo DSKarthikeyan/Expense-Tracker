@@ -221,8 +221,8 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
                 headerBarViewModel.setHeaderTitle(getString(R.string.text_expense))
                 addExpenseButton.text = getString(R.string.text_add_expense)
             } else {
-                headerBarViewModel.setHeaderTitle(getString(R.string.text_invoice))
-                addExpenseButton.text = getString(R.string.text_add_invoice)
+                headerBarViewModel.setHeaderTitle(getString(R.string.text_income))
+                addExpenseButton.text = getString(R.string.text_add_income)
             }
         }
     }

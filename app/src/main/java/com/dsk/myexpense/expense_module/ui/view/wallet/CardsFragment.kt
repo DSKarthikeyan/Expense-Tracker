@@ -125,30 +125,35 @@ class CardsFragment : Fragment() {
         clearInputFields()
     }
 
+    /**
+     * Validates a card number using the Luhn algorithm.
+     * @param cardNumber The card number to validate.
+     * @return true if the card number is valid, false otherwise.
+     */
     private fun isValidCardNumber(cardNumber: String): Boolean {
-        if (cardNumber.length != 16 || cardNumber.any { !it.isDigit() }) {
-            return false
-        }
+        // Ensure the card number contains only digits and has a valid length
+        if (cardNumber.any { !it.isDigit() }) return false
 
         var sum = 0
         var shouldDouble = false
 
+        // Process digits from right to left
         for (i in cardNumber.length - 1 downTo 0) {
             var digit = cardNumber[i].toString().toInt()
 
             if (shouldDouble) {
                 digit *= 2
-                if (digit > 9) {
-                    digit -= 9
-                }
+                if (digit > 9) digit -= 9
             }
 
             sum += digit
             shouldDouble = !shouldDouble
         }
 
+        // Valid if the sum is a multiple of 10
         return sum % 10 == 0
     }
+
 
     private fun isValidExpiryDate(expiryDate: String): Boolean {
         val regex = Regex("^\\d{2}/\\d{2}$")

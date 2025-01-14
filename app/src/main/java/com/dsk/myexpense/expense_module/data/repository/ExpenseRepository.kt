@@ -251,4 +251,14 @@ class ExpenseRepository(
     suspend fun deleteCategory(category: Category) {
         categoryDao.deleteCategory(category)  // Delegate the delete operation to the DAO
     }
+
+    suspend fun getAllExpenses() = expenseDAO.getAllExpenses()
+
+    suspend fun getExpensesBetweenDates(startDate: Long, endDate: Long) =
+        expenseDAO.getExpensesBetweenDates(startDate, endDate)
+
+    suspend fun getExpensesByCategory(categoryId: Int) = expenseDAO.getExpensesByCategory(categoryId)
+
+    suspend fun getAllCategoriesList() = categoryDao.getAllCategoriesValue()
+
 }

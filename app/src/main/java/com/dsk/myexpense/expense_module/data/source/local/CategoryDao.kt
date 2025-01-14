@@ -1,5 +1,6 @@
 package com.dsk.myexpense.expense_module.data.source.local
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -21,6 +22,9 @@ interface CategoryDao {
 
     @Query("SELECT * FROM category_table")
     suspend fun getAllCategories(): List<Category>
+
+    @Query("SELECT * FROM category_table")
+    suspend fun getAllCategoriesValue(): List<Category>
 
     @Query("SELECT * FROM category_table WHERE type = :type")
     suspend fun getCategoriesByType(type: String): List<Category>

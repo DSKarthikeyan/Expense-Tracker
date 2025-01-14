@@ -275,7 +275,6 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         Toast.makeText(context, "Invoice image cleared", Toast.LENGTH_SHORT).show()
     }
 
-
     private fun preloadData(expenseDetails: ExpenseDetails) {
         binding.addNewExpenseWidget.apply {
             addExpenseNameTextView.setText(expenseDetails.expenseSenderName)

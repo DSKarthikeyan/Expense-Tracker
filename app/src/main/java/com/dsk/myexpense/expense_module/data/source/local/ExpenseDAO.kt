@@ -115,4 +115,14 @@ interface ExpenseDAO {
 """)
     fun getYearlyExpenseSum(): List<MonthlyExpenseWithTime>
 
+
+    @Query("SELECT * FROM expense_details WHERE date BETWEEN :startDate AND :endDate")
+    suspend fun getExpensesBetweenDates(startDate: Long, endDate: Long): List<ExpenseDetails>
+
+    @Query("SELECT * FROM expense_details WHERE categoryId = :categoryId")
+    suspend fun getExpensesByCategory(categoryId: Int): List<ExpenseDetails>
+
+    @Query("SELECT * FROM expense_details")
+    suspend fun getAllExpenses(): List<ExpenseDetails>
+
 }

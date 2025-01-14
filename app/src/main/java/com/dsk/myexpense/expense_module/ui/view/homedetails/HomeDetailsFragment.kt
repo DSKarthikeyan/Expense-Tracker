@@ -112,6 +112,17 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
                 binding.notificationIcon.setImageResource(R.drawable.ic_notification_filled)
             }
         }
+        binding.textViewSeeAll.setOnClickListener {
+            // Check if allExpenseDetails is not null and has items in it
+            val allExpenses = homeDetailsViewModel.allExpenseDetails.value
+            if (!allExpenses.isNullOrEmpty()) {
+                val expenseDetailsBottomSheet = ExpenseDetailsFragment()
+                expenseDetailsBottomSheet.show(
+                    parentFragmentManager,  // Use this if you're inside a fragment
+                    expenseDetailsBottomSheet.tag
+                )
+            }
+        }
     }
 
     private fun checkForNotificationCount() {

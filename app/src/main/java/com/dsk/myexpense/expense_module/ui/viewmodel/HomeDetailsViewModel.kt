@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.dsk.myexpense.expense_module.data.model.Category
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
@@ -68,6 +69,22 @@ class HomeDetailsViewModel(
         combinedLiveData.addSource(getTotalIncomeExpenseAmount) { balance ->
             updateCombinedLiveData(currencySymbol.value ?: "", balance = balance.toDouble())
         }
+    }
+
+    fun getAllExpenses() = liveData(Dispatchers.IO) {
+        emit(expenseRepository.getAllExpenses())
+    }
+
+    fun getExpensesByCategory(categoryId: Int) = liveData(Dispatchers.IO) {
+        emit(expenseRepository.getExpensesByCategory(categoryId))
+    }
+
+    fun getExpensesBetweenDates(startDate: Long, endDate: Long) = liveData(Dispatchers.IO) {
+        emit(expenseRepository.getExpensesBetweenDates(startDate, endDate))
+    }
+
+    fun getAllCategories() = liveData(Dispatchers.IO) {
+        emit(expenseRepository.getAllCategories())
     }
 
     private fun updateCombinedLiveData(

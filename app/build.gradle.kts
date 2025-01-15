@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     id("com.google.devtools.ksp")
     id ("kotlin-parcelize")
+//    id("com.google.gms.google-services")
 }
 
 android {
@@ -79,5 +80,22 @@ dependencies {
     implementation (libs.converter.gson)
     implementation (libs.gson)
     implementation (libs.androidx.datastore.preferences) // Add this line
+
+
+    // Google Drive API dependency
+//    implementation (libs.google.api.client)
+//    implementation (libs.google.api.services.drive)
+
+    // Gson dependency for handling JSON
+//    implementation (libs.gson)
+
+    // Google Sign-In dependency
+//    implementation (libs.play.services.auth)
+
+    // Google Drive authentication dependency
+//    implementation (libs.google.oauth.client)
+//    implementation (libs.google.api.client.android)
+//    implementation (libs.google.oauth.client.jetty)
+//    implementation (libs.google.auth.library.oauth2.http)
 
 }

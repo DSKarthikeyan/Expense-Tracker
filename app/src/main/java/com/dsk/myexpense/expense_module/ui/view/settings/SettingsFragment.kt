@@ -1,17 +1,8 @@
 package com.dsk.myexpense.expense_module.ui.view.settings
 
-import android.content.Context
-import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.FragmentSettingsBinding
 import com.dsk.myexpense.expense_module.core.ExpenseApplication
@@ -23,7 +14,17 @@ import com.dsk.myexpense.expense_module.util.CommonDialog
 import com.dsk.myexpense.expense_module.util.Utility
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarView
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarViewModel
-
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 
 class SettingsFragment : Fragment() {
 
@@ -140,6 +141,12 @@ class SettingsFragment : Fragment() {
 
         observeViewModel()
         prepareHeaderBarData()
+        binding.switchCloudUpload.setOnClickListener { authenticateUser() }
+//        binding.btnUploadFile.setOnClickListener {
+//            val fileContent = "{ \"data\": \"Your JSON content\" }"
+//            uploadFileToDrive("expenses.json", fileContent)
+//        }
+//        binding.btnFetchFiles.setOnClickListener { fetchFilesFromDrive() }
     }
 
     private fun prepareHeaderBarData() {
@@ -200,6 +207,9 @@ class SettingsFragment : Fragment() {
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, formats)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerImportFormat.adapter = adapter
+
+        binding.textImportOptionsLabel.isEnabled = false
+        binding.spinnerImportFormat.isEnabled = false
     }
 
     private fun setupButtons() {
@@ -236,12 +246,102 @@ class SettingsFragment : Fragment() {
 
     private fun handleCloudSync(isEnabled: Boolean) {
         if (isEnabled) {
-            Toast.makeText(requireContext(), "Cloud Sync Enabled", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Cloud Sync: Not implemented", Toast.LENGTH_SHORT).show()
             // Add logic for cloud sync, e.g., Firebase or Google Drive integration.
         } else {
             Toast.makeText(requireContext(), "Cloud Sync Disabled", Toast.LENGTH_SHORT).show()
         }
     }
+    private val googleSignInClient by lazy {
+//        GoogleSignIn.getClient(
+//            requireActivity(),
+//            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+//                .requestScopes(DriveScopes.DRIVE_FILE)
+//                .requestEmail()
+//                .build()
+//        )
+    }
+
+//    private var driveService: Drive? = null
+    private val REQUEST_CODE_SIGN_IN = 100
+
+    fun authenticateUser() {
+//        val signInIntent = googleSignInClient.signInIntent
+//        startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN)
+    }
+
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//        if (requestCode == REQUEST_CODE_SIGN_IN) {
+//            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+//            val account = task.getResult(ApiException::class.java)
+//            if (account != null) {
+//                initializeDriveService(account)
+//            }
+//        }
+//    }
+
+//    private fun initializeDriveService(account: GoogleSignInAccount) {
+//        val credential = GoogleAccountCredential.usingOAuth2(
+//            requireContext(), listOf(DriveScopes.DRIVE_FILE)
+//        )
+//        credential.selectedAccount = account.account
+//
+//        val transport = AndroidHttp.newCompatibleTransport()
+//        val jsonFactory = GsonFactory.getDefaultInstance()
+//
+//        driveService = Drive.Builder(transport, jsonFactory, credential)
+//            .setApplicationName("Expense Tracker")
+//            .build()
+//
+//        Toast.makeText(requireContext(), "Google Drive service initialized.", Toast.LENGTH_SHORT).show()
+//    }
+
+    fun uploadFileToDrive(fileName: String, fileContent: String) {
+//        if (driveService == null) {
+//            Toast.makeText(requireContext(), "Google Drive service is not initialized.", Toast.LENGTH_SHORT).show()
+//            return
+//        }
+//
+//        val fileMetadata = com.google.api.services.drive.model.File()
+//        fileMetadata.name = fileName
+//        fileMetadata.mimeType = "application/json"
+//
+//        val fileStream = ByteArrayContent("application/json", fileContent.toByteArray())
+//
+//        val request = driveService!!.files().create(fileMetadata, fileStream)
+//        request.fields = "id"
+//
+//        val file = request.execute()
+//
+//        Toast.makeText(requireContext(), "File uploaded successfully: ${file.id}", Toast.LENGTH_SHORT).show()
+    }
+
+//    fun fetchFilesFromDrive() {
+//        if (driveService == null) {
+//            Toast.makeText(requireContext(), "Google Drive service is not initialized.", Toast.LENGTH_SHORT).show()
+//            return
+//        }
+//
+//        try {
+//            val result = driveService!!.files().list()
+//                .setQ("mimeType='application/json'") // Specify MIME type if needed
+//                .setFields("files(id, name)")
+//                .setPageSize(10)
+//                .execute()
+//
+//            val files = result.files
+//            if (files.isNullOrEmpty()) {
+//                Toast.makeText(requireContext(), "No files found in Google Drive.", Toast.LENGTH_SHORT).show()
+//            } else {
+//                files.forEach { file ->
+//                    Log.d("GoogleDrive", "File ID: ${file.id}, File Name: ${file.name}")
+//                }
+//            }
+//        } catch (e: Exception) {
+//            Toast.makeText(requireContext(), "Failed to fetch files: ${e.message}", Toast.LENGTH_SHORT).show()
+//        }
+//    }
 
     private fun exportToCsv() {
         val expenseDetails = homeDetailsViewModel.getAllExpenses()
@@ -265,6 +365,7 @@ class SettingsFragment : Fragment() {
             ).show()
         }
     }
+
 
     private fun exportToJson() {
         val expenseDetails = homeDetailsViewModel.getAllExpenses()

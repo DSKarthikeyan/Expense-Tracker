@@ -52,7 +52,8 @@ class HomeDetailsViewModel(
     private val getTotalIncomeExpenseAmount: LiveData<Int> = MediatorLiveData<Int>().apply {
         addSource(expenseRepository.getTotalIncomeExpenseAmount) { totalIncomeExpenseInUSD ->
             val exchangeRate = CurrencyCache.getExchangeRate(context)
-            value = CurrencyUtils.convertFromUSD(totalIncomeExpenseInUSD.toDouble(), exchangeRate).toInt()
+            value = CurrencyUtils.convertFromUSD(totalIncomeExpenseInUSD.toDouble(), exchangeRate)
+                .toInt()
         }
     }
 
@@ -72,10 +73,6 @@ class HomeDetailsViewModel(
         }
     }
 
-    fun getAllExpenses() = liveData(Dispatchers.IO) {
-        emit(expenseRepository.getAllExpenses())
-    }
-
     fun getExpensesByCategory(categoryId: Int) = liveData(Dispatchers.IO) {
         emit(expenseRepository.getExpensesByCategory(categoryId))
     }
@@ -84,36 +81,48 @@ class HomeDetailsViewModel(
         emit(expenseRepository.getExpensesBetweenDates(startDate, endDate))
     }
 
-    fun getAllCategories() = liveData(Dispatchers.IO) {
-        emit(expenseRepository.getAllCategories())
+    fun getAllExpensesLiveData(): LiveData<List<ExpenseDetails>> = expenseRepository.getAllExpensesLiveData()
+
+    fun getAllCategoriesLiveData(): LiveData<List<Category>> = expenseRepository.getAllCategoriesLiveData()
+
+    fun getAllCurrencyLiveData() = liveData(Dispatchers.IO) {
+        emit(expenseRepository.getAllCurrencyList())
     }
 
+    fun getAllExpenses(): List<ExpenseDetails> = expenseRepository.getAllExpenses()
+
+    fun getAllCategories(): List<Category> = expenseRepository.getAllCategories()
+
+    fun getAllCurrency() = expenseRepository.getAllCurrencyList()
+
     private fun updateCombinedLiveData(
-        currency: String = "", income: Double? = getTotalIncomeAmount.value,
+        currency: String = "",
+        income: Double? = getTotalIncomeAmount.value,
         expense: Double? = getTotalExpenseAmount.value,
-        balance: Double? = getTotalIncomeExpenseAmount.value?.toDouble()) {
+        balance: Double? = getTotalIncomeExpenseAmount.value?.toDouble()
+    ) {
         combinedLiveData.value = Pair(
-            currency,
-            Triple(income, expense, balance)
+            currency, Triple(income, expense, balance)
         )
     }
 
-    val allExpenseDetails: LiveData<List<ExpenseDetails>> = MediatorLiveData<List<ExpenseDetails>>().apply {
-        addSource(expenseRepository.allExpenseDetails) { expenses ->
-            // Make sure context is valid, and exchange rate is retrieved properly
-            val exchangeRate = CurrencyCache.getExchangeRate(context)
+    val allExpenseDetails: LiveData<List<ExpenseDetails>> =
+        MediatorLiveData<List<ExpenseDetails>>().apply {
+            addSource(expenseRepository.allExpenseDetails) { expenses ->
+                // Make sure context is valid, and exchange rate is retrieved properly
+                val exchangeRate = CurrencyCache.getExchangeRate(context)
 
-            // Log to ensure exchangeRate and amount conversion is working correctly
-            Log.d("DsK", "Exchange Rate: $exchangeRate")
+                // Log to ensure exchangeRate and amount conversion is working correctly
+                Log.d("DsK", "Exchange Rate: $exchangeRate")
 
-            // Update the LiveData value after conversion
-            value = expenses.map { expense ->
-                // Log the conversion
-                val convertedAmount = CurrencyUtils.convertFromUSD(expense.amount, exchangeRate)
-                expense.copy(amount = convertedAmount)
+                // Update the LiveData value after conversion
+                value = expenses.map { expense ->
+                    // Log the conversion
+                    val convertedAmount = CurrencyUtils.convertFromUSD(expense.amount, exchangeRate)
+                    expense.copy(amount = convertedAmount)
+                }
             }
         }
-    }
 
     fun deleteExpenseDetails(expenseDetails: ExpenseDetails) {
         viewModelScope.launch {
@@ -122,10 +131,7 @@ class HomeDetailsViewModel(
     }
 
     fun insertExpense(
-        context: Context,
-        expenseDetails: ExpenseDetails,
-        bitmap: Bitmap?,
-        categoryName: String
+        context: Context, expenseDetails: ExpenseDetails, bitmap: Bitmap?, categoryName: String
     ) = viewModelScope.launch(Dispatchers.IO) {
 
         val updatedExpenseDetails = Utility.convertExpenseAmountToUSD(context, expenseDetails)
@@ -143,10 +149,7 @@ class HomeDetailsViewModel(
     }
 
     fun updateExpense(
-        context: Context,
-        expenseDetails: ExpenseDetails,
-        bitmap: Bitmap?,
-        categoryName: String
+        context: Context, expenseDetails: ExpenseDetails, bitmap: Bitmap?, categoryName: String
     ) = viewModelScope.launch(Dispatchers.IO) {
         val updatedExpenseDetails = Utility.convertExpenseAmountToUSD(context, expenseDetails)
 
@@ -169,26 +172,24 @@ class HomeDetailsViewModel(
         }
     }
 
-    fun insertCategory(category: Category) {
+    fun insertAllCategory(category: List<Category>) {
         viewModelScope.launch {
-            expenseRepository.insertCategory(category)
+            expenseRepository.insertAllCategories(category)
         }
     }
 
-    fun insertAllCurrency(category: Currency) {
+    fun insertAllCurrencies(category: List<Currency>) {
         viewModelScope.launch {
-            expenseRepository.insertCurrencies(category)
+            expenseRepository.insertAllCurrencies(category)
         }
     }
 
 
-    fun getDailyExpenses():
-            List<DailyExpenseWithTime> {
+    fun getDailyExpenses(): List<DailyExpenseWithTime> {
         return expenseRepository.getDailyExpenses()
     }
 
-    fun getWeeklyExpenses():
-            List<WeeklyExpenseSum> {
+    fun getWeeklyExpenses(): List<WeeklyExpenseSum> {
         return expenseRepository.getWeeklyExpenses()
     }
 
@@ -204,7 +205,9 @@ class HomeDetailsViewModel(
     fun fetchCurrencySymbol(context: Context) {
         viewModelScope.launch {
             try {
-                val symbol = CurrencyUtils.getCurrencySymbol(context, settingsRepository = settingsRepository)
+                val symbol = CurrencyUtils.getCurrencySymbol(
+                    context, settingsRepository = settingsRepository
+                )
                 _currencySymbol.postValue(symbol)
             } catch (e: Exception) {
                 _currencySymbol.postValue("Currency Symbol Error: ${e.message}")
@@ -212,7 +215,7 @@ class HomeDetailsViewModel(
         }
     }
 
-    fun getCurrencySymbol(context: Context): String{
+    fun getCurrencySymbol(context: Context): String {
         return CurrencyCache.getCurrencySymbol(context) ?: "$"
     }
 

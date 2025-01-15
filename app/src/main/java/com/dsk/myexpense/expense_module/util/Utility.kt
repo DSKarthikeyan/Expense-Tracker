@@ -189,7 +189,7 @@ object Utility {
             Toast.makeText(context, "Exported to CSV successfully! $categoryFile", Toast.LENGTH_SHORT).show()
         } catch (e: IOException) {
             e.printStackTrace()
-            Toast.makeText(context, "Failed to export to CSV", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Failed to export to CSV ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
         }
     }
 

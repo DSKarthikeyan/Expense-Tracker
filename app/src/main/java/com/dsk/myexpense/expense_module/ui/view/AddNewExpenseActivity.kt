@@ -60,36 +60,39 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
     private lateinit var selectedCurrency: String
     private lateinit var headerBarViewModel: HeaderBarViewModel
     private lateinit var headerBarView: HeaderBarView
-    private val settingsRepository by lazy {
-        (requireActivity().application as ExpenseApplication).settingsRepository
-    }
 
-    private val expenseRepository by lazy {
-        (requireActivity().application as ExpenseApplication).expenseRepository
-    }
-
-    private val settingsViewModel: SettingsViewModel by viewModels {
-        GenericViewModelFactory { SettingsViewModel(settingsRepository, expenseRepository) }
-    }
-    private val categoryViewModel: CategoryViewModel by viewModels {
-        GenericViewModelFactory { CategoryViewModel(expenseRepository) }
-    }
-
-    // Flag to check if the dialog is already shown
-    private var isCategoryDialogOpen = false
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
         GenericViewModelFactory {
             HomeDetailsViewModel(
                 requireContext(),
-                (requireActivity().application as ExpenseApplication).expenseRepository,
-                (requireActivity().application as ExpenseApplication).settingsRepository
+                ExpenseApplication.getExpenseRepository(requireContext()),
+                ExpenseApplication.getSettingsRepository(requireContext())
             )
         }
     }
 
+    private val categoryViewModel: CategoryViewModel by viewModels {
+        GenericViewModelFactory {
+            CategoryViewModel(ExpenseApplication.getExpenseRepository(requireContext()))
+        }
+    }
+
+    private val settingsViewModel: SettingsViewModel by viewModels {
+        GenericViewModelFactory {
+            SettingsViewModel(
+                ExpenseApplication.getSettingsRepository(requireContext()),
+                ExpenseApplication.getExpenseRepository(requireContext())
+            )
+        }
+    }
+
+    // Flag to check if the dialog is already shown
+    private var isCategoryDialogOpen = false
+
+
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
-            AppLoadingViewModel((requireActivity().application as ExpenseApplication).expenseRepository)
+            AppLoadingViewModel(ExpenseApplication.getExpenseRepository(requireContext()))
         }
     }
 
@@ -450,7 +453,8 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
                 onGranted = {
                     Log.d("AddNewExpenseActivity", "Permission granted")
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
-                        SdkExtensions.getExtensionVersion(Build.VERSION_CODES.R) >= 2) {
+                        SdkExtensions.getExtensionVersion(Build.VERSION_CODES.R) >= 2
+                    ) {
                         showPhotoPicker()
                     } else {
                         accessMedia()
@@ -512,7 +516,10 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
             // For Android 14+, we use ACTION_PICK_IMAGES to open the new photo picker UI
             val intent = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
                 type = "image/*" // Setting image type for the picker
-                putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, 10) // Allowing the user to pick up to 10 images
+                putExtra(
+                    MediaStore.EXTRA_PICK_IMAGES_MAX,
+                    10
+                ) // Allowing the user to pick up to 10 images
             }
             photoPickerLauncher.launch(intent)
         } else {

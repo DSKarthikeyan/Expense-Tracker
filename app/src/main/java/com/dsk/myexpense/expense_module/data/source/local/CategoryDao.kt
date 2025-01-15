@@ -21,7 +21,10 @@ interface CategoryDao {
     suspend fun deleteCategory(category: Category)  // Add this method to delete a category
 
     @Query("SELECT * FROM category_table")
-    suspend fun getAllCategories(): List<Category>
+    fun getAllCategories(): List<Category>
+
+    @Query("SELECT * FROM category_table")
+    fun getAllCategoriesLiveData(): LiveData<List<Category>>
 
     @Query("SELECT * FROM category_table")
     suspend fun getAllCategoriesValue(): List<Category>

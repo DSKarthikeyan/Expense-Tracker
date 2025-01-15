@@ -102,7 +102,7 @@ class ExpenseRepository(
     suspend fun getCategoriesByTypeName(type: String, name: String): Category? =
         categoryDao.getCategoryByNameAndType(type = type, name = name)
 
-    suspend fun insertAll(categories: List<Category>) = categoryDao.insertAll(categories)
+    suspend fun insertAllCategories(categories: List<Category>) = categoryDao.insertAll(categories)
 
     suspend fun insertCategory(categories: Category) = categoryDao.insertCategory(categories)
 
@@ -155,7 +155,7 @@ class ExpenseRepository(
 
 
     // Save currencies to local database
-    suspend fun saveCurrenciesToLocalDB(currencies: List<Currency>) {
+    suspend fun insertAllCurrencies(currencies: List<Currency>) {
         currencyDao.insertAll(currencies)
     }
 
@@ -163,9 +163,8 @@ class ExpenseRepository(
         currencyDao.insertCurrency(currencies)
     }
 
-
     // Get currencies from local database
-    fun getCurrenciesFromLocalDB(): List<Currency> {
+    fun getAllCurrencyList(): List<Currency> {
         return currencyDao.getAllCurrencyDetails()
     }
 
@@ -243,7 +242,11 @@ class ExpenseRepository(
     }
 
     // Fetch all categories from the database
-    suspend fun getAllCategories(): List<Category> {
+    fun getAllCategoriesLiveData(): LiveData<List<Category>> {
+        return categoryDao.getAllCategoriesLiveData()
+    }
+
+    fun getAllCategories(): List<Category> {
         return categoryDao.getAllCategories()
     }
 
@@ -252,7 +255,8 @@ class ExpenseRepository(
         categoryDao.deleteCategory(category)  // Delegate the delete operation to the DAO
     }
 
-    suspend fun getAllExpenses() = expenseDAO.getAllExpenses()
+    fun getAllExpensesLiveData() = expenseDAO.getAllExpensesLiveData()
+    fun getAllExpenses() = expenseDAO.getAllExpenses()
 
     suspend fun getExpensesBetweenDates(startDate: Long, endDate: Long) =
         expenseDAO.getExpensesBetweenDates(startDate, endDate)

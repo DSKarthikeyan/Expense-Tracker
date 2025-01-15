@@ -137,6 +137,9 @@ interface ExpenseDAO {
     suspend fun getExpensesByCategory(categoryId: Int): List<ExpenseDetails>
 
     @Query("SELECT * FROM expense_details")
-    suspend fun getAllExpenses(): List<ExpenseDetails>
+    fun getAllExpenses(): List<ExpenseDetails>
+
+    @Query("SELECT * FROM expense_details")
+    fun getAllExpensesLiveData(): LiveData<List<ExpenseDetails>>
 
 }

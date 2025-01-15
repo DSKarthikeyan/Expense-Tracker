@@ -90,7 +90,6 @@ class CommonDialog {
         onDismissDialog: (Boolean?) -> Unit
     ) {
         // Observe the LiveData from the ViewModel
-        categoryViewModel.fetchCategories() // Ensure categories are loaded first
         categoryViewModel.categories.observe(context as LifecycleOwner) { categories ->
             // If there are no categories, handle that scenario
             if (categories.isNullOrEmpty()) {
@@ -123,9 +122,6 @@ class CommonDialog {
                                     categoryViewModel.deleteCategory(it)
                                     Toast.makeText(context, "Category deleted", Toast.LENGTH_SHORT)
                                         .show()
-
-                                    // Notify the adapter to refresh the list
-                                    categoryViewModel.fetchCategories() // Re-fetch the updated list of categories
                                 }
                             }
 

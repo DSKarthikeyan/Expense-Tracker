@@ -28,7 +28,7 @@ class AppLoadingViewModel(private val repository: ExpenseRepository) : ViewModel
         viewModelScope.launch(Dispatchers.IO) {
             val expenseType = context.getString(R.string.text_expense)
             if (repository.getCategoriesByType(expenseType).isEmpty()) {
-                repository.insertAll(getPredefinedCategories(context))
+                repository.insertAllCategories(getPredefinedCategories(context))
             } else {
                 Log.d("AppLoadingViewModel", "Categories already exist, no insertion needed.")
             }
@@ -110,7 +110,7 @@ class AppLoadingViewModel(private val repository: ExpenseRepository) : ViewModel
             when (val currenciesResponse = repository.fetchCurrenciesFromAPI(AppConstants.CURRENCY_LIST_APP_ID, currencySymbolsFromJSON )) {
                 is ApiResponse.Success -> {
                     Log.d("AppLoadingViewModel"," Currency Loading Success ")
-                    currenciesResponse.data?.let { repository.saveCurrenciesToLocalDB(it) }
+                    currenciesResponse.data?.let { repository.insertAllCurrencies(it) }
                 }
                 is ApiResponse.Error -> {
                     Log.e("AppLoadingViewModel", "Error fetching currencies: ${currenciesResponse.message}")
@@ -126,7 +126,7 @@ class AppLoadingViewModel(private val repository: ExpenseRepository) : ViewModel
     val allCurrencies: LiveData<List<Currency>> = repository.getCurrenciesFromLocalLiveDB()
 
     fun getCurrenciesFromLocalDB(): List<Currency>{
-       return repository.getCurrenciesFromLocalDB()
+       return repository.getAllCurrencyList()
     }
 
     suspend fun getCategoryNameByID(categoryId: Int): Category? {

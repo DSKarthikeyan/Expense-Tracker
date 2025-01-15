@@ -15,6 +15,7 @@ import com.dsk.myexpense.expense_module.ui.adapter.ExpenseAdapter
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlinx.coroutines.flow.filter
 import java.util.Calendar
 
 class ExpenseDetailsFragment : BottomSheetDialogFragment() {
@@ -146,14 +147,14 @@ class ExpenseDetailsFragment : BottomSheetDialogFragment() {
     }
 
     private fun observeExpenses() {
-        viewModel.getAllExpenses().observe(viewLifecycleOwner) { expenses ->
+        viewModel.getAllExpensesLiveData().observe(viewLifecycleOwner) { expenses ->
             expenseAdapter.submitList(expenses)
         }
     }
 
     // Filter the expenses based on the date range and category
     private fun filterExpenses(startDate: Long?, endDate: Long?, categoryId: Int?) {
-        viewModel.getAllExpenses().observe(viewLifecycleOwner) { expenses ->
+        viewModel.getAllExpensesLiveData().observe(viewLifecycleOwner) { expenses ->
             var filteredExpenses = expenses
 
             // Filter by date range if specified
@@ -179,7 +180,7 @@ class ExpenseDetailsFragment : BottomSheetDialogFragment() {
         if (selectedCategory == "All Categories") {
             filterExpenses(null, null, null) // Show all expenses if "All Categories" is selected
         } else {
-            viewModel.getAllCategories().observe(viewLifecycleOwner) { categories ->
+            viewModel.getAllCategoriesLiveData().observe(viewLifecycleOwner) { categories ->
                 val selectedCategoryId = categories.find { it.name == selectedCategory }?.id
                 filterExpenses(null, null, selectedCategoryId)
             }
@@ -188,7 +189,7 @@ class ExpenseDetailsFragment : BottomSheetDialogFragment() {
 
     private fun applyCategoryFilter() {
         // Apply category filter logic here
-        viewModel.getAllCategories().observe(viewLifecycleOwner) { categories ->
+        viewModel.getAllCategoriesLiveData().observe(viewLifecycleOwner) { categories ->
             val categoryNames = mutableListOf("All Categories") // Add "All Categories" as default
             categoryNames.addAll(categories.map { it.name })
             val categoryAdapter =

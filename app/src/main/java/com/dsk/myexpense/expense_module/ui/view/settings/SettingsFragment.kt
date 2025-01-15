@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
@@ -16,17 +15,15 @@ import androidx.lifecycle.ViewModelProvider
 import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.FragmentSettingsBinding
 import com.dsk.myexpense.expense_module.core.ExpenseApplication
-import com.dsk.myexpense.expense_module.data.model.Category
-import com.dsk.myexpense.expense_module.data.model.Currency
-import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
-import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.CategoryViewModel
+import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.CommonDialog
 import com.dsk.myexpense.expense_module.util.Utility
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarView
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarViewModel
+
 
 class SettingsFragment : Fragment() {
 
@@ -35,43 +32,46 @@ class SettingsFragment : Fragment() {
 
     // Flag to check if the dialog is already shown
     private var isCategoryDialogOpen = false
-    private val settingsRepository by lazy {
-        (requireActivity().application as ExpenseApplication).settingsRepository
-    }
-
-    private val expenseRepository by lazy {
-        (requireActivity().application as ExpenseApplication).expenseRepository
-    }
-
-    private val settingsViewModel: SettingsViewModel by viewModels {
-        GenericViewModelFactory { SettingsViewModel(settingsRepository, expenseRepository) }
-    }
-
-    private val appLoadingViewModel: AppLoadingViewModel by viewModels {
-        GenericViewModelFactory {
-            AppLoadingViewModel(expenseRepository)
-        }
-    }
-
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
         GenericViewModelFactory {
             HomeDetailsViewModel(
                 requireContext(),
-                (requireActivity().application as ExpenseApplication).expenseRepository,
-                (requireActivity().application as ExpenseApplication).settingsRepository
+                ExpenseApplication.getExpenseRepository(requireContext()),
+                ExpenseApplication.getSettingsRepository(requireContext())
+            )
+        }
+    }
+
+    private val appLoadingViewModel: AppLoadingViewModel by viewModels {
+        GenericViewModelFactory {
+            AppLoadingViewModel(ExpenseApplication.getExpenseRepository(requireContext()))
+        }
+    }
+
+    private val settingsViewModel: SettingsViewModel by viewModels {
+        GenericViewModelFactory {
+            SettingsViewModel(
+                ExpenseApplication.getSettingsRepository(requireContext()),
+                ExpenseApplication.getExpenseRepository(requireContext())
             )
         }
     }
 
     private val categoryViewModel: CategoryViewModel by viewModels {
-        GenericViewModelFactory { CategoryViewModel(expenseRepository) }
+        GenericViewModelFactory {
+            CategoryViewModel(
+                ExpenseApplication.getExpenseRepository(
+                    requireContext()
+                )
+            )
+        }
     }
+
     private lateinit var headerBarViewModel: HeaderBarViewModel
     private lateinit var headerBarView: HeaderBarView
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
         return binding.root
@@ -79,7 +79,6 @@ class SettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         // Initialize default settings on first app launch
         initializeDefaultSettings()
 
@@ -90,19 +89,16 @@ class SettingsFragment : Fragment() {
 
             currencyLayout.setOnClickListener {
                 CommonDialog().showCurrencySelectionDialog(
-                    requireContext(),
-                    appLoadingViewModel
+                    requireContext(), appLoadingViewModel
                 ) { selectedCurrency, currencyValue ->
                     settingsViewModel.setDefaultCurrency(
-                        requireContext(),
-                        selectedCurrency,
-                        currencyValue
+                        requireContext(), selectedCurrency, currencyValue
                     )
                 }
             }
 
         }
-
+        isCategoryDialogOpen = false
         // Category selection (no text display)
         binding.iconCategory.setOnClickListener {
             // Prevent multiple clicks while the dialog is open
@@ -117,8 +113,7 @@ class SettingsFragment : Fragment() {
             isCategoryDialogOpen = true
 
             // Show the category selection dialog
-            CommonDialog().showCategorySelectionDialog(
-                requireContext(),
+            CommonDialog().showCategorySelectionDialog(requireContext(),
                 categoryViewModel,
                 onCategorySelected = { selectedCategory ->
                     // Handle the selected category
@@ -140,8 +135,7 @@ class SettingsFragment : Fragment() {
                             "Category selection was canceled or no category selected."
                         )
                     }
-                }
-            )
+                })
         }
 
         observeViewModel()
@@ -188,8 +182,10 @@ class SettingsFragment : Fragment() {
             onRightIconClick()
         }
         setupExportFormatSpinner()
+        setupImportFormatSpinner()
         setupButtons()
         setupCloudSyncSwitch()
+        observeViewModel()
     }
 
     private fun setupExportFormatSpinner() {
@@ -197,37 +193,20 @@ class SettingsFragment : Fragment() {
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, formats)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerExportFormat.adapter = adapter
+    }
 
-        binding.spinnerExportFormat.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Selected format: ${formats[position]}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {
-                    // No action needed
-                }
-            }
+    private fun setupImportFormatSpinner() {
+        val formats = listOf("CSV", "JSON")
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, formats)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerImportFormat.adapter = adapter
     }
 
     private fun setupButtons() {
-        binding.btnExport.setOnClickListener {
-            handleExport()
+        binding.btnExport.setOnClickListener { handleExport() }
+        binding.btnImport.setOnClickListener {
+//            handleImport(binding.spinnerImportFormat.selectedItem.toString())
         }
-
-//        binding.btnImport.setOnClickListener {
-//            val format = binding.spinnerExportFormat.selectedItem.toString()
-//            handleImport(format)
-//        }
     }
 
     private fun setupCloudSyncSwitch() {
@@ -258,68 +237,113 @@ class SettingsFragment : Fragment() {
     private fun handleCloudSync(isEnabled: Boolean) {
         if (isEnabled) {
             Toast.makeText(requireContext(), "Cloud Sync Enabled", Toast.LENGTH_SHORT).show()
-            // Logic to enable cloud sync
+            // Add logic for cloud sync, e.g., Firebase or Google Drive integration.
         } else {
             Toast.makeText(requireContext(), "Cloud Sync Disabled", Toast.LENGTH_SHORT).show()
-            // Logic to disable cloud sync
         }
     }
 
     private fun exportToCsv() {
-        // Get data from ViewModel
-        val expenseDetails = homeDetailsViewModel.allExpenseDetails?.value
-        val categories = homeDetailsViewModel.getAllCategories()?.value
-        val currencies = listOf<Currency>() // If applicable, populate with real data
+        val expenseDetails = homeDetailsViewModel.getAllExpenses()
+        val categories = homeDetailsViewModel.getAllCategories()
+        val currencies = homeDetailsViewModel.getAllCurrency()
 
-        if (expenseDetails != null && categories != null) {
+        if (expenseDetails != null && categories != null && currencies != null) {
             Utility.exportToCsv(requireContext(), expenseDetails, categories, currencies)
-            Toast.makeText(requireContext(), "Data exported to CSV successfully", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(), "Data exported to CSV successfully", Toast.LENGTH_SHORT
+            ).show()
         } else {
-            Toast.makeText(requireContext(), "Failed to fetch data for export", Toast.LENGTH_SHORT).show()
+            Log.d(
+                "DsK",
+                " CSV export expenseDetails ${expenseDetails?.size}, categories ${categories?.size} currencies ${currencies?.size}"
+            )
+            Toast.makeText(
+                requireContext(),
+                "Failed to fetch data for CSV  export expenseDetails ${expenseDetails?.size}, categories ${categories?.size} currencies ${currencies?.size}",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
     private fun exportToJson() {
-        // Get data from ViewModel
-        val expenseDetails = homeDetailsViewModel.allExpenseDetails?.value
-        val categories = homeDetailsViewModel.getAllCategories()?.value
-        val currencies = listOf<Currency>() // If applicable, populate with real data
+        val expenseDetails = homeDetailsViewModel.getAllExpenses()
+        val categories = homeDetailsViewModel.getAllCategories()
+        val currencies = homeDetailsViewModel.getAllCurrency()
 
-        if (expenseDetails != null && categories != null) {
+        if (expenseDetails != null && categories != null && currencies != null) {
             Utility.exportToJson(requireContext(), expenseDetails, categories, currencies)
-            Toast.makeText(requireContext(), "Data exported to JSON successfully", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(), "Data exported to JSON successfully", Toast.LENGTH_SHORT
+            ).show()
         } else {
-            Toast.makeText(requireContext(), "Failed to fetch data for export", Toast.LENGTH_SHORT).show()
+            Log.d(
+                "DsK",
+                " JSON export expenseDetails ${expenseDetails?.size}, categories ${categories?.size} currencies ${currencies?.size}"
+            )
+            Toast.makeText(
+                requireContext(),
+                "Failed to fetch data for JSON export expenseDetails ${expenseDetails?.size}, categories ${categories?.size} currencies ${currencies?.size}",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
     private fun importFromCsv() {
         try {
             val (expenseDetails, categories, currencies) = Utility.importFromCsv(requireContext())
-            // Update ViewModel or use the imported data as needed
-//            homeDetailsViewModel.updateExpense(requireContext(),expenseDetails, null, "")
-//            homeDetailsViewModel.updateCategories(categories)
-
-            Toast.makeText(requireContext(), "Data imported from CSV successfully", Toast.LENGTH_SHORT).show()
+            if (expenseDetails != null && categories != null && currencies != null) {
+                homeDetailsViewModel.insertExpenseDetails(expenseDetails)
+                homeDetailsViewModel.insertAllCategory(categories)
+                homeDetailsViewModel.insertAllCurrencies(currencies)
+                Toast.makeText(
+                    requireContext(), "Data imported from CSV successfully", Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Log.d(
+                    "DsK",
+                    " CSV import expenseDetails ${expenseDetails?.size}, categories ${categories?.size} currencies ${currencies?.size}"
+                )
+                Toast.makeText(
+                    requireContext(),
+                    "Failed to fetch data for import for CSV expenseDetails ${expenseDetails?.size}, categories ${categories?.size} currencies ${currencies?.size}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Failed to import data from CSV: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(), "Failed to import from CSV: ${e.message}", Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
     private fun importFromJson() {
         try {
             val (expenseDetails, categories, currencies) = Utility.importFromJson(requireContext())
-            // Update ViewModel or use the imported data as needed
-//            homeDetailsViewModel.updateExpenseDetails(expenseDetails)
-//            homeDetailsViewModel.updateCategories(categories)
-
-            Toast.makeText(requireContext(), "Data imported from JSON successfully", Toast.LENGTH_SHORT).show()
+            if (expenseDetails != null && categories != null && currencies != null) {
+                homeDetailsViewModel.insertExpenseDetails(expenseDetails)
+                homeDetailsViewModel.insertAllCategory(categories)
+                homeDetailsViewModel.insertAllCurrencies(currencies)
+                Toast.makeText(
+                    requireContext(), "Data imported from JSON successfully", Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Log.d(
+                    "DsK",
+                    " JSON import expenseDetails ${expenseDetails.size}, categories ${categories.size} currencies ${currencies.size}"
+                )
+                Toast.makeText(
+                    requireContext(),
+                    "Failed to fetch data for import for JSON expenseDetails ${expenseDetails.size}, categories ${categories.size} currencies ${currencies.size}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Failed to import data from JSON: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(), "Failed to import from JSON: ${e.message}", Toast.LENGTH_SHORT
+            ).show()
         }
     }
-
-
 
     private fun onLeftIconClick() {
         activity?.onBackPressed()
@@ -339,9 +363,7 @@ class SettingsFragment : Fragment() {
             // Assign default settings values
             settingsViewModel.setDarkModeEnabled(false) // Default to light mode
             settingsViewModel.setDefaultCurrency(
-                requireContext(),
-                "USD",
-                1.0
+                requireContext(), "USD", 1.0
             ) // Default currency: USD
 
             // Mark the first launch as complete
@@ -371,4 +393,5 @@ class SettingsFragment : Fragment() {
         _binding = null
     }
 }
+
 

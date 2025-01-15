@@ -70,11 +70,11 @@
 
                 <TextView
                     android:id="@+id/tvTotalBalanceLabel"
-                    android:layout_width="101dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="19dp"
                     android:gravity="center"
                     android:includeFontPadding="false"
-                    android:text="Total Balance"
+                    android:text="Total Expense"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"

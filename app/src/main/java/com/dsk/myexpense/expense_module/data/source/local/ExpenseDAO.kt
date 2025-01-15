@@ -36,8 +36,12 @@ interface ExpenseDAO {
     @Query("SELECT COALESCE(SUM(amount), 0) FROM expense_details WHERE isIncome != 1")
     fun getTotalExpense(): Flow<Double>
 
-    @Query("SELECT COALESCE(SUM(amount), 0) FROM expense_details")
-    fun getTotalIncomeExpense(): Flow<Int>
+    @Query("""
+    SELECT COALESCE(SUM(amount), 0) 
+    FROM expense_details
+    WHERE strftime('%Y-%m', date / 1000, 'unixepoch') = strftime('%Y-%m', 'now')
+""")
+    fun getTotalIncomeExpense(): Flow<Double>
 
     @Insert
     suspend fun insertInvoiceImage(invoiceImage: ExpenseInvoiceImage)

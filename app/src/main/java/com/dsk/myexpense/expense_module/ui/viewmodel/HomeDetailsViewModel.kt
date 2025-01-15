@@ -49,11 +49,10 @@ class HomeDetailsViewModel(
         }
     }
 
-    private val getTotalIncomeExpenseAmount: LiveData<Int> = MediatorLiveData<Int>().apply {
+    private val getTotalIncomeExpenseAmount: LiveData<Double> = MediatorLiveData<Double>().apply {
         addSource(expenseRepository.getTotalIncomeExpenseAmount) { totalIncomeExpenseInUSD ->
             val exchangeRate = CurrencyCache.getExchangeRate(context)
             value = CurrencyUtils.convertFromUSD(totalIncomeExpenseInUSD.toDouble(), exchangeRate)
-                .toInt()
         }
     }
 
@@ -69,7 +68,7 @@ class HomeDetailsViewModel(
             updateCombinedLiveData(currencySymbol.value ?: "", expense = expense)
         }
         combinedLiveData.addSource(getTotalIncomeExpenseAmount) { balance ->
-            updateCombinedLiveData(currencySymbol.value ?: "", balance = balance.toDouble())
+            updateCombinedLiveData(currencySymbol.value ?: "", balance = balance)
         }
     }
 
@@ -80,8 +79,6 @@ class HomeDetailsViewModel(
     fun getExpensesBetweenDates(startDate: Long, endDate: Long) = liveData(Dispatchers.IO) {
         emit(expenseRepository.getExpensesBetweenDates(startDate, endDate))
     }
-
-    fun getAllExpensesLiveData(): LiveData<List<ExpenseDetails>> = expenseRepository.getAllExpensesLiveData()
 
     fun getAllCategoriesLiveData(): LiveData<List<Category>> = expenseRepository.getAllCategoriesLiveData()
 

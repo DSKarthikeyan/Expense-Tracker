@@ -1,6 +1,7 @@
 package com.dsk.myexpense.expense_module.ui.view.homedetails
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,14 +12,16 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.FragmentExpenseDetailsBinding
 import com.dsk.myexpense.expense_module.core.ExpenseApplication
-import com.dsk.myexpense.expense_module.ui.adapter.ExpenseAdapter
+import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
+import com.dsk.myexpense.expense_module.ui.adapter.MyItemRecyclerViewAdapter
+import com.dsk.myexpense.expense_module.ui.view.TransactionDetailsBottomView
+import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import kotlinx.coroutines.flow.filter
 import java.util.Calendar
 
-class ExpenseDetailsFragment : BottomSheetDialogFragment() {
+ class ExpenseDetailsFragment : BottomSheetDialogFragment(), MyItemRecyclerViewAdapter.ExpenseDetailClickListener {
 
     private lateinit var binding: FragmentExpenseDetailsBinding
     private val viewModel: HomeDetailsViewModel by viewModels() {
@@ -30,7 +33,12 @@ class ExpenseDetailsFragment : BottomSheetDialogFragment() {
             )
         }
     }
-    private lateinit var expenseAdapter: ExpenseAdapter
+    private val appLoadingViewModel: AppLoadingViewModel by viewModels {
+        GenericViewModelFactory {
+            AppLoadingViewModel((requireActivity().application as ExpenseApplication).expenseRepository)
+        }
+    }
+    private lateinit var expenseAdapter: MyItemRecyclerViewAdapter
     private lateinit var filterAdapter: ArrayAdapter<String>
 
     override fun onCreateView(
@@ -139,7 +147,7 @@ class ExpenseDetailsFragment : BottomSheetDialogFragment() {
     }
 
     private fun setupRecyclerView() {
-        expenseAdapter = ExpenseAdapter()
+        expenseAdapter = MyItemRecyclerViewAdapter(appLoadingViewModel = appLoadingViewModel,this@ExpenseDetailsFragment)
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = expenseAdapter
@@ -147,14 +155,14 @@ class ExpenseDetailsFragment : BottomSheetDialogFragment() {
     }
 
     private fun observeExpenses() {
-        viewModel.getAllExpensesLiveData().observe(viewLifecycleOwner) { expenses ->
-            expenseAdapter.submitList(expenses)
+        viewModel.allExpenseDetails.observe(viewLifecycleOwner) { expenses ->
+            expenseAdapter.updateList(expenses)
         }
     }
 
     // Filter the expenses based on the date range and category
     private fun filterExpenses(startDate: Long?, endDate: Long?, categoryId: Int?) {
-        viewModel.getAllExpensesLiveData().observe(viewLifecycleOwner) { expenses ->
+        viewModel.allExpenseDetails.observe(viewLifecycleOwner) { expenses ->
             var filteredExpenses = expenses
 
             // Filter by date range if specified
@@ -171,7 +179,7 @@ class ExpenseDetailsFragment : BottomSheetDialogFragment() {
                 }
             }
 
-            expenseAdapter.submitList(filteredExpenses)
+            expenseAdapter.updateList(filteredExpenses)
         }
     }
 
@@ -200,6 +208,15 @@ class ExpenseDetailsFragment : BottomSheetDialogFragment() {
             binding.spinnerCategoryFilter.setSelection(0)
         }
     }
-}
+
+     override fun onItemClicked(expenseDetails: ExpenseDetails) {
+         val transactionDetailsBottomSheet =
+             context?.let { TransactionDetailsBottomView(it, expenseDetails) }
+         transactionDetailsBottomSheet?.show(parentFragmentManager, "TransactionDetailsBottomSheet")
+     }
+
+     override fun onItemLongClicked(expenseDetails: ExpenseDetails) {
+     }
+ }
 
 

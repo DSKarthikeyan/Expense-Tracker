@@ -162,4 +162,8 @@
     <string name="export_data">Export Data</string>
     <string name="import_csv">Import CSV</string>
     <string name="import_json">Import JSON</string>
+
+    <string name="greeting_morning">Good Morning,</string>
+    <string name="greeting_afternoon">Good Afternoon,</string>
+    <string name="greeting_evening">Good Evening,</string>
 </resources>

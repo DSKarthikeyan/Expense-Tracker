@@ -24,6 +24,7 @@ import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.NotificationUtils
 import com.dsk.myexpense.expense_module.util.SwipeToDeleteCallback
+import java.util.Calendar
 
 
 /**
@@ -86,8 +87,24 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
 
         val itemTouchHelper = ItemTouchHelper(swipeCallback)
         itemTouchHelper.attachToRecyclerView(binding.rvTransactions)
+        updateTime()
     }
 
+    private fun updateTime(){
+        // Get the current hour
+        val calendar = Calendar.getInstance()
+        val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+
+        // Set the greeting message based on the current time
+        val greeting = when (currentHour) {
+            in 0..11 -> getString(R.string.greeting_morning)
+            in 12..17 -> getString(R.string.greeting_afternoon)
+            else -> getString(R.string.greeting_evening)
+        }
+
+        // Update the TextView text with the appropriate greeting
+        binding.tvGreeting.text = greeting
+    }
     // Helper function to format the amount with the currency symbol
     private fun formatAmount(currencySymbol: String, amount: Double?): String {
         val formattedAmount = String.format("%.2f", amount ?: 0.0)
@@ -148,6 +165,5 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
     override fun onItemLongClicked(expenseDetails: ExpenseDetails) {
         // Here, handle the deletion of the item
 //        viewModel.deleteExpenseDetails(expenseDetails)
-        Toast.makeText(context, "Expense Deleted", Toast.LENGTH_SHORT).show()
     }
 }

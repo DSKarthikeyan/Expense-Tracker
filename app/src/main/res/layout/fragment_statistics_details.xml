@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/white">
 
     <!-- Header Bar -->
@@ -122,6 +123,7 @@
             android:id="@+id/topSpendingRecycler"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            tools:listitem="@layout/item_group_list_detail"
             android:layout_marginTop="6dp"
             android:layout_marginBottom="60dp"
             app:layout_constraintEnd_toEndOf="parent"

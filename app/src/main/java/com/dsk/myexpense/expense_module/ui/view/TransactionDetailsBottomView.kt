@@ -114,7 +114,7 @@ class TransactionDetailsBottomView(
         }
 
         // Example: Updating the header dynamically
-        headerBarViewModel.setHeaderTitle(getString(R.string.text_string_statistics))
+        headerBarViewModel.setHeaderTitle(getString(R.string.text_transactions_details))
         headerBarViewModel.setLeftIconResource(R.drawable.ic_arrow_down_24)
         headerBarViewModel.setRightIconResource(R.drawable.ic_edit)
         headerBarViewModel.setLeftIconVisibility(true)

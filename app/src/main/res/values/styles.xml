@@ -165,6 +165,7 @@
 
     <style name="CustomButtonShape" parent="ShapeAppearance.MaterialComponents">
         <item name="cornerFamily">rounded</item>
+        <item name="android:background">@drawable/tab_selector_chart</item>
         <item name="cornerSize">12dp</item>
     </style>
 

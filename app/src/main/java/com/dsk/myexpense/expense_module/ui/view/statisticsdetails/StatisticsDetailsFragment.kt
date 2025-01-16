@@ -6,11 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.ImageView
 import android.widget.PopupMenu
-import android.widget.TextView
-import android.widget.Toast
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
@@ -25,7 +21,6 @@ import com.dsk.myexpense.expense_module.data.source.local.WeeklyExpenseSum
 import com.dsk.myexpense.expense_module.data.source.local.WeeklyExpenseWithTime
 import com.dsk.myexpense.expense_module.ui.adapter.MyItemRecyclerViewAdapter
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
-import com.dsk.myexpense.expense_module.util.CustomDividerItemDecoration
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarView
@@ -58,7 +53,7 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
     private lateinit var headerBarViewModel: HeaderBarViewModel
     private lateinit var headerBarView: HeaderBarView
 
-    private var selectedFilter = "All" // Default filter for dropdown
+    private lateinit var selectedFilter: String // Default filter for dropdown
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -135,6 +130,7 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
     
     private fun initUI() {
         binding.apply {
+            selectedFilter = resources.getString(R.string.text_all)
             // Initialize RecyclerView
             topSpendingRecycler.setHasFixedSize(true)
             topSpendingRecycler.layoutManager = LinearLayoutManager(context)
@@ -162,7 +158,7 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
     }
 
     private fun setupDropdownFilter() {
-        val filterOptions = listOf("All", getString(R.string.text_income), getString(R.string.text_expense))
+        val filterOptions = listOf(getString(R.string.text_all), getString(R.string.text_income), getString(R.string.text_expense))
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, filterOptions).apply {
             setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         }

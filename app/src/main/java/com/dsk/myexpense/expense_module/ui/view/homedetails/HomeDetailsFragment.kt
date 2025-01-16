@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -133,10 +132,10 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
             // Check if allExpenseDetails is not null and has items in it
             val allExpenses = homeDetailsViewModel.allExpenseDetails.value
             if (!allExpenses.isNullOrEmpty()) {
-                val expenseDetailsBottomSheet = ExpenseDetailsFragment()
+                val expenseDetailsBottomSheet = ExpenseHistoryFragment()
                 expenseDetailsBottomSheet.show(
                     parentFragmentManager,  // Use this if you're inside a fragment
-                    expenseDetailsBottomSheet.tag
+                   "ExpenseDetailsHistoryBottomSheet"
                 )
             }
         }

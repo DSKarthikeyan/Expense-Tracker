@@ -1,7 +1,6 @@
 package com.dsk.myexpense.expense_module.ui.view.homedetails
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,7 +9,8 @@ import android.widget.ArrayAdapter
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dsk.myexpense.R
-import com.dsk.myexpense.databinding.FragmentExpenseDetailsBinding
+import com.dsk.myexpense.databinding.ActivityExpenseHistoryBinding
+import com.dsk.myexpense.databinding.ContentExpenseHistoryBinding
 import com.dsk.myexpense.expense_module.core.ExpenseApplication
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.ui.adapter.MyItemRecyclerViewAdapter
@@ -21,9 +21,14 @@ import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import java.util.Calendar
 
- class ExpenseDetailsFragment : BottomSheetDialogFragment(), MyItemRecyclerViewAdapter.ExpenseDetailClickListener {
+class ExpenseHistoryFragment : BottomSheetDialogFragment(),
+    MyItemRecyclerViewAdapter.ExpenseDetailClickListener {
 
-    private lateinit var binding: FragmentExpenseDetailsBinding
+    private lateinit var expenseHistoryBinding: ActivityExpenseHistoryBinding
+    private lateinit var expenseAdapter: MyItemRecyclerViewAdapter
+    private lateinit var filterAdapter: ArrayAdapter<String>
+    private lateinit var binding: ContentExpenseHistoryBinding
+
     private val viewModel: HomeDetailsViewModel by viewModels() {
         GenericViewModelFactory {
             HomeDetailsViewModel(
@@ -38,31 +43,23 @@ import java.util.Calendar
             AppLoadingViewModel((requireActivity().application as ExpenseApplication).expenseRepository)
         }
     }
-    private lateinit var expenseAdapter: MyItemRecyclerViewAdapter
-    private lateinit var filterAdapter: ArrayAdapter<String>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        binding = FragmentExpenseDetailsBinding.inflate(inflater, container, false)
+        expenseHistoryBinding = ActivityExpenseHistoryBinding.inflate(inflater, container, false)
+        return expenseHistoryBinding.root
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding = expenseHistoryBinding.expenseHistory
         setupSpinner()
         setupRecyclerView()
 
         observeExpenses()
         applyCategoryFilter()
-
-        return binding.root
-    }
-
-    override fun onStart() {
-        super.onStart()
-
-        // Make the bottom sheet full-screen
-        dialog?.window?.setLayout(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            (resources.displayMetrics.heightPixels * 0.8).toInt() // Set height to 80% of screen height
-        )
     }
 
     private fun setupSpinner() {
@@ -72,33 +69,40 @@ import java.util.Calendar
         filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerDateFilter.adapter = filterAdapter
 
-        binding.spinnerDateFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parentView: AdapterView<*>, view: View?, position: Int, id: Long
-            ) {
-                val selectedOption = filterOptions[position]
-                handleFilterSelection(selectedOption)
-            }
+        binding.spinnerDateFilter.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parentView: AdapterView<*>, view: View?, position: Int, id: Long
+                ) {
+                    val selectedOption = filterOptions[position]
+                    handleFilterSelection(selectedOption)
+                }
 
-            override fun onNothingSelected(parentView: AdapterView<*>) {}
-        }
+                override fun onNothingSelected(parentView: AdapterView<*>) {}
+            }
 
         // Add item selection listener to category filter spinner
-        binding.spinnerCategoryFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parentView: AdapterView<*>, view: View?, position: Int, id: Long) {
-                val selectedCategory = binding.spinnerCategoryFilter.selectedItem as String
-                handleCategorySelection(selectedCategory)
-            }
+        binding.spinnerCategoryFilter.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parentView: AdapterView<*>,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    val selectedCategory = binding.spinnerCategoryFilter.selectedItem as String
+                    handleCategorySelection(selectedCategory)
+                }
 
-            override fun onNothingSelected(parentView: AdapterView<*>) {}
-        }
+                override fun onNothingSelected(parentView: AdapterView<*>) {}
+            }
     }
 
     private fun handleFilterSelection(filter: String) {
         when (filter) {
-            "Month" -> applyMonthFilter()
-            "Day" -> applyDayFilter()
-            "Year" -> applyYearFilter()
+            getString(R.string.month) -> applyMonthFilter()
+            getString(R.string.day) -> applyDayFilter()
+            getString(R.string.year) -> applyYearFilter()
         }
     }
 
@@ -116,7 +120,11 @@ import java.util.Calendar
             ) // Set to the last day of the current month
         }.timeInMillis
 
-        filterExpenses(startDate, endDate, null) // Pass the start and end date for the current month
+        filterExpenses(
+            startDate,
+            endDate,
+            null
+        ) // Pass the start and end date for the current month
     }
 
     private fun applyDayFilter() {
@@ -147,7 +155,10 @@ import java.util.Calendar
     }
 
     private fun setupRecyclerView() {
-        expenseAdapter = MyItemRecyclerViewAdapter(appLoadingViewModel = appLoadingViewModel,this@ExpenseDetailsFragment)
+        expenseAdapter = MyItemRecyclerViewAdapter(
+            appLoadingViewModel = appLoadingViewModel,
+            this@ExpenseHistoryFragment
+        )
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = expenseAdapter
@@ -185,7 +196,7 @@ import java.util.Calendar
 
     // Apply category filter based on category selection from spinner
     private fun handleCategorySelection(selectedCategory: String) {
-        if (selectedCategory == "All Categories") {
+        if (selectedCategory == getString(R.string.text_all_categories)) {
             filterExpenses(null, null, null) // Show all expenses if "All Categories" is selected
         } else {
             viewModel.getAllCategoriesLiveData().observe(viewLifecycleOwner) { categories ->
@@ -198,7 +209,7 @@ import java.util.Calendar
     private fun applyCategoryFilter() {
         // Apply category filter logic here
         viewModel.getAllCategoriesLiveData().observe(viewLifecycleOwner) { categories ->
-            val categoryNames = mutableListOf("All Categories") // Add "All Categories" as default
+            val categoryNames = mutableListOf(getString(R.string.text_all_categories)) // Add "All Categories" as default
             categoryNames.addAll(categories.map { it.name })
             val categoryAdapter =
                 ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, categoryNames)
@@ -209,14 +220,14 @@ import java.util.Calendar
         }
     }
 
-     override fun onItemClicked(expenseDetails: ExpenseDetails) {
-         val transactionDetailsBottomSheet =
-             context?.let { TransactionDetailsBottomView(it, expenseDetails) }
-         transactionDetailsBottomSheet?.show(parentFragmentManager, "TransactionDetailsBottomSheet")
-     }
+    override fun onItemClicked(expenseDetails: ExpenseDetails) {
+        val transactionDetailsBottomSheet =
+            context?.let { TransactionDetailsBottomView(it, expenseDetails) }
+        transactionDetailsBottomSheet?.show(parentFragmentManager, "TransactionDetailsBottomSheet")
+    }
 
-     override fun onItemLongClicked(expenseDetails: ExpenseDetails) {
-     }
- }
+    override fun onItemLongClicked(expenseDetails: ExpenseDetails) {
+    }
+}
 
 

@@ -164,9 +164,7 @@
     </style>
 
     <style name="CustomButtonShape" parent="ShapeAppearance.MaterialComponents">
-        <item name="cornerFamily">rounded</item>
         <item name="android:background">@drawable/tab_selector_chart</item>
-        <item name="cornerSize">12dp</item>
     </style>
 
     <style name="MaterialButtonStyle" parent="Widget.MaterialComponents.Button.TextButton">
@@ -174,6 +172,6 @@
         <item name="rippleColor">@color/selected_button_ripple</item>
         <item name="android:padding">8dp</item>
         <item name="android:textColor">@color/black</item>
-        <item name="shapeAppearance">@style/CustomButtonShape</item>
+<!--        <item name="shapeAppearance">@style/CustomButtonShape</item>-->
     </style>
 </resources>

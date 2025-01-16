@@ -173,15 +173,15 @@ class CardsFragment : Fragment() {
 
     private fun showCardDetails(card: CardEntity) {
         val dialogBuilder = AlertDialog.Builder(requireContext())
-        dialogBuilder.setTitle("Card Details")
+        dialogBuilder.setTitle(R.string.text_card_details)
             .setMessage(
-                "Card Name: ${card.nameOnCard}\n" +
-                        "Card Number: ${maskCardNumber(card.cardNumber)}\n" +
-                        "Expiry Date: ${card.expiryDate}\n" +
-                        "CVC: ${card.cvc}\n" +
-                        "Zip Code: ${card.zip}"
+                "${getString(R.string.text_card_name)}: ${card.nameOnCard}\n" +
+                        "${getString(R.string.text_card_number)}: ${maskCardNumber(card.cardNumber)}\n" +
+                        "${getString(R.string.text_expiry_date)}: ${card.expiryDate}\n" +
+                        "${getString(R.string.text_cvv)}: ${card.cvc}\n" +
+                        "${getString(R.string.text_zip_code)}: ${card.zip}"
             )
-            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+            .setPositiveButton(R.string.text_okay) { dialog, _ -> dialog.dismiss() }
         dialogBuilder.create().show()
     }
 

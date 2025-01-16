@@ -20,6 +20,7 @@ class SmsReceiverViewModel(application: Application) : AndroidViewModel(applicat
         transactionDao = ExpenseTrackerDB.getDatabase(application).getExpenseTransactionDAO(),
         categoryDao = ExpenseTrackerDB.getDatabase(application).getExpenseCategoryDAO(),
         currencyDao = ExpenseTrackerDB.getDatabase(application).getExpenseCurrencyDAO(),
+        userDao = ExpenseTrackerDB.getDatabase(application).getUserDao(),
         currencyAPIService = CurrencyAPIService
     )
 

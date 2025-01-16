@@ -2,6 +2,7 @@ package com.dsk.myexpense.expense_module.util
 
 import android.app.Activity
 import android.app.ActivityManager
+import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
@@ -10,11 +11,18 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import com.dsk.myexpense.R
 import com.dsk.myexpense.expense_module.core.ExpenseApplication
 import com.dsk.myexpense.expense_module.data.model.Category
 import com.dsk.myexpense.expense_module.data.model.Currency
@@ -79,13 +87,6 @@ object Utility {
         }
         return false
     }
-
-//    fun makeStatusBarTransparent(activity: Activity){
-//        val decor = activity.window.decorView
-//        decor.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-//        val w = activity.window
-//        w.statusBarColor = Color.TRANSPARENT
-//    }
 
     fun getDateTime(milliseconds: Long): Pair<String?, String?> {
         val date = Date(milliseconds)
@@ -326,4 +327,54 @@ object Utility {
         val file = File(context.filesDir, fileName)
         return if (file.exists()) file.readText() else ""
     }
+
+    fun showUserDialog(
+        context: Context,
+        pickImageLauncher: ActivityResultLauncher<String>,
+        onSave: (name: String, profilePictureUri: Uri?) -> Unit
+    ): View {
+        // Inflate the dialog view
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_user, null)
+        val nameEditText = dialogView.findViewById<EditText>(R.id.nameEditText)
+        val profilePictureImageView = dialogView.findViewById<ImageView>(R.id.profilePictureImageView)
+
+        // Declare a variable to hold the selected image URI
+        var selectedImageUri: Uri? = null
+
+        // Handle the image selection click
+        profilePictureImageView.setOnClickListener {
+            // Launch the image picker when the image view is clicked
+            pickImageLauncher.launch("image/*") // Trigger the image picker
+        }
+
+        // Build the AlertDialog
+        val alertDialog = AlertDialog.Builder(context)
+            .setView(dialogView)
+            .setCancelable(false)  // Prevent the dialog from being dismissed unless valid data is provided
+            .setPositiveButton(R.string.text_save) { dialog, _ ->
+                // Get the name entered by the user
+                val name = nameEditText.text.toString()
+
+                // Validate the inputs
+                if (name.isNotEmpty() && selectedImageUri != null) {
+                    // If both name and image are provided, save the data
+                    onSave(name, selectedImageUri)  // Pass the data to the callback
+                    dialog.dismiss()  // Dismiss the dialog once the data is saved
+                } else {
+                    // Show a toast message if validation fails
+                    Toast.makeText(context, "Please fill in all details", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton(R.string.text_cancel) { dialog, _ ->
+                dialog.dismiss()  // Cancel button to dismiss the dialog
+            }
+            .create()
+
+        alertDialog.show()
+        return dialogView
+    }
+
+
+
+
 }

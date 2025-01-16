@@ -1,15 +1,27 @@
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.FragmentSettingsAccountDetailsBinding
+import com.dsk.myexpense.expense_module.core.ExpenseApplication
 import com.dsk.myexpense.expense_module.ui.adapter.ProfileOptionAdapter
+import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
+import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.AppConstants
+import com.dsk.myexpense.expense_module.util.Utility
+import kotlinx.coroutines.launch
 
 data class ProfileOption(
     val iconResId: Int,  // Resource ID for the icon drawable
@@ -21,6 +33,23 @@ class AccountsDetailsFragment : Fragment() {
     private var fragmentSettingsAccountDetailsBinding: FragmentSettingsAccountDetailsBinding? = null
     private val binding get() = fragmentSettingsAccountDetailsBinding!!
     private lateinit var adapter: ProfileOptionAdapter
+    private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
+        GenericViewModelFactory {
+            HomeDetailsViewModel(
+                requireContext(),
+                ExpenseApplication.getExpenseRepository(requireContext()),
+                ExpenseApplication.getSettingsRepository(requireContext())
+            )
+        }
+    }
+    private val pickImageLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let {
+                selectedImageUri = it // Update the image URI
+            }
+        }
+
+    private var selectedImageUri: Uri? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -61,6 +90,37 @@ class AccountsDetailsFragment : Fragment() {
 
         fragmentSettingsAccountDetailsBinding?.ivBack?.setOnClickListener {
             activity?.onBackPressed()
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                homeDetailsViewModel.user.collect { user ->
+                    if (user == null) {
+                        Utility.showUserDialog(
+                            context = requireContext(),
+                            pickImageLauncher = pickImageLauncher
+                        ) { name, profilePictureUri ->
+                            homeDetailsViewModel.saveUser(name, profilePictureUri.toString())
+                            updateUserDetails(name, profilePictureUri)
+                        }
+
+                    } else {
+                        updateUserDetails(user.name, Uri.parse(user.profilePicture))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateUserDetails(name: String, profilePictureUri: Uri?){
+        fragmentSettingsAccountDetailsBinding?.tvProfileName?.text = name
+        // Use Glide to load the image
+        fragmentSettingsAccountDetailsBinding?.ivProfile?.let {
+            Glide.with(requireContext())
+                .load(profilePictureUri) // Load the image URI
+                .placeholder(R.drawable.ic_action_friends) // Placeholder image
+                .error(R.drawable.ic_action_friends) // Error image
+                .into(it)
         }
     }
 

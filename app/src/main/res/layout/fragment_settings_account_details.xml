@@ -52,6 +52,7 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_marginTop="125dp"
+            android:contentDescription="@string/text_profile_details"
             android:background="@drawable/circle_background"
             android:src="@drawable/ic_action_friends"
             app:layout_constraintEnd_toEndOf="parent"
@@ -77,6 +78,7 @@
             android:layout_height="wrap_content"
             android:text="@string/text_user_name"
             android:textSize="14sp"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvProfileName" />

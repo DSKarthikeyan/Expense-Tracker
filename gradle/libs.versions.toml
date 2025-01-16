@@ -1,9 +1,11 @@
 [versions]
 activityKtx = "1.9.3"
+activityKtxVersion = "1.10.0"
 agp = "8.7.3"
 cardview = "1.0.0"
 converterGson = "2.9.0"
 datastorePreferences = "1.1.1"
+glide = "4.16.0"
 googleApiClient = "1.35.0"
 googleApiClientAndroid = "1.32.1"
 googleApiServicesDrive = "v3-rev305-1.25.0"
@@ -31,12 +33,15 @@ kotlinx-serialization-json = "1.7.3"
 
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
+androidx-activity-ktx-v1100 = { module = "androidx.activity:activity-ktx", version.ref = "activityKtxVersion" }
 androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-lifecycle-viewmodel-ktx-v241 = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtxVersion" }
 androidx-recyclerview-v121 = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerviewVersion" }
+compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 google-api-client = { module = "com.google.api-client:google-api-client", version.ref = "googleApiClient" }
 google-api-client-android = { module = "com.google.api-client:google-api-client-android", version.ref = "googleApiClientAndroid" }
 google-api-services-drive = { module = "com.google.apis:google-api-services-drive", version.ref = "googleApiServicesDrive" }

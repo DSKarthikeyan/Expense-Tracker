@@ -81,7 +81,10 @@ dependencies {
     implementation (libs.gson)
     implementation (libs.androidx.datastore.preferences) // Add this line
 
-
+    implementation (libs.glide)
+    ksp (libs.compiler)
+    implementation (libs.androidx.activity.ktx.v1100)
+    implementation (libs.androidx.fragment.ktx)
     // Google Drive API dependency
 //    implementation (libs.google.api.client)
 //    implementation (libs.google.api.services.drive)

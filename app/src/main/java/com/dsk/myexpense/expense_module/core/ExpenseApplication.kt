@@ -27,6 +27,7 @@ class ExpenseApplication : Application() {
             database.getExpenseTransactionDAO(),
             database.getExpenseCategoryDAO(),
             database.getExpenseCurrencyDAO(),
+            database.getUserDao(),
             CurrencyAPIService
         )
     }

@@ -10,18 +10,17 @@ import com.dsk.myexpense.expense_module.data.model.Category
 import com.dsk.myexpense.expense_module.data.model.Currency
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.data.model.ExpenseInvoiceImage
+import com.dsk.myexpense.expense_module.data.model.User
 import com.dsk.myexpense.expense_module.data.source.local.CategoryDao
 import com.dsk.myexpense.expense_module.data.source.local.CurrencyDAO
 import com.dsk.myexpense.expense_module.data.source.local.DailyExpenseWithTime
 import com.dsk.myexpense.expense_module.data.source.local.ExpenseDAO
 import com.dsk.myexpense.expense_module.data.source.local.ExpenseTransactionDao
 import com.dsk.myexpense.expense_module.data.source.local.MonthlyExpenseWithTime
+import com.dsk.myexpense.expense_module.data.source.local.UserDao
 import com.dsk.myexpense.expense_module.data.source.local.WeeklyExpenseSum
-import com.dsk.myexpense.expense_module.data.source.local.WeeklyExpenseWithTime
 import com.dsk.myexpense.expense_module.data.source.network.CurrencyAPIService
 import com.dsk.myexpense.expense_module.util.ApiResponse
-import com.dsk.myexpense.expense_module.util.CurrencyCache
-import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import com.dsk.myexpense.expense_module.util.Utility
 import com.dsk.myexpense.expense_module.util.Utility.bitmapToByteArray
 
@@ -30,6 +29,7 @@ class ExpenseRepository(
     private val transactionDao: ExpenseTransactionDao,
     private val categoryDao: CategoryDao,
     private val currencyDao: CurrencyDAO,
+    private val userDao: UserDao,
     private val currencyAPIService: CurrencyAPIService,
 ) {
 
@@ -37,6 +37,9 @@ class ExpenseRepository(
     val getTotalIncomeAmount: LiveData<Double> = expenseDAO.getTotalIncome().asLiveData()
     val getTotalExpenseAmount: LiveData<Double> = expenseDAO.getTotalExpense().asLiveData()
     val getTotalIncomeExpenseAmount: LiveData<Double> = expenseDAO.getTotalIncomeExpense().asLiveData()
+
+    suspend fun insertUser(user: User) = userDao.insertUser(user)
+    suspend fun getUser() = userDao.getUser()
 
     suspend fun saveExpenseWithInvoice(
         context: Context,

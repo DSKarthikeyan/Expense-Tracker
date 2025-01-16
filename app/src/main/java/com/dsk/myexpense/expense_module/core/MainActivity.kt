@@ -1,7 +1,6 @@
 package com.dsk.myexpense.expense_module.core
 
 import android.Manifest
-import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -31,7 +30,17 @@ import kotlinx.coroutines.launch
 import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
-import android.provider.Settings
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.EditText
+import android.widget.ImageView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import com.bumptech.glide.Glide
+import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
+import com.dsk.myexpense.expense_module.util.AppConstants
+import com.dsk.myexpense.expense_module.util.Utility
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,16 +49,34 @@ class MainActivity : AppCompatActivity() {
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory { AppLoadingViewModel((application as ExpenseApplication).expenseRepository) }
     }
+    private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
+        GenericViewModelFactory {
+            HomeDetailsViewModel(
+                this,
+                ExpenseApplication.getExpenseRepository(this),
+                ExpenseApplication.getSettingsRepository(this)
+            )
+        }
+    }
 
     // Binding and NavController
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
     private lateinit var settingsDataStore: SettingsDataStore
+
     // Permissions and SMS Receiver
     private val permissionRequestCode = 101
     private lateinit var smsReceiver: SmsReceiver
     private var shouldShowPermissionDialog = true // Flag to control dialog behavior
+    private val pickImageLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let {
+                selectedImageUri = it // Update the image URI
+            }
+        }
 
+    private var selectedImageUri: Uri? = null
+    private lateinit var alertDialog: View
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -82,6 +109,27 @@ class MainActivity : AppCompatActivity() {
         // Check and request permissions
         if (!arePermissionsGranted()) {
             requestPermissions()
+        }
+
+        // Observe user state
+        homeDetailsViewModel.fetchUser()
+        lifecycleScope.launchWhenStarted {
+            homeDetailsViewModel.user.collect { user ->
+                if (user == null && !isFinishing && !isDestroyed) {
+                    // Show the dialog only if activity is not finishing or destroyed
+                   alertDialog = Utility.showUserDialog(
+                        context = this@MainActivity,
+                        pickImageLauncher = pickImageLauncher
+                    ) { name, profilePictureUri ->
+                       Glide.with(this@MainActivity)
+                           .load(profilePictureUri) // Load the image URI
+                           .placeholder(R.drawable.ic_action_friends) // Placeholder image
+                           .error(R.drawable.ic_action_friends) // Error image
+                           .into(alertDialog.findViewById(R.id.profilePictureImageView))
+                       homeDetailsViewModel.saveUser(name, profilePictureUri.toString())
+                    }
+                }
+            }
         }
     }
 
@@ -116,7 +164,9 @@ class MainActivity : AppCompatActivity() {
                 Log.d("MainActivity", "All permissions granted.")
             } else {
                 val deniedPermissions = getRequiredPermissions().filter { permission ->
-                    ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
+                    ContextCompat.checkSelfPermission(
+                        this, permission
+                    ) != PackageManager.PERMISSION_GRANTED
                 }
                 if (shouldShowPermissionDialog && deniedPermissions.isNotEmpty()) {
                     showPermissionDialog(deniedPermissions)
@@ -129,7 +179,11 @@ class MainActivity : AppCompatActivity() {
 
         appLoadingViewModel.allCurrencies.observe(this) {
             if (it.isEmpty()) {
-                appLoadingViewModel.fetchAndStoreCurrencies(CurrencyUtils.loadCurrencyMapFromJSON(this))
+                appLoadingViewModel.fetchAndStoreCurrencies(
+                    CurrencyUtils.loadCurrencyMapFromJSON(
+                        this
+                    )
+                )
             }
         }
     }
@@ -221,23 +275,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val message = "The following permissions are required for the app to function properly:\n\n" +
-                permissionDescriptions.joinToString("\n")
+        val message =
+            "The following permissions are required for the app to function properly:\n\n" + permissionDescriptions.joinToString(
+                "\n"
+            )
 
-        AlertDialog.Builder(this)
-            .setTitle("Permissions Required")
-            .setMessage(message)
+        AlertDialog.Builder(this).setTitle("Permissions Required").setMessage(message)
             .setPositiveButton("Grant") { _, _ ->
                 val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                 intent.data = android.net.Uri.parse("package:$packageName")
                 startActivity(intent)
-            }
-            .setNegativeButton("Cancel") { _, _ ->
-                Toast.makeText(this, "Permissions are required for proper functionality.", Toast.LENGTH_SHORT).show()
-            }
-            .show()
+            }.setNegativeButton("Cancel") { _, _ ->
+                Toast.makeText(
+                    this, "Permissions are required for proper functionality.", Toast.LENGTH_SHORT
+                ).show()
+            }.show()
     }
-
 
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray
@@ -245,8 +298,7 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == permissionRequestCode) {
             val deniedPermissions = permissions.zip(grantResults.toList())
-                .filter { it.second != PackageManager.PERMISSION_GRANTED }
-                .map { it.first }
+                .filter { it.second != PackageManager.PERMISSION_GRANTED }.map { it.first }
 
             val allGranted = deniedPermissions.isEmpty()
             smsViewModel.setPermissionGranted(allGranted)
@@ -256,19 +308,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-//    override fun onResume() {
-//        super.onResume()
-//        val deniedPermissions = getRequiredPermissions().filter { permission ->
-//            ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
-//        }
-//
-//        smsViewModel.setPermissionGranted(deniedPermissions.isEmpty())
-//
-//        if (deniedPermissions.isNotEmpty() && shouldShowPermissionDialog) {
-//            showPermissionDialog(deniedPermissions)
-//        }
-//    }
 }
+
 
 

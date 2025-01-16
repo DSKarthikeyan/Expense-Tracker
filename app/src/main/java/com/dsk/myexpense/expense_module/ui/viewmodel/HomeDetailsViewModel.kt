@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.dsk.myexpense.expense_module.data.model.Category
 import com.dsk.myexpense.expense_module.data.model.Currency
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
+import com.dsk.myexpense.expense_module.data.model.User
 import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
 import com.dsk.myexpense.expense_module.data.source.local.DailyExpenseWithTime
 import com.dsk.myexpense.expense_module.data.source.local.MonthlyExpenseWithTime
@@ -21,6 +22,8 @@ import com.dsk.myexpense.expense_module.util.CurrencyCache
 import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import com.dsk.myexpense.expense_module.util.Utility
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class HomeDetailsViewModel(
@@ -34,6 +37,9 @@ class HomeDetailsViewModel(
 
     // MediatorLiveData to combine currency symbol with other amounts
     val combinedLiveData = MediatorLiveData<Pair<String, Triple<Double?, Double?, Double?>>>()
+
+    private val _user = MutableStateFlow<User?>(null)
+    val user = _user.asStateFlow()
 
     private val getTotalIncomeAmount: LiveData<Double> = MediatorLiveData<Double>().apply {
         addSource(expenseRepository.getTotalIncomeAmount) { totalIncomeInUSD ->
@@ -216,4 +222,17 @@ class HomeDetailsViewModel(
         return CurrencyCache.getCurrencySymbol(context) ?: "$"
     }
 
+    fun saveUser(name: String, profilePicture: String) {
+        viewModelScope.launch {
+            val user = User(name = name, profilePicture = profilePicture)
+            expenseRepository.insertUser(user)
+            _user.value = user
+        }
+    }
+
+    fun fetchUser() {
+        viewModelScope.launch {
+            _user.value = expenseRepository.getUser()
+        }
+    }
 }

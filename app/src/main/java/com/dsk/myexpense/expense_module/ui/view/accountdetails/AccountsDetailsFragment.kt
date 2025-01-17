@@ -188,7 +188,7 @@ class AccountsDetailsFragment : Fragment() {
 
         fragmentSettingsAccountDetailsBinding?.ivProfile?.setOnClickListener {
             // Launch the image picker when the image view is clicked
-            pickImageLauncher.launch("image/*") // Trigger the image picker
+            pickImageLauncher.launch(AppConstants.APP_IMAGE_SELECTION_FORMAT) // Trigger the image picker
         }
     }
 

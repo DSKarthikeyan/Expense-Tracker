@@ -8,7 +8,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
-import com.dsk.myexpense.expense_module.data.source.local.ExpenseTrackerDB
+import com.dsk.myexpense.expense_module.data.source.local.db.ExpenseTrackerDB
+import com.dsk.myexpense.expense_module.data.source.local.sharedPref.SharedPreferencesManager
 import com.dsk.myexpense.expense_module.data.source.network.CurrencyAPIService
 import kotlinx.coroutines.launch
 
@@ -20,12 +21,9 @@ class SmsReceiverViewModel(application: Application) : AndroidViewModel(applicat
         transactionDao = ExpenseTrackerDB.getDatabase(application).getExpenseTransactionDAO(),
         categoryDao = ExpenseTrackerDB.getDatabase(application).getExpenseCategoryDAO(),
         currencyDao = ExpenseTrackerDB.getDatabase(application).getExpenseCurrencyDAO(),
-        userDao = ExpenseTrackerDB.getDatabase(application).getUserDao(),
-        currencyAPIService = CurrencyAPIService
+        currencyAPIService = CurrencyAPIService,
+        SharedPreferencesManager(application)
     )
-
-    // LiveData to observe all transactions
-    val allTransactions: LiveData<List<ExpenseDetails>> = repository.allExpenseDetails
 
     /**
      * Save a transaction with optional invoice image.

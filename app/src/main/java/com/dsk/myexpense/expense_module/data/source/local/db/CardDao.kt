@@ -1,4 +1,4 @@
-package com.dsk.myexpense.expense_module.data.source.local
+package com.dsk.myexpense.expense_module.data.source.local.db
 
 import androidx.lifecycle.LiveData
 import androidx.room.*

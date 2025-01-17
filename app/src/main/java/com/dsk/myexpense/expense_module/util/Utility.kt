@@ -148,7 +148,6 @@ object Utility {
         val exchangeRate = CurrencyCache.getExchangeRate(context)
         val amountInUSD = CurrencyUtils.convertToUSD(expenseDetails.amount, exchangeRate)
 
-        Log.d("DsK","convertExpenseAmountToUSD $exchangeRate $amountInUSD")
         // Return a new ExpenseDetails instance with the updated amount
         return expenseDetails.copy(amount = amountInUSD)
     }
@@ -327,54 +326,5 @@ object Utility {
         val file = File(context.filesDir, fileName)
         return if (file.exists()) file.readText() else ""
     }
-
-    fun showUserDialog(
-        context: Context,
-        pickImageLauncher: ActivityResultLauncher<String>,
-        onSave: (name: String, profilePictureUri: Uri?) -> Unit
-    ): View {
-        // Inflate the dialog view
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_user, null)
-        val nameEditText = dialogView.findViewById<EditText>(R.id.nameEditText)
-        val profilePictureImageView = dialogView.findViewById<ImageView>(R.id.profilePictureImageView)
-
-        // Declare a variable to hold the selected image URI
-        var selectedImageUri: Uri? = null
-
-        // Handle the image selection click
-        profilePictureImageView.setOnClickListener {
-            // Launch the image picker when the image view is clicked
-            pickImageLauncher.launch("image/*") // Trigger the image picker
-        }
-
-        // Build the AlertDialog
-        val alertDialog = AlertDialog.Builder(context)
-            .setView(dialogView)
-            .setCancelable(false)  // Prevent the dialog from being dismissed unless valid data is provided
-            .setPositiveButton(R.string.text_save) { dialog, _ ->
-                // Get the name entered by the user
-                val name = nameEditText.text.toString()
-
-                // Validate the inputs
-                if (name.isNotEmpty() && selectedImageUri != null) {
-                    // If both name and image are provided, save the data
-                    onSave(name, selectedImageUri)  // Pass the data to the callback
-                    dialog.dismiss()  // Dismiss the dialog once the data is saved
-                } else {
-                    // Show a toast message if validation fails
-                    Toast.makeText(context, "Please fill in all details", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton(R.string.text_cancel) { dialog, _ ->
-                dialog.dismiss()  // Cancel button to dismiss the dialog
-            }
-            .create()
-
-        alertDialog.show()
-        return dialogView
-    }
-
-
-
 
 }

@@ -30,17 +30,12 @@ import kotlinx.coroutines.launch
 import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
-import android.view.LayoutInflater
 import android.view.View
-import android.widget.EditText
 import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.Glide
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
-import com.dsk.myexpense.expense_module.util.AppConstants
-import com.dsk.myexpense.expense_module.util.Utility
+import com.dsk.myexpense.expense_module.util.CommonDialog
 
 class MainActivity : AppCompatActivity() {
 
@@ -69,11 +64,24 @@ class MainActivity : AppCompatActivity() {
     private lateinit var smsReceiver: SmsReceiver
     private var shouldShowPermissionDialog = true // Flag to control dialog behavior
     private val pickImageLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
-                selectedImageUri = it // Update the image URI
+                // Persist permission for future access
+                try {
+                    contentResolver.takePersistableUriPermission(
+                        it,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Log.d("DsK", "Account image load error ${e.localizedMessage}")
+                }
+
+                // Save or use the URI
+                selectedImageUri = it
             }
         }
+
 
     private var selectedImageUri: Uri? = null
     private lateinit var alertDialog: View
@@ -113,21 +121,33 @@ class MainActivity : AppCompatActivity() {
 
         // Observe user state
         homeDetailsViewModel.fetchUser()
-        lifecycleScope.launchWhenStarted {
-            homeDetailsViewModel.user.collect { user ->
-                if (user == null && !isFinishing && !isDestroyed) {
-                    // Show the dialog only if activity is not finishing or destroyed
-                   alertDialog = Utility.showUserDialog(
+        lifecycleScope.launch {
+            homeDetailsViewModel.userDetails.observe(this@MainActivity){ user ->
+                // Handle the collected user data
+                if (user == null) {
+                     CommonDialog().showUserDialog(
                         context = this@MainActivity,
                         pickImageLauncher = pickImageLauncher
-                    ) { name, profilePictureUri ->
-                       Glide.with(this@MainActivity)
-                           .load(profilePictureUri) // Load the image URI
-                           .placeholder(R.drawable.ic_action_friends) // Placeholder image
-                           .error(R.drawable.ic_action_friends) // Error image
-                           .into(alertDialog.findViewById(R.id.profilePictureImageView))
-                       homeDetailsViewModel.saveUser(name, profilePictureUri.toString())
+                    ) { name, profilePictureUri, profilePictureImageView ->
+                        Glide.with(this@MainActivity)
+                            .load(selectedImageUri) // Load the image URI
+                            .placeholder(R.drawable.ic_action_friends) // Placeholder image
+                            .error(R.drawable.ic_action_friends) // Error image
+                            .into(profilePictureImageView)
+
+                        if (name.isNotEmpty() && selectedImageUri.toString().isNotEmpty()) {
+                            homeDetailsViewModel.saveUser(name, selectedImageUri.toString())
+                        } else {
+                            // Show a toast message if validation fails
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Details not saved",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
+                } else {
+//                        No Action needed since data is already there
                 }
             }
         }

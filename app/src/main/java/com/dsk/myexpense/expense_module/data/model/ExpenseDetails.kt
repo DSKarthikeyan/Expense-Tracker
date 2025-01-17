@@ -27,6 +27,6 @@ data class ExpenseDetails(
     val amount: Double,
     val isIncome: Boolean,
     val categoryId: Int? = null, // Foreign key to Category table
-    @PrimaryKey(autoGenerate = false) val expenseID: Int? = null,
+    @PrimaryKey(autoGenerate = true) val expenseID: Int? = null,
     @ColumnInfo(name = "date") val expenseAddedDate: Long
 ) : Parcelable

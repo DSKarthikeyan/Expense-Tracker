@@ -1,6 +1,8 @@
 package com.dsk.myexpense.expense_module.util
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -12,11 +14,13 @@ import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.dsk.myexpense.R
 import com.dsk.myexpense.expense_module.data.model.Category
 import com.dsk.myexpense.expense_module.ui.adapter.CurrencyAdapter
@@ -241,6 +245,73 @@ class CommonDialog {
 
         // Show the dialog for adding a new category
         addCategoryDialog.show()
+    }
+
+    fun showUserDialog(
+        context: Context,
+        pickImageLauncher: ActivityResultLauncher<String>,
+        onSave: (name: String, profilePictureUri: Uri?, imageView: ImageView) -> Unit
+    ): View {
+        // Inflate the dialog view
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_user, null)
+        val nameEditText = dialogView.findViewById<EditText>(R.id.nameEditText)
+        val profilePictureImageView =
+            dialogView.findViewById<ImageView>(R.id.profilePictureImageView)
+
+        // Variable to hold the selected image URI
+        val selectedImageUri: Uri? = null
+
+        // Handle the image selection click
+        profilePictureImageView.setOnClickListener {
+            // Launch the image picker
+            pickImageLauncher.launch(AppConstants.APP_IMAGE_SELECTION_FORMAT) // Trigger the image picker
+        }
+
+        // Build the AlertDialog
+        val alertDialog = android.app.AlertDialog.Builder(context)
+            .setView(dialogView)
+            .setCancelable(false) // Prevent dismissal unless valid data is provided
+            .setNegativeButton(R.string.text_cancel) { dialog, _ ->
+                dialog.dismiss() // Cancel button to dismiss the dialog
+            }
+            .setPositiveButton(R.string.text_save, null) // We'll set a custom click listener below
+            .create()
+
+        // Show the dialog and set up custom behavior
+        try {
+            alertDialog.show()
+
+            // Get the positive button and override its click behavior
+            val positiveButton = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            positiveButton.setOnClickListener {
+                val name = nameEditText.text.toString()
+
+                // Validate the inputs
+                if (name.isNotEmpty()) {
+                    // Pass the data to the callback and dismiss the dialog
+                    onSave(name, selectedImageUri, profilePictureImageView)
+                    alertDialog.dismiss()
+                } else {
+                    // Show a toast message if validation fails
+                    Toast.makeText(context, "Please fill in all details", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            // If you want to load a placeholder or update the image dynamically
+            selectedImageUri?.let {
+                Glide.with(context)
+                    .load(it)
+                    .circleCrop() // Ensure the image is displayed in a circular format
+                    .placeholder(R.drawable.ic_action_activity) // Placeholder image
+                    .error(R.drawable.ic_action_group) // Error image
+                    .circleCrop()
+                    .into(profilePictureImageView)
+            }
+        } catch (e: Exception) {
+            Log.d("DsK", "User Details Dialog Error ${e.localizedMessage}")
+        }
+
+        return dialogView
     }
 
 

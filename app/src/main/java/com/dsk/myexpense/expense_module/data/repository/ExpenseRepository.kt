@@ -11,14 +11,15 @@ import com.dsk.myexpense.expense_module.data.model.Currency
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.data.model.ExpenseInvoiceImage
 import com.dsk.myexpense.expense_module.data.model.User
-import com.dsk.myexpense.expense_module.data.source.local.CategoryDao
-import com.dsk.myexpense.expense_module.data.source.local.CurrencyDAO
-import com.dsk.myexpense.expense_module.data.source.local.DailyExpenseWithTime
-import com.dsk.myexpense.expense_module.data.source.local.ExpenseDAO
-import com.dsk.myexpense.expense_module.data.source.local.ExpenseTransactionDao
-import com.dsk.myexpense.expense_module.data.source.local.MonthlyExpenseWithTime
-import com.dsk.myexpense.expense_module.data.source.local.UserDao
-import com.dsk.myexpense.expense_module.data.source.local.WeeklyExpenseSum
+import com.dsk.myexpense.expense_module.data.source.local.db.CategoryDao
+import com.dsk.myexpense.expense_module.data.source.local.db.CurrencyDAO
+import com.dsk.myexpense.expense_module.data.source.local.db.DailyExpenseWithTime
+import com.dsk.myexpense.expense_module.data.source.local.db.ExpenseDAO
+import com.dsk.myexpense.expense_module.data.source.local.db.ExpenseTransactionDao
+import com.dsk.myexpense.expense_module.data.source.local.db.MonthlyExpenseWithTime
+import com.dsk.myexpense.expense_module.data.source.local.db.UserDao
+import com.dsk.myexpense.expense_module.data.source.local.db.WeeklyExpenseSum
+import com.dsk.myexpense.expense_module.data.source.local.sharedPref.SharedPreferencesManager
 import com.dsk.myexpense.expense_module.data.source.network.CurrencyAPIService
 import com.dsk.myexpense.expense_module.util.ApiResponse
 import com.dsk.myexpense.expense_module.util.Utility
@@ -29,8 +30,8 @@ class ExpenseRepository(
     private val transactionDao: ExpenseTransactionDao,
     private val categoryDao: CategoryDao,
     private val currencyDao: CurrencyDAO,
-    private val userDao: UserDao,
     private val currencyAPIService: CurrencyAPIService,
+    private var sharedPreferencesManager: SharedPreferencesManager
 ) {
 
     val allExpenseDetails: LiveData<List<ExpenseDetails>> = expenseDAO.getAllExpenseDetails()
@@ -38,8 +39,9 @@ class ExpenseRepository(
     val getTotalExpenseAmount: LiveData<Double> = expenseDAO.getTotalExpense().asLiveData()
     val getTotalIncomeExpenseAmount: LiveData<Double> = expenseDAO.getTotalIncomeExpense().asLiveData()
 
-    suspend fun insertUser(user: User) = userDao.insertUser(user)
-    suspend fun getUser() = userDao.getUser()
+    fun insertUser(user: User) = sharedPreferencesManager.saveUser(user.name, user.profilePicture)
+    fun deleteAllUser() = sharedPreferencesManager.deleteUser()
+    fun getUser() = sharedPreferencesManager.getUser()
 
     suspend fun saveExpenseWithInvoice(
         context: Context,

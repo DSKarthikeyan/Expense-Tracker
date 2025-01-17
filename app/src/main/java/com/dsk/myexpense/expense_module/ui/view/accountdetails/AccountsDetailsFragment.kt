@@ -1,15 +1,16 @@
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -20,7 +21,9 @@ import com.dsk.myexpense.expense_module.ui.adapter.ProfileOptionAdapter
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.AppConstants
-import com.dsk.myexpense.expense_module.util.Utility
+import com.dsk.myexpense.expense_module.util.CommonDialog
+import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarView
+import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarViewModel
 import kotlinx.coroutines.launch
 
 data class ProfileOption(
@@ -43,12 +46,34 @@ class AccountsDetailsFragment : Fragment() {
         }
     }
     private val pickImageLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
-                selectedImageUri = it // Update the image URI
+                // Persist permission for future access
+                try {
+                    requireContext().contentResolver.takePersistableUriPermission(
+                        it,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Log.d("DsK", "Account image load error ${e.localizedMessage}")
+                }
+
+                // Save or use the URI
+                selectedImageUri = it
+                fragmentSettingsAccountDetailsBinding?.ivProfile?.let {
+                    Glide.with(this)
+                        .load(it)
+                        .circleCrop()
+                        .error(R.drawable.ic_action_group)
+                        .placeholder(R.drawable.ic_action_group)
+                        .into(it)
+                }
             }
         }
 
+    private lateinit var headerBarViewModel: HeaderBarViewModel
+    private lateinit var headerBarView: HeaderBarView
     private var selectedImageUri: Uri? = null
 
     override fun onCreateView(
@@ -56,7 +81,8 @@ class AccountsDetailsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        fragmentSettingsAccountDetailsBinding = FragmentSettingsAccountDetailsBinding.inflate(inflater, container, false)
+        fragmentSettingsAccountDetailsBinding =
+            FragmentSettingsAccountDetailsBinding.inflate(inflater, container, false)
         val view = binding.root
         return view
     }
@@ -64,6 +90,57 @@ class AccountsDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initUI()
+        prepareHeaderBarData()
+    }
+
+    private fun prepareHeaderBarData() {
+        headerBarViewModel = ViewModelProvider(this)[HeaderBarViewModel::class.java]
+        headerBarView = binding.headerBarLayout
+
+        // Bind ViewModel LiveData to the HeaderBarView
+        headerBarViewModel.headerTitle.observe(viewLifecycleOwner, { title ->
+            headerBarView.setHeaderTitle(title)
+        })
+
+        headerBarViewModel.leftIconResource.observe(viewLifecycleOwner, { iconResId ->
+            headerBarView.setLeftIcon(iconResId)
+        })
+
+        headerBarViewModel.rightIconResource.observe(viewLifecycleOwner, { iconResId ->
+            headerBarView.setRightIcon(iconResId)
+        })
+
+        headerBarViewModel.isLeftIconVisible.observe(viewLifecycleOwner, { isVisible ->
+            headerBarView.setLeftIconVisibility(isVisible)
+        })
+
+        headerBarViewModel.isRightIconVisible.observe(viewLifecycleOwner, { isVisible ->
+            headerBarView.setRightIconVisibility(isVisible)
+        })
+
+        // Example: Updating the header dynamically
+        headerBarViewModel.setHeaderTitle(getString(R.string.text_profile_details))
+        headerBarViewModel.setLeftIconResource(R.drawable.ic_arrow_left_24)
+        headerBarViewModel.setRightIconResource(R.drawable.ic_notification_unfilled)
+        headerBarViewModel.setLeftIconVisibility(true)
+        headerBarViewModel.setRightIconVisibility(true)
+
+        // Handle icon clicks
+        headerBarView.setOnLeftIconClickListener {
+            onLeftIconClick()
+        }
+
+        headerBarView.setOnRightIconClickListener {
+            onRightIconClick()
+        }
+    }
+
+    private fun onLeftIconClick() {
+        activity?.onBackPressed()
+    }
+
+    private fun onRightIconClick() {
+        // Logic for right icon click
     }
 
     private fun initUI() {
@@ -73,53 +150,57 @@ class AccountsDetailsFragment : Fragment() {
 
         val optionsList = listOf(
             ProfileOption(R.drawable.ic_action_friends, getString(R.string.text_invite_friends)),
-            ProfileOption(R.drawable.ic_settings, getString(R.string.text_settings))  // Add Settings option
+            ProfileOption(
+                R.drawable.ic_settings,
+                getString(R.string.text_settings)
+            )  // Add Settings option
         )
 
         adapter = ProfileOptionAdapter(optionsList) { option: ProfileOption ->
             when (option.title) {
                 getString(R.string.text_settings) -> navigateToSettings()
-                getString(R.string.text_invite_friends)-> {
-                     // Share the app URL with friends
-                     shareAppUrl()
-                 }
+                getString(R.string.text_invite_friends) -> {
+                    // Share the app URL with friends
+                    shareAppUrl()
+                }
+
                 else -> {}
             }
         }
         fragmentSettingsAccountDetailsBinding?.recyclerViewOptions?.adapter = adapter
 
-        fragmentSettingsAccountDetailsBinding?.ivBack?.setOnClickListener {
-            activity?.onBackPressed()
-        }
-
+        homeDetailsViewModel.fetchUser()
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                homeDetailsViewModel.user.collect { user ->
-                    if (user == null) {
-                        Utility.showUserDialog(
-                            context = requireContext(),
-                            pickImageLauncher = pickImageLauncher
-                        ) { name, profilePictureUri ->
-                            homeDetailsViewModel.saveUser(name, profilePictureUri.toString())
-                            updateUserDetails(name, profilePictureUri)
-                        }
-
-                    } else {
-                        updateUserDetails(user.name, Uri.parse(user.profilePicture))
+            homeDetailsViewModel.userDetails.observe(viewLifecycleOwner) { user ->
+                // Handle the collected user data
+                if (user == null) {
+                    CommonDialog().showUserDialog(
+                        context = requireContext(), pickImageLauncher = pickImageLauncher
+                    ) { name, _, _ ->
+                        homeDetailsViewModel.saveUser(name, selectedImageUri.toString())
+                        updateUserDetails(name, selectedImageUri.toString())
                     }
+                } else {
+                    updateUserDetails(user.name, user.profilePicture)
                 }
             }
         }
+
+        fragmentSettingsAccountDetailsBinding?.ivProfile?.setOnClickListener {
+            // Launch the image picker when the image view is clicked
+            pickImageLauncher.launch("image/*") // Trigger the image picker
+        }
     }
 
-    private fun updateUserDetails(name: String, profilePictureUri: Uri?){
+    private fun updateUserDetails(name: String, profilePictureUri: String) {
         fragmentSettingsAccountDetailsBinding?.tvProfileName?.text = name
         // Use Glide to load the image
         fragmentSettingsAccountDetailsBinding?.ivProfile?.let {
             Glide.with(requireContext())
-                .load(profilePictureUri) // Load the image URI
-                .placeholder(R.drawable.ic_action_friends) // Placeholder image
-                .error(R.drawable.ic_action_friends) // Error image
+                .load(Uri.parse(profilePictureUri)) // Load the image URI
+                .placeholder(R.drawable.ic_action_activity) // Placeholder image
+                .error(R.drawable.ic_action_group) // Error image
+                .circleCrop()
                 .into(it)
         }
     }

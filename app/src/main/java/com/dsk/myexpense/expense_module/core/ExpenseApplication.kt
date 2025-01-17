@@ -8,7 +8,8 @@ import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
-import com.dsk.myexpense.expense_module.data.source.local.ExpenseTrackerDB
+import com.dsk.myexpense.expense_module.data.source.local.db.ExpenseTrackerDB
+import com.dsk.myexpense.expense_module.data.source.local.sharedPref.SharedPreferencesManager
 import com.dsk.myexpense.expense_module.data.source.network.CurrencyAPIService
 import com.dsk.myexpense.expense_module.ui.view.settings.SettingsDataStore
 import com.dsk.myexpense.expense_module.ui.view.settings.SettingsRepository
@@ -27,8 +28,8 @@ class ExpenseApplication : Application() {
             database.getExpenseTransactionDAO(),
             database.getExpenseCategoryDAO(),
             database.getExpenseCurrencyDAO(),
-            database.getUserDao(),
-            CurrencyAPIService
+            CurrencyAPIService,
+            SharedPreferencesManager(this)
         )
     }
 

@@ -6,7 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.dsk.myexpense.expense_module.data.model.CardEntity
-import com.dsk.myexpense.expense_module.data.source.local.ExpenseTrackerDB
+import com.dsk.myexpense.expense_module.data.source.local.db.ExpenseTrackerDB
 import kotlinx.coroutines.launch
 
 class WalletViewModel(application: Application) : AndroidViewModel(application) {

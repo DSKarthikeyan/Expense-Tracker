@@ -41,10 +41,7 @@ class HomeDetailsViewModel(
     val combinedLiveData = MediatorLiveData<Pair<String, Triple<Double?, Double?, Double?>>>()
 
     private val _userDetails = MutableStateFlow<User?>(null)
-    private val userFlow = _userDetails.asStateFlow()
-
-    // Expose StateFlow as LiveData
-    val userDetails: LiveData<User?> = userFlow.asLiveData()
+    val userDetails: LiveData<User?> = _userDetails.asStateFlow().asLiveData()
 
     private val getTotalIncomeAmount: LiveData<Double> = MediatorLiveData<Double>().apply {
         addSource(expenseRepository.getTotalIncomeAmount) { totalIncomeInUSD ->
@@ -228,18 +225,23 @@ class HomeDetailsViewModel(
     }
 
     fun saveUser(name: String, profilePicture: String) {
+        Log.d("DsK","View Model in")
         viewModelScope.launch {
             val user = User(name = name, profilePicture = profilePicture)
             deleteUser()
+            Log.d("DsK","View Model in 22")
             expenseRepository.insertUser(user)
             _userDetails.value = user
+            _userDetails.emit(user)
+            Log.d("DsK","View Model ${user.name}")
         }
     }
 
     fun fetchUser() {
         viewModelScope.launch {
             val user = expenseRepository.getUser()
-            _userDetails.value = user // Update StateFlow with SharedPreferences data
+            _userDetails.value = user
+            _userDetails.emit(user) // Update StateFlow with SharedPreferences data
         }
     }
 

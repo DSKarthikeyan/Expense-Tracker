@@ -18,12 +18,13 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.LifecycleOwner
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.dsk.myexpense.R
 import com.dsk.myexpense.expense_module.data.model.Category
 import com.dsk.myexpense.expense_module.ui.adapter.CurrencyAdapter
+import com.dsk.myexpense.expense_module.ui.adapter.ImageSelectionAdapter
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.CategoryViewModel
 import com.google.android.material.textfield.TextInputEditText
@@ -250,70 +251,112 @@ class CommonDialog {
     fun showUserDialog(
         context: Context,
         pickImageLauncher: ActivityResultLauncher<String>,
-        onSave: (name: String, profilePictureUri: Uri?, imageView: ImageView) -> Unit
+        onSave: (name: String, profilePictureUri: Uri?, imageView: ImageView) -> Unit,
+        preSelectedImageUri: Uri? = null
     ): View {
         // Inflate the dialog view
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_user, null)
         val nameEditText = dialogView.findViewById<EditText>(R.id.nameEditText)
-        val profilePictureImageView =
-            dialogView.findViewById<ImageView>(R.id.profilePictureImageView)
+        val profilePictureImageView = dialogView.findViewById<ImageView>(R.id.profilePictureImageView)
 
-        // Variable to hold the selected image URI
-        val selectedImageUri: Uri? = null
+        // Set initial image (if any)
+        preSelectedImageUri?.let {
+            Utility.loadImageIntoView(profilePictureImageView, preSelectedImageUri, context, isCircular = true)
+        }
 
+        var selectedImageURIValue: Uri? = null
         // Handle the image selection click
         profilePictureImageView.setOnClickListener {
             // Launch the image picker
-            pickImageLauncher.launch(AppConstants.APP_IMAGE_SELECTION_FORMAT) // Trigger the image picker
+            CommonDialog().showImageSelectionDialog(
+                context = context,
+                availableImages = Utility.getDefaultProfileImages(context, R.array.profile_default_images),
+                pickImageLauncher = pickImageLauncher
+            ) { selectedImageUri ->
+                // Update the image in the User Dialog after selection
+                if (selectedImageUri != null) {
+                    Utility.loadImageIntoView(
+                        profilePictureImageView,
+                        selectedImageUri,
+                        context,
+                        isCircular = true
+                    )
+                    selectedImageURIValue = selectedImageUri
+                }
+            }
         }
 
         // Build the AlertDialog
         val alertDialog = android.app.AlertDialog.Builder(context)
             .setView(dialogView)
-            .setCancelable(false) // Prevent dismissal unless valid data is provided
+            .setCancelable(false)
             .setNegativeButton(R.string.text_cancel) { dialog, _ ->
-                dialog.dismiss() // Cancel button to dismiss the dialog
+                dialog.dismiss()
             }
-            .setPositiveButton(R.string.text_save, null) // We'll set a custom click listener below
+            .setPositiveButton(R.string.text_save, null)
             .create()
 
         // Show the dialog and set up custom behavior
-        try {
-            alertDialog.show()
+        alertDialog.show()
 
-            // Get the positive button and override its click behavior
-            val positiveButton = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            positiveButton.setOnClickListener {
-                val name = nameEditText.text.toString()
+        // Handle the save button click
+        val positiveButton = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
+        positiveButton.setOnClickListener {
+            val name = nameEditText.text.toString()
 
-                // Validate the inputs
-                if (name.isNotEmpty()) {
-                    // Pass the data to the callback and dismiss the dialog
-                    onSave(name, selectedImageUri, profilePictureImageView)
-                    alertDialog.dismiss()
-                } else {
-                    // Show a toast message if validation fails
-                    Toast.makeText(context, "Please fill in all details", Toast.LENGTH_SHORT).show()
-                }
+            // Validate the inputs
+            if (name.isNotEmpty() && selectedImageURIValue!= null) {
+                onSave(name, selectedImageURIValue, profilePictureImageView)
+                alertDialog.dismiss()
+            } else {
+                // Show a toast message if validation fails
+                Toast.makeText(context, "Please fill in all details", Toast.LENGTH_SHORT).show()
             }
-
-            // If you want to load a placeholder or update the image dynamically
-            selectedImageUri?.let {
-                Glide.with(context)
-                    .load(it)
-                    .circleCrop() // Ensure the image is displayed in a circular format
-                    .placeholder(R.drawable.ic_action_activity) // Placeholder image
-                    .error(R.drawable.ic_action_group) // Error image
-                    .circleCrop()
-                    .into(profilePictureImageView)
-            }
-        } catch (e: Exception) {
-            Log.d("DsK", "User Details Dialog Error ${e.localizedMessage}")
         }
 
         return dialogView
     }
 
+    // Function to show image selection dialog
+    private fun showImageSelectionDialog(
+        context: Context,
+        availableImages: List<Int>,
+        pickImageLauncher: ActivityResultLauncher<String>,
+        onImageSelected: (Uri?) -> Unit
+    ) {
+        // Add a placeholder for selecting from phone storage
+        val extendedImages = listOf(R.drawable.ic_add_photo) + availableImages
+        var imageSelectionDialog: AlertDialog? = null
+        // Inflate the dialog view
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_image_selection, null)
+        val recyclerView = dialogView.findViewById<RecyclerView>(R.id.recyclerViewImages)
+
+        // Set up RecyclerView
+        recyclerView.layoutManager = GridLayoutManager(context, 3)
+        recyclerView.adapter = ImageSelectionAdapter(extendedImages) { selectedImageResId ->
+            if (selectedImageResId == R.drawable.ic_add_photo) {
+                // Launch phone storage picker
+                pickImageLauncher.launch(AppConstants.APP_IMAGE_SELECTION_FORMAT)
+            } else {
+                // Create URI for the selected drawable resource
+                val imageUri = Uri.parse("android.resource://${context.packageName}/$selectedImageResId")
+                Log.d("DsK","imageUri $imageUri")
+                onImageSelected(imageUri)
+                imageSelectionDialog?.dismiss()
+            }
+        }
+
+        // Build and show the dialog
+        imageSelectionDialog = AlertDialog.Builder(context)
+            .setView(dialogView)
+            .setTitle("Select an Image")
+            .setNegativeButton(R.string.text_cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+
+        imageSelectionDialog.show()
+    }
 
 }
 

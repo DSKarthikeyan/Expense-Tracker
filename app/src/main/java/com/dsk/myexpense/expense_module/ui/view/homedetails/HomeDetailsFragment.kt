@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -16,7 +15,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
 import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.FragmentHomeDetailsListBinding
 import com.dsk.myexpense.expense_module.core.ExpenseApplication
@@ -27,12 +25,10 @@ import com.dsk.myexpense.expense_module.ui.view.TransactionDetailsBottomView
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
-import com.dsk.myexpense.expense_module.util.CommonDialog
 import com.dsk.myexpense.expense_module.util.NotificationUtils
 import com.dsk.myexpense.expense_module.util.SwipeToDeleteCallback
 import kotlinx.coroutines.launch
 import java.util.Calendar
-
 
 /**
  * A fragment representing a list of Items.
@@ -97,7 +93,7 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
         updateTime()
     }
 
-    private fun updateTime(){
+    private fun updateTime() {
         // Get the current hour
         val calendar = Calendar.getInstance()
         val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
@@ -112,6 +108,7 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
         // Update the TextView text with the appropriate greeting
         binding.tvGreeting.text = greeting
     }
+
     // Helper function to format the amount with the currency symbol
     private fun formatAmount(currencySymbol: String, amount: Double?): String {
         val formattedAmount = String.format("%.2f", amount ?: 0.0)
@@ -143,22 +140,18 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
                 val expenseDetailsBottomSheet = ExpenseHistoryFragment()
                 expenseDetailsBottomSheet.show(
                     parentFragmentManager,  // Use this if you're inside a fragment
-                   "ExpenseDetailsHistoryBottomSheet"
+                    "ExpenseDetailsHistoryBottomSheet"
                 )
             }
         }
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                homeDetailsViewModel.userDetails.observe(viewLifecycleOwner) { user ->
-                    // Handle the collected user data
-                    if (user == null) {
-                    } else {
-                        updateUserDetails(user.name, Uri.parse(user.profilePicture))
-                    }
-                }
+
+        homeDetailsViewModel.userDetails.observe(viewLifecycleOwner) { user ->
+            // Handle the collected user data
+            if (user == null) {
+            } else {
+                updateUserDetails(user.name, Uri.parse(user.profilePicture))
             }
         }
-
     }
 
     override fun onResume() {
@@ -166,8 +159,8 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
         homeDetailsViewModel.fetchUser() // Fetch user from SharedPreferences
     }
 
-    private fun updateUserDetails(name: String, profilePictureUri: Uri?){
-        binding.tvUserName.text = name.ifEmpty {resources.getString(R.string.text_user_name) }
+    private fun updateUserDetails(name: String, profilePictureUri: Uri?) {
+        binding.tvUserName.text = name.ifEmpty { resources.getString(R.string.text_user_name) }
     }
 
     private fun checkForNotificationCount() {

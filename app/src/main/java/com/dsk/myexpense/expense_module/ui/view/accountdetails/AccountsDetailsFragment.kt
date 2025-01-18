@@ -1,4 +1,5 @@
-import android.app.Activity
+package com.dsk.myexpense.expense_module.ui.view.accountdetails
+
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -6,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -13,23 +15,19 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
 import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.FragmentSettingsAccountDetailsBinding
 import com.dsk.myexpense.expense_module.core.ExpenseApplication
+import com.dsk.myexpense.expense_module.data.model.ProfileOption
 import com.dsk.myexpense.expense_module.ui.adapter.ProfileOptionAdapter
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.AppConstants
 import com.dsk.myexpense.expense_module.util.CommonDialog
+import com.dsk.myexpense.expense_module.util.Utility
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarView
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarViewModel
 import kotlinx.coroutines.launch
-
-data class ProfileOption(
-    val iconResId: Int,  // Resource ID for the icon drawable
-    val title: String    // Title for the option
-)
 
 class AccountsDetailsFragment : Fragment() {
 
@@ -62,12 +60,7 @@ class AccountsDetailsFragment : Fragment() {
                 // Save or use the URI
                 selectedImageUri = it
                 fragmentSettingsAccountDetailsBinding?.ivProfile?.let {
-                    Glide.with(this)
-                        .load(it)
-                        .circleCrop()
-                        .error(R.drawable.ic_action_group)
-                        .placeholder(R.drawable.ic_action_group)
-                        .into(it)
+                    Utility.loadImageIntoView(it, selectedImageUri!!, requireContext(), isCircular = true)
                 }
             }
         }
@@ -175,11 +168,18 @@ class AccountsDetailsFragment : Fragment() {
                 // Handle the collected user data
                 if (user == null) {
                     CommonDialog().showUserDialog(
-                        context = requireContext(), pickImageLauncher = pickImageLauncher
-                    ) { name, _, _ ->
-                        homeDetailsViewModel.saveUser(name, selectedImageUri.toString())
-                        updateUserDetails(name, selectedImageUri.toString())
-                    }
+                        context = requireContext(),
+                        pickImageLauncher = pickImageLauncher,
+                        onSave = { name, profilePictureUri, imageView ->
+                            if (name.isNotEmpty() && profilePictureUri != null) {
+                                homeDetailsViewModel.saveUser(name, profilePictureUri.toString())
+                            } else {
+                                // Show a toast message if validation fails
+                                Toast.makeText(requireContext(), "Details not saved", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        preSelectedImageUri = selectedImageUri // Initially no image
+                    )
                 } else {
                     updateUserDetails(user.name, user.profilePicture)
                 }
@@ -194,14 +194,8 @@ class AccountsDetailsFragment : Fragment() {
 
     private fun updateUserDetails(name: String, profilePictureUri: String) {
         fragmentSettingsAccountDetailsBinding?.tvProfileName?.text = name
-        // Use Glide to load the image
         fragmentSettingsAccountDetailsBinding?.ivProfile?.let {
-            Glide.with(requireContext())
-                .load(Uri.parse(profilePictureUri)) // Load the image URI
-                .placeholder(R.drawable.ic_action_activity) // Placeholder image
-                .error(R.drawable.ic_action_group) // Error image
-                .circleCrop()
-                .into(it)
+            Utility.loadImageIntoView(it, Uri.parse(profilePictureUri), requireContext(), isCircular = true)
         }
     }
 

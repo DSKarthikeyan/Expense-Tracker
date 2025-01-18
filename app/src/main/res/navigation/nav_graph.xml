@@ -11,7 +11,7 @@
 
     <fragment
         android:id="@+id/accountsDetailsFragment"
-        android:name="AccountsDetailsFragment"
+        android:name="com.dsk.myexpense.expense_module.ui.view.accountdetails.AccountsDetailsFragment"
         android:label="Account" />
 
     <fragment

@@ -3,17 +3,11 @@
     android:shape="oval">
 
     <!-- Solid color fill -->
-    <solid android:color="@color/teal_200" />
+    <solid android:color="@color/light_white" />
 
     <!-- Optional: Add a border -->
     <stroke
         android:width="2dp"
         android:color="@color/white" />
 
-    <!-- Optional: Add padding -->
-    <padding
-        android:left="8dp"
-        android:top="8dp"
-        android:right="8dp"
-        android:bottom="8dp" />
 </shape>

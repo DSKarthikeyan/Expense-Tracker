@@ -36,7 +36,6 @@
             android:layout_marginTop="125dp"
             android:contentDescription="@string/text_profile_details"
             android:background="@drawable/circle_background"
-            android:src="@drawable/ic_action_friends"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

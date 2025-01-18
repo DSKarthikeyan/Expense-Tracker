@@ -28,12 +28,13 @@ import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import kotlinx.coroutines.launch
 import android.app.AlertDialog
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
-import android.view.View
-import android.widget.ImageView
+import android.os.Build
+import android.os.Environment
+import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
-import com.bumptech.glide.Glide
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.CommonDialog
 
@@ -59,32 +60,39 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private lateinit var settingsDataStore: SettingsDataStore
 
+    private var selectedImageUri: Uri? = null
+
     // Permissions and SMS Receiver
     private val permissionRequestCode = 101
     private lateinit var smsReceiver: SmsReceiver
     private var shouldShowPermissionDialog = true // Flag to control dialog behavior
+
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
-                // Persist permission for future access
                 try {
+                    // Persist permission for future access
                     contentResolver.takePersistableUriPermission(
                         it,
                         Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                     )
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    Log.d("DsK", "Account image load error ${e.localizedMessage}")
-                }
+                    Log.d("DsK", "Persisted URI permission successfully.")
 
-                // Save or use the URI
-                selectedImageUri = it
+                    // Save or use the URI
+                    selectedImageUri = it
+                    Log.d("DsK", "Main Activity image selectedImageUri $selectedImageUri")
+
+                    // Now use the URI, for example, load into an ImageView
+//                    fragmentSettingsAccountDetailsBinding?.ivProfile?.let {
+//                        Utility.loadImageIntoView(it, selectedImageUri!!, requireContext(), isCircular = true)
+//                    }
+                } catch (e: SecurityException) {
+                    e.printStackTrace()
+                    Log.e("DsK", "Failed to persist permission: ${e.localizedMessage}")
+                }
             }
         }
 
-
-    private var selectedImageUri: Uri? = null
-    private lateinit var alertDialog: View
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -119,35 +127,81 @@ class MainActivity : AppCompatActivity() {
             requestPermissions()
         }
 
+        // Request manage storage permission if needed
+        requestManageStoragePermission() // This will check and request the permission for managing files
+
         // Observe user state
         homeDetailsViewModel.fetchUser()
         lifecycleScope.launch {
-            homeDetailsViewModel.userDetails.observe(this@MainActivity){ user ->
+            homeDetailsViewModel.userDetails.observe(this@MainActivity) { user ->
                 // Handle the collected user data
                 if (user == null) {
-                     CommonDialog().showUserDialog(
+                    // App-provided images
+                    CommonDialog().showUserDialog(
                         context = this@MainActivity,
-                        pickImageLauncher = pickImageLauncher
-                    ) { name, profilePictureUri, profilePictureImageView ->
-                        Glide.with(this@MainActivity)
-                            .load(selectedImageUri) // Load the image URI
-                            .placeholder(R.drawable.ic_action_friends) // Placeholder image
-                            .error(R.drawable.ic_action_friends) // Error image
-                            .into(profilePictureImageView)
-
-                        if (name.isNotEmpty() && selectedImageUri.toString().isNotEmpty()) {
-                            homeDetailsViewModel.saveUser(name, selectedImageUri.toString())
-                        } else {
-                            // Show a toast message if validation fails
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Details not saved",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
+                        pickImageLauncher = pickImageLauncher,
+                        onSave = { name, profilePictureUri, imageView ->
+                            Log.d("DsK", "Main Activity selectedImageUri $selectedImageUri profilePictureUri $profilePictureUri")
+                            if (name.isNotEmpty() && profilePictureUri != null) {
+                                homeDetailsViewModel.saveUser(name, profilePictureUri.toString())
+                            } else {
+                                // Show a toast message if validation fails
+                                Toast.makeText(
+                                    this@MainActivity, "Details not saved", Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        },
+                        preSelectedImageUri = selectedImageUri // Initially no image
+                    )
                 } else {
-//                        No Action needed since data is already there
+                    //  No Action needed since data is already there
+                }
+            }
+        }
+    }
+
+    private fun requestManageStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // For Android 13 and above, request permissions for specific media types
+            val requiredPermissions = mutableListOf<String>()
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                requiredPermissions.add(Manifest.permission.READ_MEDIA_IMAGES)
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+                requiredPermissions.add(Manifest.permission.READ_MEDIA_VIDEO)
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                requiredPermissions.add(Manifest.permission.READ_MEDIA_AUDIO)
+            }
+
+            // If permissions are not granted, request them
+            if (requiredPermissions.isNotEmpty()) {
+                ActivityCompat.requestPermissions(this, requiredPermissions.toTypedArray(), permissionRequestCode)
+            } else {
+                Log.d("DsK", "All media permissions already granted.")
+            }
+        } else {
+            // Handle for devices running lower than Android 13 (API 33)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (Environment.isExternalStorageManager()) {
+                    // If external storage permission is granted
+                    Log.d("DsK", "External storage permission granted")
+                } else {
+                    // Request permission to manage external storage for devices below Android 13
+                    try {
+                        val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                        startActivityForResult(intent, permissionRequestCode)
+                    } catch (e: ActivityNotFoundException) {
+                        // Handle when this activity is not found
+                        Log.e("DsK", "ActivityNotFoundException: Unable to open manage storage settings.")
+                        Toast.makeText(this, "This device does not support managing all files.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else {
+                // For devices below Android 11 (API 30), request specific external storage permissions
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), permissionRequestCode)
                 }
             }
         }
@@ -238,13 +292,13 @@ class MainActivity : AppCompatActivity() {
     private fun getRequiredPermissions(): List<String> {
         val permissions = mutableListOf<String>()
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             // Android 13 and above
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)
             permissions.add(Manifest.permission.READ_MEDIA_IMAGES) // Access to images
             permissions.add(Manifest.permission.READ_MEDIA_VIDEO)  // Access to videos
             permissions.add(Manifest.permission.READ_MEDIA_AUDIO)  // Access to audio
-        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+        } else if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
             // Android 11 and above
             permissions.add(Manifest.permission.MANAGE_EXTERNAL_STORAGE) // Broad external storage access
         } else {
@@ -302,8 +356,8 @@ class MainActivity : AppCompatActivity() {
 
         AlertDialog.Builder(this).setTitle("Permissions Required").setMessage(message)
             .setPositiveButton("Grant") { _, _ ->
-                val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                intent.data = android.net.Uri.parse("package:$packageName")
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = Uri.parse("package:$packageName")
                 startActivity(intent)
             }.setNegativeButton("Cancel") { _, _ ->
                 Toast.makeText(
@@ -328,7 +382,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(smsReceiver)
+    }
 }
+
+
 
 
 

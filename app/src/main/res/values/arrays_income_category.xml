@@ -48,4 +48,19 @@
         <item>CSV</item>
         <item>JSON</item>
     </string-array>
+
+    <string-array name="profile_default_images">
+        <item>boy_1</item>
+        <item>boy_2</item>
+        <item>boy_3</item>
+        <item>boy_4</item>
+        <item>boy_5</item>
+        <item>boy_6</item>
+        <item>girl_1</item>
+        <item>girl_2</item>
+        <item>girl_3</item>
+        <item>girl_4</item>
+        <item>girl_5</item>
+        <item>girl_6</item>
+    </string-array>
 </resources>

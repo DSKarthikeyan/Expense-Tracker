@@ -81,24 +81,7 @@ dependencies {
     implementation (libs.gson)
     implementation (libs.androidx.datastore.preferences) // Add this line
 
-    implementation (libs.glide)
-    ksp (libs.compiler)
     implementation (libs.androidx.activity.ktx.v1100)
     implementation (libs.androidx.fragment.ktx)
-    // Google Drive API dependency
-//    implementation (libs.google.api.client)
-//    implementation (libs.google.api.services.drive)
-
-    // Gson dependency for handling JSON
-//    implementation (libs.gson)
-
-    // Google Sign-In dependency
-//    implementation (libs.play.services.auth)
-
-    // Google Drive authentication dependency
-//    implementation (libs.google.oauth.client)
-//    implementation (libs.google.api.client.android)
-//    implementation (libs.google.oauth.client.jetty)
-//    implementation (libs.google.auth.library.oauth2.http)
 
 }

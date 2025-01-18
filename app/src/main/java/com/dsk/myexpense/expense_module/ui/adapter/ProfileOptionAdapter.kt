@@ -1,6 +1,5 @@
 package com.dsk.myexpense.expense_module.ui.adapter
 
-import ProfileOption
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.dsk.myexpense.R
+import com.dsk.myexpense.expense_module.data.model.ProfileOption
 
 class ProfileOptionAdapter(
     private val options: List<ProfileOption>,

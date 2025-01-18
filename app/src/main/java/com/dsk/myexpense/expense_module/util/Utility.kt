@@ -9,6 +9,11 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.Rect
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -37,6 +42,7 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.min
 
 /**
  * Utility classes for doing stuffs such as hiding keyboard, checking if network is available etc
@@ -327,4 +333,65 @@ object Utility {
         return if (file.exists()) file.readText() else ""
     }
 
+    fun loadImageIntoView(imageView: ImageView, source: Any, context: Context, isCircular: Boolean = false) {
+        try {
+            val bitmap = when (source) {
+                is Uri -> {
+                    // Load from URI
+                    val inputStream = context.contentResolver.openInputStream(source)
+                    BitmapFactory.decodeStream(inputStream)
+                }
+                is Int -> {
+                    // Load from drawable resource ID
+                    BitmapFactory.decodeResource(context.resources, source)
+                }
+                else -> throw IllegalArgumentException("Unsupported image source type")
+            }
+
+            // Apply circular cropping if needed
+            val finalBitmap = if (isCircular) {
+                cropBitmapToCircle(bitmap)
+            } else {
+                bitmap
+            }
+
+            // Set the bitmap into the ImageView
+            imageView.setImageBitmap(finalBitmap)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e("ImageLoader", "Error loading image: ${e.localizedMessage}")
+        }
+    }
+
+    // Helper function to crop a bitmap into a circle
+    private fun cropBitmapToCircle(bitmap: Bitmap): Bitmap {
+        val size = min(bitmap.width, bitmap.height)
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+
+        val canvas = Canvas(output)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        val rect = Rect(0, 0, size, size)
+
+        // Draw a circular bitmap
+        val radius = size / 2f
+        canvas.drawCircle(radius, radius, radius, paint)
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        canvas.drawBitmap(bitmap, rect, rect, paint)
+
+        return output
+    }
+
+
+    fun getDefaultProfileImages(context: Context, resources: Int): List<Int> {
+        // Retrieve the string-array (this should contain only the resource names, not the full path)
+        val drawableNames = context.resources.getStringArray(resources)
+
+        // Resolve drawable resource IDs by stripping the 'res/drawable/' part
+        val resolvedResources = drawableNames.map { drawableName ->
+            val resourceId = context.resources.getIdentifier(drawableName, "drawable", context.packageName)
+            resourceId
+        }
+
+        return resolvedResources
+    }
 }

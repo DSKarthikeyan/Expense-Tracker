@@ -13,7 +13,7 @@ import com.dsk.myexpense.expense_module.data.model.ExpenseInvoiceImage
 import com.dsk.myexpense.expense_module.data.model.User
 
 @Database(entities = [ExpenseDetails::class, ExpenseInvoiceImage::class,
-    Category::class, Currency::class, CardEntity::class, AccountEntity::class,User::class], exportSchema = true, version = 1)
+    Category::class, Currency::class, CardEntity::class, AccountEntity::class,User::class], exportSchema = false, version = 1)
 abstract class ExpenseTrackerDB : RoomDatabase() {
     abstract fun getExpenseDAO(): ExpenseDAO
     abstract fun getExpenseTransactionDAO(): ExpenseTransactionDao

@@ -58,7 +58,7 @@
             app:shapeAppearanceOverlay="@style/fab_rounded"
             app:backgroundTint="@color/teal_900"
             app:layout_anchor="@id/bottom_app_bar"
-            app:srcCompat="@drawable/ic_action_add_24" />
+            app:srcCompat="@drawable/ic_action_add_18" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

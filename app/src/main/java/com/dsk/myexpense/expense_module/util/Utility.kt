@@ -10,10 +10,12 @@ import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
+import android.graphics.RectF
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -350,7 +352,7 @@ object Utility {
 
             // Apply circular cropping if needed
             val finalBitmap = if (isCircular) {
-                cropBitmapToCircle(bitmap)
+                cropBitmapToCircleWithBorder(bitmap)
             } else {
                 bitmap
             }
@@ -363,20 +365,30 @@ object Utility {
         }
     }
 
-    // Helper function to crop a bitmap into a circle
-    private fun cropBitmapToCircle(bitmap: Bitmap): Bitmap {
+    // Helper function to crop a bitmap into a circle with a white border
+    private fun cropBitmapToCircleWithBorder(bitmap: Bitmap, borderWidth: Float = 8f): Bitmap {
         val size = min(bitmap.width, bitmap.height)
         val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
 
         val canvas = Canvas(output)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        val rect = Rect(0, 0, size, size)
 
-        // Draw a circular bitmap
+        // Draw the white border
         val radius = size / 2f
+        paint.color = Color.WHITE
         canvas.drawCircle(radius, radius, radius, paint)
+
+        // Draw the circular bitmap
+        val innerRadius = radius - borderWidth
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
-        canvas.drawBitmap(bitmap, rect, rect, paint)
+        canvas.drawCircle(radius, radius, innerRadius, paint)
+        paint.xfermode = null
+        canvas.drawBitmap(
+            bitmap,
+            Rect(0, 0, bitmap.width, bitmap.height),
+            RectF(borderWidth, borderWidth, size - borderWidth, size - borderWidth),
+            paint
+        )
 
         return output
     }

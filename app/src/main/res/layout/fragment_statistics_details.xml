@@ -15,150 +15,157 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/nested_scroll_view"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="60dp"
         app:layout_constraintTop_toBottomOf="@+id/headerBarLayout">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <!-- Filter Toggle Group -->
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggleGroup"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:selectionRequired="true"
+            app:singleSelection="true">
 
-            <!-- Filter Toggle Group -->
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/toggleGroup"
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/dayButton"
+                style="@style/CustomMaterialButtonStyle"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:selectionRequired="true"
-                app:singleSelection="true">
+                android:layout_weight="1"
+                android:text="@string/day"
+                android:textColor="@color/black" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/dayButton"
-                    style="@style/CustomMaterialButtonStyle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/day"
-                    android:textColor="@color/black" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/weekButton"
-                    style="@style/CustomMaterialButtonStyle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/week"
-                    android:textColor="@color/black" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/monthButton"
-                    style="@style/CustomMaterialButtonStyle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/month"
-                    android:textColor="@color/black" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/yearButton"
-                    style="@style/CustomMaterialButtonStyle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/year"
-                    android:textColor="@color/black" />
-            </com.google.android.material.button.MaterialButtonToggleGroup>
-
-            <!-- Dropdown Filter -->
-            <Spinner
-                android:id="@+id/dropdownFilter"
-                android:layout_width="wrap_content"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/weekButton"
+                style="@style/CustomMaterialButtonStyle"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/rounded_dropdown"
-                android:padding="8dp"
-                android:spinnerMode="dropdown"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/toggleGroup" />
+                android:layout_weight="1"
+                android:text="@string/week"
+                android:textColor="@color/black" />
 
-            <!-- Line Chart -->
-            <com.dsk.myexpense.expense_module.util.LineChartView
-                android:id="@+id/lineChartView"
-                android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:padding="8dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/dropdownFilter" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/monthButton"
+                style="@style/CustomMaterialButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/month"
+                android:textColor="@color/black" />
 
-            <!-- Expense List Container -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/yearButton"
+                style="@style/CustomMaterialButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/year"
+                android:textColor="@color/black" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/nested_scroll_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/toggleGroup">
+
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="40dp"
-                android:padding="8dp"
-                app:layout_constraintTop_toBottomOf="@id/lineChartView">
-
-                <!-- Dropdown for Expense Type -->
-                <ImageView
-                    android:id="@+id/expenseTypeSort"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:contentDescription="@string/text_sort"
-                    android:src="@drawable/ic_sort"
+                android:layout_height="wrap_content">
+                <!-- Dropdown Filter -->
+                <Spinner
+                    android:id="@+id/dropdownFilter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:background="@drawable/rounded_dropdown"
+                    android:padding="8dp"
+                    android:spinnerMode="dropdown"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <!-- Top Spending Label -->
-                <TextView
-                    android:id="@+id/topSpendingLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/top_spending"
-                    android:textColor="@color/black"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <!-- RecyclerView for Top Spending -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/topSpendingRecycler"
+                <!-- Line Chart -->
+                <com.dsk.myexpense.expense_module.util.LineChartView
+                    android:id="@+id/lineChartView"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="60dp"
+                    android:layout_height="250dp"
+                    android:padding="8dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/topSpendingLabel"
-                    tools:listitem="@layout/item_group_list_detail" />
+                    app:layout_constraintTop_toBottomOf="@id/dropdownFilter" />
 
-                <!-- Empty State for RecyclerView -->
-                <TextView
-                    android:id="@+id/noDataRecyclerText"
-                    android:layout_width="wrap_content"
+                <!-- Expense List Container -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:gravity="center"
-                    android:padding="16dp"
-                    android:text="@string/no_data_available"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:visibility="gone"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/topSpendingLabel" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="40dp"
+                    android:padding="8dp"
+                    app:layout_constraintTop_toBottomOf="@id/lineChartView">
 
-    </androidx.core.widget.NestedScrollView>
+                    <!-- Dropdown for Expense Type -->
+                    <ImageView
+                        android:id="@+id/expenseTypeSort"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="@string/text_sort"
+                        android:src="@drawable/ic_sort"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <!-- Top Spending Label -->
+                    <TextView
+                        android:id="@+id/topSpendingLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/top_spending"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <!-- RecyclerView for Top Spending -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/topSpendingRecycler"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="6dp"
+                        android:layout_marginBottom="60dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/topSpendingLabel"
+                        tools:listitem="@layout/item_group_list_detail" />
+
+                    <!-- Empty State for RecyclerView -->
+                    <TextView
+                        android:id="@+id/noDataRecyclerText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:text="@string/no_data_available"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/topSpendingLabel" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.core.widget.NestedScrollView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

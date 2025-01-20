@@ -26,7 +26,7 @@ class MyItemRecyclerViewAdapter(
     private val expenseDetailsClickListener: ExpenseDetailClickListener
 ) : RecyclerView.Adapter<MyItemRecyclerViewAdapter.ViewHolder>() {
 
-    private var expenseDetails = ArrayList<ExpenseDetails>()
+    private var expenseDetails = mutableListOf<ExpenseDetails>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(
@@ -39,10 +39,10 @@ class MyItemRecyclerViewAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = expenseDetails[position]
         holder.expenseDetailsName.text = item.expenseSenderName
-        var currencySymbol =
-            appLoadingViewModel.getCurrencySymbol(holder.expenseAmountDetail.context)
-        currencySymbol = holder.expenseAmountDetail.context.getString(
-            R.string.text_amount_value, currencySymbol, item.amount
+        val currencySymbol = holder.expenseAmountDetail.context.getString(
+            R.string.text_amount_value,
+            appLoadingViewModel.getCurrencySymbol(holder.expenseAmountDetail.context),
+            item.amount
         )
         val (formattedAmount, color) = if (item.isIncome) {
             "+ $currencySymbol " to R.color.teal_700
@@ -52,15 +52,11 @@ class MyItemRecyclerViewAdapter(
 
         holder.expenseAmountDetail.text = formattedAmount
         holder.expenseAmountDetail.setTextColor(
-            holder.expenseAmountDetail.resources.getColor(
-                color, null
-            )
+            holder.expenseAmountDetail.resources.getColor(color, null)
         )
 
-        // Update date dynamically
         updateDate(holder.expenseAmountDate, item.expenseAddedDate)
 
-        // Coroutine to load category image
         CoroutineScope(Dispatchers.IO).launch {
             val categoryImage = item.categoryId?.let { appLoadingViewModel.getCategoryNameByID(it) }
             withContext(Dispatchers.Main) {
@@ -71,13 +67,12 @@ class MyItemRecyclerViewAdapter(
         }
 
         holder.itemView.setOnClickListener {
-            if (expenseDetails != null && position in expenseDetails.indices && position < expenseDetails.size) {
+            if (position in expenseDetails.indices) {
                 expenseDetailsClickListener.onItemClicked(expenseDetails[position])
             } else {
                 Log.e("RecyclerViewAdapter", "Index out of bounds: $position")
             }
         }
-
     }
 
     private fun updateDate(textView: TextView, timestamp: Long) {
@@ -88,39 +83,30 @@ class MyItemRecyclerViewAdapter(
         val oneDay = 24 * oneHour
 
         val formattedTime: String = when {
-            // Future timestamps
             differenceInMillis < 0 -> {
                 val futureDifference = -differenceInMillis
                 when {
                     futureDifference < oneMinute -> "In ${futureDifference / 1000} second${if (futureDifference / 1000 == 1L) "" else "s"}"
                     futureDifference < oneHour -> "In ${futureDifference / oneMinute} minute${if (futureDifference / oneMinute == 1L) "" else "s"}"
                     futureDifference < oneDay -> "In ${futureDifference / oneHour} hour${if (futureDifference / oneHour == 1L) "" else "s"}"
-                    else -> "In the future (${
-                        SimpleDateFormat(
-                            AppConstants.DATE_FORMAT_STRING, Locale.getDefault()
-                        ).format(Date(timestamp))
-                    })"
+                    else -> "In the future (${SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault()).format(Date(timestamp))})"
                 }
             }
-            // Past timestamps
             differenceInMillis < oneMinute -> "${differenceInMillis / 1000} second${if (differenceInMillis / 1000 == 1L) "" else "s"} ago"
             differenceInMillis < oneHour -> "${differenceInMillis / oneMinute} minute${if (differenceInMillis / oneMinute == 1L) "" else "s"} ago"
             differenceInMillis < oneDay -> "${differenceInMillis / oneHour} hour${if (differenceInMillis / oneHour == 1L) "" else "s"} ago"
             isToday(timestamp) -> "Today"
             isYesterday(timestamp) -> "Yesterday"
-            else -> SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault()).format(
-                Date(timestamp)
-            )
+            else -> SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault()).format(Date(timestamp))
         }
 
         textView.text = formattedTime
 
-        // Schedule updates for "seconds ago", "minutes ago", and "hours ago"
         if (differenceInMillis < oneDay && differenceInMillis >= 0) {
             val delay = when {
-                differenceInMillis < oneMinute -> 1000L // Update every second
-                differenceInMillis < oneHour -> oneMinute.toLong() // Update every minute
-                else -> oneHour.toLong() // Update every hour
+                differenceInMillis < oneMinute -> 1000L
+                differenceInMillis < oneHour -> oneMinute.toLong()
+                else -> oneHour.toLong()
             }
             textView.postDelayed({
                 updateDate(textView, timestamp)
@@ -128,48 +114,39 @@ class MyItemRecyclerViewAdapter(
         }
     }
 
-
     private fun isToday(timestamp: Long): Boolean {
         val currentCalendar = Calendar.getInstance()
         val eventCalendar = Calendar.getInstance().apply { timeInMillis = timestamp }
-
-        return currentCalendar.get(Calendar.YEAR) == eventCalendar.get(Calendar.YEAR) && currentCalendar.get(
-            Calendar.DAY_OF_YEAR
-        ) == eventCalendar.get(Calendar.DAY_OF_YEAR)
+        return currentCalendar.get(Calendar.YEAR) == eventCalendar.get(Calendar.YEAR) &&
+                currentCalendar.get(Calendar.DAY_OF_YEAR) == eventCalendar.get(Calendar.DAY_OF_YEAR)
     }
 
     private fun isYesterday(timestamp: Long): Boolean {
         val currentCalendar = Calendar.getInstance()
         val eventCalendar = Calendar.getInstance().apply { timeInMillis = timestamp }
-
-        return currentCalendar.get(Calendar.YEAR) == eventCalendar.get(Calendar.YEAR) && currentCalendar.get(
-            Calendar.DAY_OF_YEAR
-        ) - eventCalendar.get(Calendar.DAY_OF_YEAR) == 1
+        return currentCalendar.get(Calendar.YEAR) == eventCalendar.get(Calendar.YEAR) &&
+                currentCalendar.get(Calendar.DAY_OF_YEAR) - eventCalendar.get(Calendar.DAY_OF_YEAR) == 1
     }
 
     fun updateList(newList: List<ExpenseDetails>) {
         val diffCallback = ExpenseDetailsDiffCallback(expenseDetails, newList)
         val diffResult = DiffUtil.calculateDiff(diffCallback)
         expenseDetails.clear()
-        Log.d("DsK","after clearing updateList ${expenseDetails.size}")
         expenseDetails.addAll(newList)
-        Log.d("DsK","after adding updateList ${expenseDetails.size}")
         diffResult.dispatchUpdatesTo(this)
     }
 
-    fun getExpenseDetailsAt(position: Int): ExpenseDetails {
-        return expenseDetails[position]
-    }
+    fun getExpenseDetailsAt(position: Int): ExpenseDetails = expenseDetails[position]
 
     override fun getItemCount(): Int = expenseDetails.size
 
     fun <T : Comparable<T>> sortBy(selector: (ExpenseDetails) -> T) {
-        expenseDetails = ArrayList(expenseDetails.sortedWith(compareBy(selector)))
+        expenseDetails = expenseDetails.sortedWith(compareBy(selector)).toMutableList()
         notifyDataSetChanged()
     }
 
     fun sortByAmount(selector: (ExpenseDetails) -> Double) {
-        expenseDetails = ArrayList(expenseDetails.sortedWith(compareBy(selector)))
+        expenseDetails = expenseDetails.sortedWith(compareBy(selector)).toMutableList()
         notifyDataSetChanged()
     }
 
@@ -179,10 +156,6 @@ class MyItemRecyclerViewAdapter(
         val expenseAmountDetail: TextView = binding.transactionAmount
         val expenseAmountDate: TextView = binding.transactionDate
         val expenseCategoryImageView: ImageView = binding.expenseCategoryImageView
-
-        override fun toString(): String {
-            return super.toString() + " '" + expenseDetails.size + "'"
-        }
 
         init {
             itemView.setOnLongClickListener {

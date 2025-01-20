@@ -53,7 +53,7 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
     private lateinit var headerBarViewModel: HeaderBarViewModel
     private lateinit var headerBarView: HeaderBarView
 
-    private lateinit var selectedFilter: String // Default filter for dropdown
+    private lateinit var selectedFilter: String
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -78,11 +78,10 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
         prepareHeaderBarData()
     }
 
-    private fun prepareHeaderBarData(){
+    private fun prepareHeaderBarData() {
         headerBarViewModel = ViewModelProvider(this)[HeaderBarViewModel::class.java]
         headerBarView = binding.headerBarLayout
 
-        // Bind ViewModel LiveData to the HeaderBarView
         headerBarViewModel.headerTitle.observe(viewLifecycleOwner, { title ->
             headerBarView.setHeaderTitle(title)
         })
@@ -103,14 +102,12 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
             headerBarView.setRightIconVisibility(isVisible)
         })
 
-        // Example: Updating the header dynamically
         headerBarViewModel.setHeaderTitle(getString(R.string.statistics))
         headerBarViewModel.setLeftIconResource(R.drawable.ic_arrow_left_24)
         headerBarViewModel.setRightIconResource(R.drawable.ic_download)
         headerBarViewModel.setLeftIconVisibility(true)
         headerBarViewModel.setRightIconVisibility(true)
 
-        // Handle icon clicks
         headerBarView.setOnLeftIconClickListener {
             onLeftIconClick()
         }
@@ -127,14 +124,14 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
     private fun onRightIconClick() {
         // Logic for right icon click
     }
-    
+
     private fun initUI() {
         binding.apply {
             selectedFilter = resources.getString(R.string.text_all)
             // Initialize RecyclerView
             topSpendingRecycler.setHasFixedSize(true)
             topSpendingRecycler.layoutManager = LinearLayoutManager(context)
-            adapter = MyItemRecyclerViewAdapter( appLoadingViewModel = appLoadingViewModel ,this@StatisticsDetailsFragment)
+            adapter = MyItemRecyclerViewAdapter(appLoadingViewModel = appLoadingViewModel, this@StatisticsDetailsFragment)
             topSpendingRecycler.adapter = adapter
         }
     }
@@ -174,9 +171,7 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
         }
     }
 
-
     private fun filterChartData() {
-        // Fetch all data based on the selected toggle group button
         val rawData: List<Any> = when (binding.toggleGroup.checkedButtonId) {
             binding.dayButton.id -> homeDetailsViewModel.getDailyExpenses()
             binding.weekButton.id -> homeDetailsViewModel.getWeeklyExpenses()
@@ -185,14 +180,12 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
             else -> listOf()
         }
 
-        // Filter data based on the dropdown selection
         val filteredData: List<Any> = when (selectedFilter) {
-            getString(R.string.text_expense) -> rawData.filter { !it.isIncome() } // Only expenses
-            getString(R.string.text_income) -> rawData.filter { it.isIncome() } // Only incomes
-            else -> rawData // All data
+            getString(R.string.text_expense) -> rawData.filter { !it.isIncome() }
+            getString(R.string.text_income) -> rawData.filter { it.isIncome() }
+            else -> rawData
         }
 
-        // Update the chart based on the current toggle button selection
         updateChart(filteredData) { data ->
             when (binding.toggleGroup.checkedButtonId) {
                 binding.dayButton.id -> prepareDayChartData(data as List<DailyExpenseWithTime>)
@@ -204,7 +197,6 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
         }
     }
 
-    // Extension function to safely access `isExpense`
     private fun Any.isIncome(): Boolean {
         return when (this) {
             is DailyExpenseWithTime -> this.isIncome
@@ -250,7 +242,7 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
 
     private fun showSortPopup(view: View) {
         val popupMenu = PopupMenu(requireContext(), view)
-        popupMenu.inflate(R.menu.sort_menu) // Create a menu resource file (sort_menu.xml)
+        popupMenu.inflate(R.menu.sort_menu)
 
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
@@ -275,7 +267,6 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
             val dayInMillis = expense.day ?: 0L
             val dateFormat = SimpleDateFormat("d", Locale.getDefault())
 
-            // Convert milliseconds to Date and format them
             val dayFormatted = dateFormat.format(Date(dayInMillis))
             dayFormatted to (expense.sum ?: 0)
         }
@@ -302,5 +293,3 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
         // Handle item long-click
     }
 }
-
-

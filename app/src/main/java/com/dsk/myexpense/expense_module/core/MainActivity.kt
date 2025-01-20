@@ -107,6 +107,84 @@ class MainActivity : AppCompatActivity() {
 
         // Handle intent extras
         processIntentExtras()
+        // Request manage storage permission if needed
+        requestManageStoragePermission() // This will check and request the permission for managing files
+
+        // Observe user state
+        homeDetailsViewModel.fetchUser()
+        lifecycleScope.launch {
+            homeDetailsViewModel.userDetails.observe(this@MainActivity) { user ->
+                // Handle the collected user data
+                if (user == null) {
+                    // App-provided images
+                    CommonDialog().showUserDialog(
+                        context = this@MainActivity,
+                        pickImageLauncher = pickImageLauncher,
+                        onSave = { name, profilePictureUri, imageView ->
+                            Log.d("DsK", "Main Activity selectedImageUri $selectedImageUri profilePictureUri $profilePictureUri")
+                            if (name.isNotEmpty() && profilePictureUri != null) {
+                                homeDetailsViewModel.saveUser(name, profilePictureUri.toString())
+                            } else {
+                                // Show a toast message if validation fails
+                                Toast.makeText(
+                                    this@MainActivity, "Details not saved", Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        },
+                        preSelectedImageUri = selectedImageUri // Initially no image
+                    )
+                } else {
+                    //  No Action needed since data is already there
+                }
+            }
+        }
+    }
+
+    private fun requestManageStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // For Android 13 and above, request permissions for specific media types
+            val requiredPermissions = mutableListOf<String>()
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                requiredPermissions.add(Manifest.permission.READ_MEDIA_IMAGES)
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+                requiredPermissions.add(Manifest.permission.READ_MEDIA_VIDEO)
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                requiredPermissions.add(Manifest.permission.READ_MEDIA_AUDIO)
+            }
+
+            // If permissions are not granted, request them
+            if (requiredPermissions.isNotEmpty()) {
+                ActivityCompat.requestPermissions(this, requiredPermissions.toTypedArray(), permissionRequestCode)
+            } else {
+                Log.d("DsK", "All media permissions already granted.")
+            }
+        } else {
+            // Handle for devices running lower than Android 13 (API 33)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (Environment.isExternalStorageManager()) {
+                    // If external storage permission is granted
+                    Log.d("DsK", "External storage permission granted")
+                } else {
+                    // Request permission to manage external storage for devices below Android 13
+                    try {
+                        val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                        startActivityForResult(intent, permissionRequestCode)
+                    } catch (e: ActivityNotFoundException) {
+                        // Handle when this activity is not found
+                        Log.e("DsK", "ActivityNotFoundException: Unable to open manage storage settings.")
+                        Toast.makeText(this, "This device does not support managing all files.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else {
+                // For devices below Android 11 (API 30), request specific external storage permissions
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), permissionRequestCode)
+                }
+            }
+        }
     }
 
     private fun applyWindowInsets() {
@@ -133,8 +211,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupObservers() {
         smsViewModel.isPermissionGranted.observe(this) { granted ->
-            if (!granted && shouldShowPermissionDialog) {
-                showPermissionDialog()
+            if (granted) {
+                Log.d("MainActivity", "All permissions granted.")
+            } else {
+                val deniedPermissions = getRequiredPermissions().filter { permission ->
+                    ContextCompat.checkSelfPermission(
+                        this, permission
+                    ) != PackageManager.PERMISSION_GRANTED
+                }
+                if (shouldShowPermissionDialog && deniedPermissions.isNotEmpty()) {
+                    showPermissionDialog(deniedPermissions)
+                }
             }
         }
 
@@ -243,18 +330,39 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showPermissionDialog() {
-        AlertDialog.Builder(this).setTitle("Permissions Required")
-            .setMessage("Permissions are needed for the app to function properly.")
+    private fun showPermissionDialog(deniedPermissions: List<String>) {
+        val permissionDescriptions = deniedPermissions.map { permission ->
+            when (permission) {
+                Manifest.permission.RECEIVE_SMS -> "Receive SMS"
+                Manifest.permission.READ_SMS -> "Read SMS"
+                Manifest.permission.POST_NOTIFICATIONS -> "Post Notifications (Android 13+)"
+                Manifest.permission.READ_MEDIA_IMAGES -> "Access Images (Android 13+)"
+                Manifest.permission.READ_MEDIA_VIDEO -> "Access Videos (Android 13+)"
+                Manifest.permission.READ_MEDIA_AUDIO -> "Access Audio Files (Android 13+)"
+                Manifest.permission.MANAGE_EXTERNAL_STORAGE -> "Manage External Storage (Android 11+)"
+                Manifest.permission.READ_EXTERNAL_STORAGE -> "Read External Storage"
+                Manifest.permission.WRITE_EXTERNAL_STORAGE -> "Write External Storage"
+                Manifest.permission.READ_PHONE_STATE -> "Read Phone State"
+                Manifest.permission.CAMERA -> "Camera"
+                else -> "Unknown Permission"
+            }
+        }
+
+        val message =
+            "The following permissions are required for the app to function properly:\n\n" + permissionDescriptions.joinToString(
+                "\n"
+            )
+
+        AlertDialog.Builder(this).setTitle("Permissions Required").setMessage(message)
             .setPositiveButton("Grant") { _, _ ->
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                 intent.data = Uri.parse("package:$packageName")
                 startActivity(intent)
-            }
-            .setNegativeButton("Cancel") { _, _ ->
-                Toast.makeText(this, "Permissions are required for proper functionality.", Toast.LENGTH_SHORT).show()
-            }
-            .show()
+            }.setNegativeButton("Cancel") { _, _ ->
+                Toast.makeText(
+                    this, "Permissions are required for proper functionality.", Toast.LENGTH_SHORT
+                ).show()
+            }.show()
     }
 
     private fun handleImageSelection(uri: Uri) {
@@ -287,6 +395,23 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(smsReceiver)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == permissionRequestCode) {
+            val deniedPermissions = permissions.zip(grantResults.toList())
+                .filter { it.second != PackageManager.PERMISSION_GRANTED }.map { it.first }
+
+            val allGranted = deniedPermissions.isEmpty()
+            smsViewModel.setPermissionGranted(allGranted)
+
+            if (!allGranted && shouldShowPermissionDialog) {
+                showPermissionDialog(deniedPermissions)
+            }
+        }
     }
 }
 

@@ -77,19 +77,19 @@ class NotificationViewModel(
     }
 }
 
-//class NotificationViewModelFactory(
-//    private val context: Context
-//) : ViewModelProvider.Factory {
-//
-//    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-//        if (modelClass.isAssignableFrom(NotificationViewModel::class.java)) {
-//            @Suppress("UNCHECKED_CAST")
-//            return NotificationViewModel(
-//                context = context,
-//                notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager,
-//                hasNotificationPermission = { NotificationUtils.hasNotificationPermission(context) }
-//            ) as T
-//        }
-//        throw IllegalArgumentException("Unknown ViewModel class")
-//    }
-//}
+class NotificationViewModelFactory(
+    private val context: Context
+) : ViewModelProvider.Factory {
+
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(NotificationViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return NotificationViewModel(
+                context = context,
+                notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager,
+                hasNotificationPermission = { NotificationUtils.hasNotificationPermission(context) }
+            ) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}

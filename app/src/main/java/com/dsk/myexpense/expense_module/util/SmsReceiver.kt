@@ -16,7 +16,6 @@ import com.dsk.myexpense.expense_module.util.detector.RegexHelper
 import com.dsk.myexpense.expense_module.util.detector.SuggestionDetector
 import com.dsk.myexpense.expense_module.util.detector.SuggestionDetectorImpl
 
-
 class SmsReceiver : BroadcastReceiver() {
 
     companion object {
@@ -28,6 +27,7 @@ class SmsReceiver : BroadcastReceiver() {
         if (intent.action == Telephony.Sms.Intents.SMS_RECEIVED_ACTION) {
             val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
             for (smsMessage in messages) {
+                // Generate a unique key based on sender and timestamp to avoid processing duplicates
                 val uniqueKey = smsMessage.displayOriginatingAddress + smsMessage.timestampMillis
                 if (processedMessages.contains(uniqueKey)) {
                     Log.d("SmsReceiver", "Duplicate SMS received, ignoring.")
@@ -39,35 +39,47 @@ class SmsReceiver : BroadcastReceiver() {
                 val messageBody = smsMessage.messageBody
                 val dateString = smsMessage.timestampMillis
 
+                // Get the application context
                 val application = context.applicationContext as Application
-                val messageDetails = extractDetails(
-                    regexHelper = RegexHelper(), smsMessage = SMSMessage(
+
+                // Extract message details using the extractDetails function
+                var messageDetails = extractDetails(
+                    regexHelper = RegexHelper(),
+                    smsMessage = SMSMessage(
                         address = sender,
                         body = messageBody,
-                        time = dateString,
-                    ), application
+                        time = dateString
+                    ),
+                    application = application
                 )
 
-                Log.d("DsK", "onReceive messageDetails $messageDetails")
+                Log.d("DsK", "onReceive messageDetails: $messageDetails")
+
+                // Check if the message contains valid expense details
                 if (messageDetails.expenseType != "Not Valid") {
-                    messageDetails.apply {
-                        expenseMessageSender = sender
-                        isIncome = expenseType == application.getString(R.string.text_income)
-                        categoryName =
-                            determineCategory(context, messageBody, messageDetails.receiverName)
+                    // Update the message details with additional information
+                    messageDetails = messageDetails.copy( // Using copy() to create a new instance with updated properties
+                        expenseMessageSender = sender,
+                        isIncome = messageDetails.expenseType == application.getString(R.string.text_income),
+                        categoryName = determineCategory(context, messageBody, messageDetails.receiverName ?: "receiverName"),
                         expenseDate = dateString
-                    }
+                    )
+
                     Log.d("DsK SmsReceiver", "categoryName: ${messageDetails.categoryName}")
+
+                    // Check if the app is in the foreground
                     if (Utility.isAppInForeground(application)) {
                         val activityContext = Utility.getForegroundActivity(application)
                         if (activityContext != null) {
-                            showTransactionDialog(
+                            // Show the transaction dialog if the app is in the foreground
+                            NotificationUtils.showTransactionDialog(
                                 activityContext, messageDetails, messageBody, dateString
                             )
                         } else {
                             Log.e("SmsReceiver", "No active activity context found")
                         }
                     } else {
+                        // Show the notification if the app is in the background
                         NotificationUtils.showNotification(
                             application, messageDetails, messageBody
                         )
@@ -77,77 +89,41 @@ class SmsReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun showTransactionDialog(
-        context: Context,
-        messageDetails: ExpenseMessageDetails,
-        description: String,
-        date: Long,
-    ) {
-        if (context !is Activity || context.isFinishing) {
-            Log.e(
-                "SmsReceiver",
-                "Cannot show dialog as context is not an activity or activity is finishing"
-            )
-            return
-        }
-
-        Log.d(
-            "DsK",
-            "showTransactionDialog Sender: ${messageDetails.senderName}, Receiver: ${messageDetails.receiverName}, Amount: ${messageDetails.expenseAmount}, Date: ${messageDetails.expenseDate}, isIncome: ${messageDetails.isIncome}"
-        )
-        val builder = AlertDialog.Builder(context)
-        builder.setTitle("New Transaction")
-            .setMessage("Sender: ${messageDetails.senderName}\nReceiver: ${messageDetails.receiverName}\nDescription: $description\nAmount: ${messageDetails.expenseAmount}\nDate: $date\nType: ${if (messageDetails.isIncome!!) "Income" else "Expense"}")
-            .setPositiveButton("Add") { _, _ ->
-
-                val application = context.applicationContext as Application
-                val isIncome = messageDetails.isIncome ?: false
-                val categoryNameValue = messageDetails.categoryName ?: ""
-                val viewModel = SmsReceiverViewModel(application)
-                viewModel.saveTransaction(
-                    context,
-                    messageDetails.senderName,
-                    messageDetails.expenseMessageSender,
-                    messageDetails.receiverName,
-                    description,
-                    messageDetails.expenseAmount,
-                    date,
-                    categoryName = categoryNameValue,
-                    isIncome = isIncome,
-                    invoiceImage = null,
-                )
-            }.setNegativeButton("Deny") { dialog, _ -> dialog.dismiss() }.show()
-    }
-
     private fun extractDetails(
         regexHelper: RegexHelper, smsMessage: SMSMessage, application: Application
     ): ExpenseMessageDetails {
-        suggestionDetector = SuggestionDetectorImpl(regexHelper, application)
-        val messageSuggestion =
-            (suggestionDetector as SuggestionDetectorImpl).detectSuggestions(smsMessage)
+
+        // Initialize the SuggestionDetector with the regexHelper and application context
+        val suggestionDetector = SuggestionDetectorImpl(regexHelper, application)
+
+        // Detect message suggestion from the SMS
+        val messageSuggestion = suggestionDetector.detectSuggestions(smsMessage)
+
         if (messageSuggestion != null) {
+            // If suggestions are found, return the ExpenseMessageDetails populated with the relevant data
             return ExpenseMessageDetails(
-                "",
+                senderName = messageSuggestion.referenceMessageSender,
                 expenseType = messageSuggestion.expenseType,
                 expenseAmount = messageSuggestion.amount,
                 receiverName = messageSuggestion.paidTo ?: "",
-                senderName = messageSuggestion.referenceMessageSender,
-                additionalDetails = "Location: ${messageSuggestion.referenceMessage}",
                 expenseDate = messageSuggestion.time,
                 isIncome = messageSuggestion.isExpense,
-                categoryName = messageSuggestion.referenceMessageSender
+                categoryName = messageSuggestion.referenceMessageSender,
+                additionalDetails = messageSuggestion.referenceMessage ?: ""
             )
         }
+
+        // Return a default ExpenseMessageDetails object if no suggestions are found
         return ExpenseMessageDetails(
-            "",
-            "Not Valid",
-            0.0,
-            "Unknown",
-            "Unknown",
-            additionalDetails = "No specific details found.",
-            expenseDate = 0,
+            senderName = "Unknown",
+            expenseMessageSender = "Not Valid",
+            expenseAmount = 0.0,
+            receiverName = "Unknown",
+            expenseDate = 0L,
+            expenseType = "Not Valid",
+            categoryName = "Unknown",
             isIncome = false,
-            categoryName = ""
+            additionalDetails = "No specific details found."
         )
     }
 

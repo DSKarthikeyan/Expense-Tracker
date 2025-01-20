@@ -48,28 +48,7 @@ class ExpenseRepository(
         context: Context,
         expenseDetails: ExpenseDetails, categoryName: String, bitmap: Bitmap?
     ) {
-        val type = if (expenseDetails.isIncome) context.resources.getString(R.string.text_income)
-                    else context.resources.getString(R.string.text_expense)
-        val updatedExpenseDetails = Utility.convertExpenseAmountToUSD(context, expenseDetails)
-        val category = categoryDao.getCategoryByNameAndType(categoryName, type) ?: run {
-            val existingCategory = categoryDao.getCategoriesByType(type).firstOrNull()
-            if (existingCategory == null) {
-                val defaultCategory = Category(
-                    name = "Default $type", type = type, iconResId = R.drawable.ic_other_expenses
-                )
-                val newCategoryId = categoryDao.insertCategory(defaultCategory)
-                defaultCategory.copy(id = newCategoryId.toInt())
-            } else {
-                val newCategory = Category(
-                    name = categoryName, type = type, iconResId = existingCategory.iconResId
-                )
-                val newCategoryId = categoryDao.insertCategory(newCategory)
-                newCategory.copy(id = newCategoryId.toInt())
-            }
-        }
-
-        val expenseWithCategory = updatedExpenseDetails.copy(categoryId = category.id)
-
+        val expenseWithCategory = getExpenseDetailsWithCategory(expenseDetails, context, categoryName)
         var invoiceImage: ExpenseInvoiceImage? = null
         if (bitmap != null) {
             val byteArray = bitmapToByteArray(bitmap)
@@ -85,6 +64,33 @@ class ExpenseRepository(
         }
     }
 
+    private suspend fun getExpenseDetailsWithCategory(expenseDetails: ExpenseDetails, context: Context, categoryName: String): ExpenseDetails{
+        val type = if (expenseDetails.isIncome) context.resources.getString(R.string.text_income)
+        else context.resources.getString(R.string.text_expense)
+        val updatedExpenseDetails = Utility.convertExpenseAmountToUSD(context, expenseDetails)
+        val category = getCategoryOrInsert(categoryName, type)
+
+        return updatedExpenseDetails.copy(categoryId = category.id)
+    }
+
+    suspend fun getCategoryOrInsert(categoryName: String, type: String): Category{
+        return categoryDao.getCategoryByNameAndType(categoryName, type) ?: run {
+            val existingCategory = categoryDao.getCategoriesByType(type).firstOrNull()
+            if (existingCategory == null) {
+                val defaultCategory = Category(
+                    name = "Default $type", type = type, iconResId = R.drawable.ic_other_expenses
+                )
+                val newCategoryId = categoryDao.insertCategory(defaultCategory)
+                defaultCategory.copy(id = newCategoryId.toInt())
+            } else {
+                val newCategory = Category(
+                    name = categoryName, type = type, iconResId = existingCategory.iconResId
+                )
+                val newCategoryId = categoryDao.insertCategory(newCategory)
+                newCategory.copy(id = newCategoryId.toInt())
+            }
+        }
+    }
     suspend fun insert(expenseDetails: ExpenseDetails) {
         transactionDao.insert(expenseDetails)
     }

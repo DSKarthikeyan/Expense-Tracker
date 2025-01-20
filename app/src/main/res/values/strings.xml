@@ -73,6 +73,8 @@
     <string name="text_invoice">Invoice</string>
     <string name="text_add_invoice">Add Invoice</string>
     <string name="text_add">Add</string>
+    <string name="text_deny">Deny</string>
+    <string name="text_new_transaction_header">New Transaction</string>
     <string name="text_zip_code">Zip Code</string>
     <string name="text_cvv">CVV</string>
     <string name="text_expiry_sample">22/01</string>

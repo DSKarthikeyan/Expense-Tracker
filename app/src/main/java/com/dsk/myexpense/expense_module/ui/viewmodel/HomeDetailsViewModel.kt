@@ -278,4 +278,6 @@ class HomeDetailsViewModel(
         expenseRepository.deleteAllUser()
         _userDetails.value = null // Clear StateFlow
     }
+
+    suspend fun getExpenseCategoryDetails(categoryName: String, categoryType: String): Category = expenseRepository.getCategoryOrInsert(categoryName,categoryType)
 }

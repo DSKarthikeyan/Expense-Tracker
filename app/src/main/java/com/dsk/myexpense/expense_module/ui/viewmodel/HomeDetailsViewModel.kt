@@ -122,9 +122,15 @@ class HomeDetailsViewModel(
 
                 // Update the LiveData value after conversion
                 value = expenses.map { expense ->
-                    // Log the conversion
-                    val convertedAmount = CurrencyUtils.convertFromUSD(expense.amount, exchangeRate)
-                    expense.copy(amount = convertedAmount)
+                    try {
+                        val convertedAmount =
+                            CurrencyUtils.convertFromUSD(expense.amount, exchangeRate)
+                        Log.d("DsK", "Converted amount: $convertedAmount")
+                        expense.copy(amount = convertedAmount)
+                    } catch (e: Exception) {
+                        Log.e("DsK", "Error converting amount: ${e.message}")
+                        expense // return original expense in case of error
+                    }
                 }
             }
         }

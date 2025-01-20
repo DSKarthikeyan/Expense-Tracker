@@ -10,9 +10,6 @@ import android.view.ViewGroup
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dsk.myexpense.R
@@ -27,7 +24,6 @@ import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.NotificationUtils
 import com.dsk.myexpense.expense_module.util.SwipeToDeleteCallback
-import kotlinx.coroutines.launch
 import java.util.Calendar
 
 /**
@@ -37,6 +33,7 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
 
     private var fragmentHomeDetailsListBinding: FragmentHomeDetailsListBinding? = null
     private val binding get() = fragmentHomeDetailsListBinding!!
+
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
         GenericViewModelFactory {
             HomeDetailsViewModel(
@@ -46,86 +43,53 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
             )
         }
     }
+
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
             AppLoadingViewModel((requireActivity().application as ExpenseApplication).expenseRepository)
         }
     }
+
     private lateinit var adapter: MyItemRecyclerViewAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        fragmentHomeDetailsListBinding =
-            FragmentHomeDetailsListBinding.inflate(inflater, container, false)
-        val view = binding.root
-        return view
+        // Inflate the layout for this fragment
+        fragmentHomeDetailsListBinding = FragmentHomeDetailsListBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.rvTransactions.layoutManager = LinearLayoutManager(context)
 
+        setupRecyclerView()
         initUI()
+        observeLiveData()
 
-        homeDetailsViewModel.allExpenseDetails.observe(viewLifecycleOwner) { list ->
-            list?.let {
-                adapter.updateList(list)
-            }
-        }
-
-        // Observe the combined LiveData to update the UI
-        homeDetailsViewModel.combinedLiveData.observe(viewLifecycleOwner) { (currencySymbol, amounts) ->
-            val (income, expense, balance) = amounts
-            // Format the amount and update UI elements
-            binding.totalIncomeAmount.text = formatAmount(currencySymbol, income)
-            binding.totalExpenseAmount.text = formatAmount(currencySymbol, expense)
-            binding.tvTotalBalance.text = formatAmount(currencySymbol, balance)
-        }
-
-        val swipeCallback =
-            SwipeToDeleteCallback(binding.rvTransactions, homeDetailsViewModel) { deletedItem ->
-                Log.d("DsK", "Deleted: ${deletedItem.expenseSenderName} SuccessFully")
-            }
-
-        val itemTouchHelper = ItemTouchHelper(swipeCallback)
-        itemTouchHelper.attachToRecyclerView(binding.rvTransactions)
-        updateTime()
+        updateTime() // Set greeting message
     }
 
-    private fun updateTime() {
-        // Get the current hour
-        val calendar = Calendar.getInstance()
-        val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
-
-        // Set the greeting message based on the current time
-        val greeting = when (currentHour) {
-            in 0..11 -> getString(R.string.greeting_morning)
-            in 12..17 -> getString(R.string.greeting_afternoon)
-            else -> getString(R.string.greeting_evening)
-        }
-
-        // Update the TextView text with the appropriate greeting
-        binding.tvGreeting.text = greeting
-    }
-
-    // Helper function to format the amount with the currency symbol
-    private fun formatAmount(currencySymbol: String, amount: Double?): String {
-        val formattedAmount = String.format("%.2f", amount ?: 0.0)
-        return "$currencySymbol $formattedAmount"
-    }
-
-    private fun initUI() {
-        homeDetailsViewModel.fetchCurrencySymbol(requireContext())
-
-        binding.rvTransactions.setHasFixedSize(true)
-
-        // Adding item divider decoration
+    private fun setupRecyclerView() {
         binding.rvTransactions.layoutManager = LinearLayoutManager(context)
         adapter = MyItemRecyclerViewAdapter(appLoadingViewModel, this)
         binding.rvTransactions.adapter = adapter
 
+        // Adding swipe to delete functionality
+        val swipeCallback = SwipeToDeleteCallback(binding.rvTransactions, homeDetailsViewModel) { deletedItem ->
+            Log.d("DsK", "Deleted: ${deletedItem.expenseSenderName} successfully")
+        }
+        val itemTouchHelper = ItemTouchHelper(swipeCallback)
+        itemTouchHelper.attachToRecyclerView(binding.rvTransactions)
+    }
+
+    private fun initUI() {
+        // Fetch the currency symbol
+        homeDetailsViewModel.fetchCurrencySymbol(requireContext())
+
+        // Observe notification count
         checkForNotificationCount()
+
         NotificationListener.notificationCount.observe(viewLifecycleOwner) { count ->
             if (count == 0) {
                 binding.notificationIcon.setImageResource(R.drawable.ic_notification_unfilled)
@@ -133,34 +97,60 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
                 binding.notificationIcon.setImageResource(R.drawable.ic_notification_filled)
             }
         }
+
+        // Handle "See All" click to show bottom sheet
         binding.textViewSeeAll.setOnClickListener {
-            // Check if allExpenseDetails is not null and has items in it
             val allExpenses = homeDetailsViewModel.allExpenseDetails.value
             if (!allExpenses.isNullOrEmpty()) {
                 val expenseDetailsBottomSheet = ExpenseHistoryFragment()
-                expenseDetailsBottomSheet.show(
-                    parentFragmentManager,  // Use this if you're inside a fragment
-                    "ExpenseDetailsHistoryBottomSheet"
-                )
+                expenseDetailsBottomSheet.show(parentFragmentManager, "ExpenseDetailsHistoryBottomSheet")
+            }
+        }
+    }
+
+    private fun observeLiveData() {
+        // Observe combinedLiveData for updating UI totals
+        homeDetailsViewModel.combinedLiveData.observe(viewLifecycleOwner) { (currencySymbol, amounts) ->
+            val (income, expense, balance) = amounts
+            binding.totalIncomeAmount.text = formatAmount(currencySymbol, income)
+            binding.totalExpenseAmount.text = formatAmount(currencySymbol, expense)
+            binding.tvTotalBalance.text = formatAmount(currencySymbol, balance)
+        }
+
+        // Observe allExpenseDetails to update RecyclerView
+        homeDetailsViewModel.allExpenseDetails.observe(viewLifecycleOwner) { list ->
+            list?.let {
+                adapter.updateList(list)
+                adapter.notifyDataSetChanged() // Ensure the RecyclerView refreshes
+                Log.d("DsK", "RecyclerView updated with ${list.size} items")
             }
         }
 
+        // Observe user details to update UI
         homeDetailsViewModel.userDetails.observe(viewLifecycleOwner) { user ->
-            // Handle the collected user data
-            if (user == null) {
-            } else {
+            user?.let {
                 updateUserDetails(user.name, Uri.parse(user.profilePicture))
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        homeDetailsViewModel.fetchUser() // Fetch user from SharedPreferences
+    private fun updateTime() {
+        val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val greeting = when (currentHour) {
+            in 0..11 -> getString(R.string.greeting_morning)
+            in 12..17 -> getString(R.string.greeting_afternoon)
+            else -> getString(R.string.greeting_evening)
+        }
+        binding.tvGreeting.text = greeting
+    }
+
+    private fun formatAmount(currencySymbol: String, amount: Double?): String {
+        val formattedAmount = String.format("%.2f", amount ?: 0.0)
+        return "$currencySymbol $formattedAmount"
     }
 
     private fun updateUserDetails(name: String, profilePictureUri: Uri?) {
-        binding.tvUserName.text = name.ifEmpty { resources.getString(R.string.text_user_name) }
+        binding.tvUserName.text = name.ifEmpty { getString(R.string.text_user_name) }
     }
 
     private fun checkForNotificationCount() {
@@ -171,20 +161,27 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
         }
     }
 
-    internal operator fun Int.plus(other: Int?): Int {
-        return this + (other ?: 0)
+    override fun onResume() {
+        super.onResume()
+        // Fetch user and expenses on resume
+        homeDetailsViewModel.fetchUser()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        fragmentHomeDetailsListBinding = null
+    }
+
+    // Handle item click events
     override fun onItemClicked(expenseDetails: ExpenseDetails) {
-//        Toast.makeText(context, expenseDetails.expenseSenderName, Toast.LENGTH_SHORT).show()
         val transactionDetailsBottomSheet =
             context?.let { TransactionDetailsBottomView(it, expenseDetails) }
         transactionDetailsBottomSheet?.show(parentFragmentManager, "TransactionDetailsBottomSheet")
     }
 
-    // Handle item long click to delete
+    // Handle long click events
     override fun onItemLongClicked(expenseDetails: ExpenseDetails) {
-        // Here, handle the deletion of the item
-//        viewModel.deleteExpenseDetails(expenseDetails)
+        // Placeholder for future implementation
     }
 }
+

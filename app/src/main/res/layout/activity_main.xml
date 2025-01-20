@@ -16,8 +16,10 @@
         app:defaultNavHost="true"
         app:layout_constraintBottom_toTopOf="@+id/coordinator_layout_app_bar"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0"
         app:navGraph="@navigation/nav_graph" />
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -31,6 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
+            app:hideOnScroll="true"
             app:fabCradleVerticalOffset="@dimen/fabCradleVerticalOffset"
             app:fabCradleRoundedCornerRadius="@dimen/fabCradleRoundedCornerRadius"
             style="@style/Widget.MaterialComponents.BottomAppBar.Colored"

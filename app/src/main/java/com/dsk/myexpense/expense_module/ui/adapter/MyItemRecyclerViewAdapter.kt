@@ -151,7 +151,9 @@ class MyItemRecyclerViewAdapter(
         val diffCallback = ExpenseDetailsDiffCallback(expenseDetails, newList)
         val diffResult = DiffUtil.calculateDiff(diffCallback)
         expenseDetails.clear()
+        Log.d("DsK","after clearing updateList ${expenseDetails.size}")
         expenseDetails.addAll(newList)
+        Log.d("DsK","after adding updateList ${expenseDetails.size}")
         diffResult.dispatchUpdatesTo(this)
     }
 

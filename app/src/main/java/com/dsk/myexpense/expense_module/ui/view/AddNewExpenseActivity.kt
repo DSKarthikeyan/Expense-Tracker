@@ -136,12 +136,13 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
         selectedCurrency = CurrencyCache.getCurrencySymbol(requireContext()).toString()
 
-        binding.addNewExpenseWidget.addExpenseAmountTextView.apply {
-            visibility = View.VISIBLE
-            isEnabled = true
-            isFocusable = true
-            hint = "$selectedCurrency 48.00"
-            addTextChangedListener(createCurrencyTextWatcher(selectedCurrency, this))
+        binding.addNewExpenseWidget.apply {
+            amountExpenseGroup.hint = "$selectedCurrency 48.00" // Set hint on TextInputLayout
+            amountExpenseGroup.isHintEnabled = true
+            addExpenseAmountTextView.apply {
+                visibility = View.VISIBLE
+                addTextChangedListener(createCurrencyTextWatcher(selectedCurrency, this))
+            }
         }
     }
 
@@ -220,14 +221,19 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
     private fun updateUIBasedOnSelection() {
         binding.addNewExpenseWidget.apply {
+            expenseNameGroup.isHintEnabled = true
             if (isNewExpense) {
                 headerBarViewModel.setHeaderTitle(getString(R.string.text_expense))
                 addExpenseButton.text = getString(R.string.text_add_expense)
+                expenseNameGroup.hint = getString(R.string.text_add_expense) // Updated
             } else {
                 headerBarViewModel.setHeaderTitle(getString(R.string.text_income))
                 addExpenseButton.text = getString(R.string.text_add_income)
+                expenseNameGroup.hint = getString(R.string.text_add_income) // Updated
             }
             addExpenseButton.setBackgroundResource(R.drawable.button_background)
+            addExpenseNameTextView.clearFocus()
+            addExpenseNameTextView.requestFocus()
         }
     }
 

@@ -23,328 +23,316 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/addExpenseScrollView"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/addExpenseContentViewGroup"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="20dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="30dp"
-        android:clipToPadding="false"
-        app:layout_constraintTop_toBottomOf="@+id/headerBarLayout">
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/card_background"
+        android:padding="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerBarLayout">
 
-        <androidx.cardview.widget.CardView
-            android:id="@+id/addExpenseContentViewGroup"
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/addExpenseCardScrollViewContent"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:background="@drawable/card_background"
-            app:cardCornerRadius="24dp"
-            android:layout_marginBottom="20dp"
-            app:cardElevation="2dp"
+            android:clipToPadding="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/headerBarLayout">
+            app:layout_constraintTop_toTopOf="parent">
 
-            <androidx.core.widget.NestedScrollView
-                android:id="@+id/addExpenseCardScrollViewContent"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/addExpenseContentView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="20dp"
-                android:clipToPadding="false"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/headerBarLayout">
+                android:layout_height="wrap_content">
+
+                <!-- Radio Group for Tab Layout -->
+                <RadioGroup
+                    android:id="@+id/radioGroupTabLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/tab_background_rounded"
+                    android:orientation="horizontal"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <RadioButton
+                        android:id="@+id/addNewIncome"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:background="@color/transparent"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="@string/text_income"
+                        android:textColor="@color/black"
+                        android:textStyle="bold" />
+
+                    <RadioButton
+                        android:id="@+id/addNewExpense"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/radio_button_background"
+                        android:button="@null"
+                        android:checked="true"
+                        android:gravity="center"
+                        android:text="@string/text_expense"
+                        android:textColor="@color/black"
+                        android:textStyle="bold" />
+                </RadioGroup>
+
+                <TextView
+                    android:id="@+id/addExpenseNameLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:includeFontPadding="false"
+                    android:text="@string/text_name"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/radioGroupTabLayout" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/expenseNameGroup"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/addExpenseNameLabel">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/addExpenseNameTextView"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/addExpenseCategoryLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:includeFontPadding="false"
+                    android:text="@string/text_category"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/expenseNameGroup" />
 
                 <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/addExpenseContentView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <!-- Radio Group for Tab Layout -->
-                    <RadioGroup
-                        android:id="@+id/radioGroupTabLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/tab_background_rounded"
-                        android:orientation="horizontal"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent">
-
-                        <RadioButton
-                            android:id="@+id/addNewIncome"
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_weight="1"
-                            android:background="@color/transparent"
-                            android:button="@null"
-                            android:gravity="center"
-                            android:text="@string/text_income"
-                            android:textColor="@color/black"
-                            android:textStyle="bold" />
-
-                        <RadioButton
-                            android:id="@+id/addNewExpense"
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/radio_button_background"
-                            android:button="@null"
-                            android:checked="true"
-                            android:gravity="center"
-                            android:text="@string/text_expense"
-                            android:textColor="@color/black"
-                            android:textStyle="bold" />
-                    </RadioGroup>
-
-                    <TextView
-                        android:id="@+id/addExpenseNameLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:includeFontPadding="false"
-                        android:text="@string/text_name"
-                        android:textStyle="bold"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/radioGroupTabLayout" />
+                    android:id="@+id/addExpenseCategoryView"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/input_background"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/addExpenseCategoryLabel">
 
                     <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/expenseNameGroup"
+                        android:id="@+id/addExpenseCategoryLayout"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
+                        android:layout_height="match_parent"
+                        android:hint="@string/text_category"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/addExpenseNameLabel">
+                        app:layout_constraintStart_toStartOf="parent">
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/addExpenseNameTextView"
+                        <Spinner
+                            android:id="@+id/spinnerCategoryType"
                             android:layout_width="match_parent"
-                            android:layout_height="56dp"
-                            android:hint="@string/text_expense_name" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <TextView
-                        android:id="@+id/addExpenseCategoryLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:includeFontPadding="false"
-                        android:text="@string/text_category"
-                        android:textStyle="bold"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/expenseNameGroup" />
-
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/addExpenseCategoryView"
-                        android:layout_width="0dp"
-                        android:layout_height="56dp"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/input_background"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/addExpenseCategoryLabel">
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/addExpenseCategoryLayout"
-                            android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:hint="@string/text_category"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent">
-
-                            <Spinner
-                                android:id="@+id/spinnerCategoryType"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:layout_marginStart="12dp"
-                                android:layout_marginEnd="12dp"
-                                android:background="@color/transparent"
-                                android:popupBackground="@color/white" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <ImageView
-                            android:id="@+id/categoryDropdownIcon"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_marginStart="12dp"
                             android:layout_marginEnd="12dp"
-                            android:contentDescription="@string/text_category"
-                            android:src="@drawable/ic_arrow_down_20"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-
-                    <TextView
-                        android:id="@+id/addExpenseAmountLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:includeFontPadding="false"
-                        android:text="@string/text_amount"
-                        android:textStyle="bold"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/addExpenseCategoryView" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/amountExpenseGroup"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/addExpenseAmountLabel">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/addExpenseAmountTextView"
-                            android:layout_width="match_parent"
-                            android:layout_height="56dp"
-                            android:contentDescription="@string/text_amount_placeholder"
-                            android:inputType="numberDecimal" />
+                            android:background="@color/transparent"
+                            android:popupBackground="@color/white" />
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <TextView
-                        android:id="@+id/addExpenseDateLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:includeFontPadding="false"
-                        android:text="@string/text_date"
-                        android:textStyle="bold"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/amountExpenseGroup" />
-
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/addExpenseDateView"
-                        android:layout_width="0dp"
-                        android:layout_height="56dp"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/input_background"
+                    <ImageView
+                        android:id="@+id/categoryDropdownIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="12dp"
+                        android:contentDescription="@string/text_category"
+                        android:src="@drawable/ic_arrow_down_20"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/addExpenseDateLabel">
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
-                        <TextView
-                            android:id="@+id/addExpenseDateTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:text="@string/text_date_placeholder"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
+                <TextView
+                    android:id="@+id/addExpenseAmountLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:includeFontPadding="false"
+                    android:text="@string/text_amount"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/addExpenseCategoryView" />
 
-                        <ImageView
-                            android:id="@+id/addExpenseCalendarIcon"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_marginEnd="12dp"
-                            android:contentDescription="@string/text_date"
-                            android:src="@android:drawable/ic_menu_my_calendar"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/amountExpenseGroup"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/addExpenseAmountLabel">
 
-                    <TextView
-                        android:id="@+id/addExpenseDescriptionLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:includeFontPadding="false"
-                        android:text="@string/text_description"
-                        android:textStyle="bold"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/addExpenseDateView" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/expenseDescriptionGroup"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/addExpenseDescriptionLabel">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/addExpenseDescriptionTextView"
-                            android:layout_width="match_parent"
-                            android:layout_height="56dp"
-                            android:hint="@string/text_enter_description" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <TextView
-                        android:id="@+id/addExpenseInvoiceLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:includeFontPadding="false"
-                        android:text="@string/text_invoice"
-                        android:textStyle="bold"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/expenseDescriptionGroup" />
-
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/addExpenseAddInvoiceView"
-                        android:layout_width="0dp"
-                        android:layout_height="50dp"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/dashed_border"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/addExpenseInvoiceLabel">
-
-                        <ImageView
-                            android:id="@+id/addInvoiceImageView"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_marginEnd="8dp"
-                            android:contentDescription="@string/text_add_invoice"
-                            android:src="@drawable/ic_action_add_24"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/addExpenseAddInvoiceText"
-                            app:layout_constraintTop_toTopOf="parent" />
-
-                        <TextView
-                            android:id="@+id/addExpenseAddInvoiceText"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:text="@string/text_add_invoice"
-                            android:textColor="@color/black"
-                            android:textSize="16sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-
-                        <ImageView
-                            android:id="@+id/clearInvoiceButton"
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:layout_gravity="end"
-                            android:contentDescription="Clear Image"
-                            android:src="@android:drawable/ic_input_delete"
-                            android:visibility="gone"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-
-                    <Button
-                        android:id="@+id/addExpenseButton"
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/addExpenseAmountTextView"
                         android:layout_width="match_parent"
-                        android:layout_height="60dp"
-                        android:layout_marginTop="16dp"
-                        android:background="@drawable/button_background"
-                        android:text="@string/text_download_receipt"
-                        android:textColor="@color/teal_700"
-                        app:layout_constraintTop_toBottomOf="@+id/addExpenseAddInvoiceView"
+                        android:layout_height="56dp"
+                        android:inputType="numberDecimal" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/addExpenseDateLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:includeFontPadding="false"
+                    android:text="@string/text_date"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/amountExpenseGroup" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/addExpenseDateView"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/input_background"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/addExpenseDateLabel">
+
+                    <TextView
+                        android:id="@+id/addExpenseDateTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="@string/text_date_placeholder"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent" />
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <ImageView
+                        android:id="@+id/addExpenseCalendarIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="12dp"
+                        android:contentDescription="@string/text_date"
+                        android:src="@android:drawable/ic_menu_my_calendar"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <TextView
+                    android:id="@+id/addExpenseDescriptionLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:includeFontPadding="false"
+                    android:text="@string/text_description"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/addExpenseDateView" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/expenseDescriptionGroup"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/addExpenseDescriptionLabel">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/addExpenseDescriptionTextView"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:hint="@string/text_enter_description" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/addExpenseInvoiceLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:includeFontPadding="false"
+                    android:text="@string/text_invoice"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/expenseDescriptionGroup" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/addExpenseAddInvoiceView"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/dashed_border"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/addExpenseInvoiceLabel">
+
+                    <ImageView
+                        android:id="@+id/addInvoiceImageView"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="8dp"
+                        android:contentDescription="@string/text_add_invoice"
+                        android:src="@drawable/ic_action_add_24"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/addExpenseAddInvoiceText"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/addExpenseAddInvoiceText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/text_add_invoice"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <ImageView
+                        android:id="@+id/clearInvoiceButton"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="end"
+                        android:contentDescription="Clear Image"
+                        android:src="@android:drawable/ic_input_delete"
+                        android:visibility="gone"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
-            </androidx.core.widget.NestedScrollView>
-        </androidx.cardview.widget.CardView>
-    </androidx.core.widget.NestedScrollView>
+
+                <Button
+                    android:id="@+id/addExpenseButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/button_background"
+                    android:text="@string/text_add_expense"
+                    android:textColor="@color/teal_700"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/addExpenseAddInvoiceView" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.core.widget.NestedScrollView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

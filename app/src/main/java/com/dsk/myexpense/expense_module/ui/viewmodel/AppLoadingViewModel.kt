@@ -38,10 +38,9 @@ class AppLoadingViewModel(private val repository: ExpenseRepository) : ViewModel
     /**
      * Retrieves categories by type from the database.
      */
-    suspend fun getCategoriesByType(type: String): List<Category> =
-        withContext(Dispatchers.IO) {
-            repository.getCategoriesByType(type)
-        }
+    fun getCategoriesByType(type: String): List<Category> =
+        repository.getCategoriesByType(type)
+
 
     /**
      * Generates the predefined categories for both income and expenses.

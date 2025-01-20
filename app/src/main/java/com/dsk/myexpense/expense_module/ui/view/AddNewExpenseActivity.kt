@@ -310,10 +310,12 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
     }
 
     private fun setupDropdown() {
-        appLoadingViewModel.viewModelScope.launch {
+        if (isAdded) {
             categories = appLoadingViewModel.getCategoriesByType(getCategoryType())
-            val adapter = CategorySpinnerAdapter(requireContext(), categories)
-            binding.addNewExpenseWidget.spinnerCategoryType.adapter = adapter
+                val adapter = CategorySpinnerAdapter(requireContext(), categories)
+                binding.addNewExpenseWidget.spinnerCategoryType.adapter = adapter
+        } else {
+            Log.e("AddNewExpenseActivity", "Fragment not attached to context")
         }
     }
 

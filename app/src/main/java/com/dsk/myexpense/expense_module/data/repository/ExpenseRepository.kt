@@ -108,7 +108,7 @@ class ExpenseRepository(
         return images.mapNotNull { it.expenseInvoiceImage?.let { Utility.byteArrayToBitmap(it) } }
     }
 
-    suspend fun getCategoriesByType(type: String): List<Category> =
+    fun getCategoriesByType(type: String): List<Category> =
         categoryDao.getCategoriesByType(type)
 
     suspend fun getCategoriesByTypeName(type: String, name: String): Category? =

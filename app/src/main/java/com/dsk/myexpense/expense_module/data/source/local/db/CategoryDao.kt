@@ -30,7 +30,7 @@ interface CategoryDao {
     suspend fun getAllCategoriesValue(): List<Category>
 
     @Query("SELECT * FROM category_table WHERE type = :type")
-    suspend fun getCategoriesByType(type: String): List<Category>
+    fun getCategoriesByType(type: String): List<Category>
 
     @Query("SELECT * FROM category_table WHERE name = :name AND type = :type LIMIT 1")
     suspend fun getCategoryByNameAndType(name: String, type: String): Category?

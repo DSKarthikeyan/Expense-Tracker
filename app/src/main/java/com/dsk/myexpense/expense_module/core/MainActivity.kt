@@ -267,7 +267,7 @@ class MainActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 try {
                     val expenseDetails = messageDetails.toExpenseDetails(categoryName, type)
-                    navigateToAddExpenseActivity(expenseDetails)
+                    navigateToAddExpenseFragment(expenseDetails)
                 } catch (e: Exception) {
                     Log.e("DsK", "Error processing Intent extras: ${e.message}", e)
                 }
@@ -275,12 +275,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun navigateToAddExpenseActivity(expenseDetails: ExpenseDetails) {
-        val intent = Intent(this, AddNewExpenseActivity::class.java).apply {
-            putExtra("expenseDetails", expenseDetails)  // Passing the ExpenseDetails object
+    private fun navigateToAddExpenseFragment(expenseDetails: ExpenseDetails) {
+        val bundle = Bundle().apply {
+            putParcelable("expenseDetails", expenseDetails)
+        }
+        val fragment = AddNewExpenseActivity().apply {
+            arguments = bundle
         }
 
-        startActivity(intent)  // Launch the Activity
+        // Show the fragment as a BottomSheetDialogFragment
+        fragment.show(supportFragmentManager, "AddNewExpenseFragment")
     }
 
     private suspend fun ExpenseMessageDetails.toExpenseDetails(

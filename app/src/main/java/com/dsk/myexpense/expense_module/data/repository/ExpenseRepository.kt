@@ -35,6 +35,7 @@ class ExpenseRepository(
 ) {
 
     val allExpenseDetails: LiveData<List<ExpenseDetails>> = expenseDAO.getAllExpenseDetails()
+    val allExpenseDetailRecent: LiveData<List<ExpenseDetails>> = expenseDAO.getAllExpenseDetailsRecent()
     val getTotalIncomeAmount: LiveData<Double> = expenseDAO.getTotalIncome().asLiveData()
     val getTotalExpenseAmount: LiveData<Double> = expenseDAO.getTotalExpense().asLiveData()
     val getTotalIncomeExpenseAmount: LiveData<Double> = expenseDAO.getTotalIncomeExpense().asLiveData()

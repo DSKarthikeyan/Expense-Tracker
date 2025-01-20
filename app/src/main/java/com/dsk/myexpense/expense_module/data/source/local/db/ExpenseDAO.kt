@@ -27,8 +27,11 @@ interface ExpenseDAO {
     @Delete
     suspend fun delete(todo: ExpenseDetails)
 
-    @Query("SELECT * from expense_details order by expenseID ASC")
+    @Query("SELECT * from expense_details order by expenseID DESC")
     fun getAllExpenseDetails(): LiveData<List<ExpenseDetails>>
+
+    @Query("SELECT * from expense_details order by expenseID DESC LIMIT 10")
+    fun getAllExpenseDetailsRecent(): LiveData<List<ExpenseDetails>>
 
     @Query("SELECT COALESCE(SUM(amount), 0) FROM expense_details WHERE isIncome = 1")
     fun getTotalIncome(): Flow<Double>

@@ -100,8 +100,10 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
 
         // Handle "See All" click to show bottom sheet
         binding.textViewSeeAll.setOnClickListener {
-            val allExpenses = homeDetailsViewModel.allExpenseDetails.value
+            Log.d("DsK","textViewSeeAll 11")
+            val allExpenses = homeDetailsViewModel.allExpenseDetailRecent.value
             if (!allExpenses.isNullOrEmpty()) {
+                Log.d("DsK","textViewSeeAll 22")
                 val expenseDetailsBottomSheet = ExpenseHistoryFragment()
                 expenseDetailsBottomSheet.show(parentFragmentManager, "ExpenseDetailsHistoryBottomSheet")
             }
@@ -118,7 +120,7 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
         }
 
         // Observe allExpenseDetails to update RecyclerView
-        homeDetailsViewModel.allExpenseDetails.observe(viewLifecycleOwner) { list ->
+        homeDetailsViewModel.allExpenseDetailRecent.observe(viewLifecycleOwner) { list ->
             list?.let {
                 adapter.updateList(list)
                 adapter.notifyDataSetChanged() // Ensure the RecyclerView refreshes

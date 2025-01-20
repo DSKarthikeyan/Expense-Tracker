@@ -27,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class HomeDetailsViewModel(
     context: Context,
@@ -114,26 +115,48 @@ class HomeDetailsViewModel(
     val allExpenseDetails: LiveData<List<ExpenseDetails>> =
         MediatorLiveData<List<ExpenseDetails>>().apply {
             addSource(expenseRepository.allExpenseDetails) { expenses ->
-                // Make sure context is valid, and exchange rate is retrieved properly
-                val exchangeRate = CurrencyCache.getExchangeRate(context)
-
-                // Log to ensure exchangeRate and amount conversion is working correctly
-                Log.d("DsK", "Exchange Rate: $exchangeRate")
-
-                // Update the LiveData value after conversion
-                value = expenses.map { expense ->
-                    try {
-                        val convertedAmount =
-                            CurrencyUtils.convertFromUSD(expense.amount, exchangeRate)
-                        Log.d("DsK", "Converted amount: $convertedAmount")
-                        expense.copy(amount = convertedAmount)
-                    } catch (e: Exception) {
-                        Log.e("DsK", "Error converting amount: ${e.message}")
-                        expense // return original expense in case of error
+                // Convert expenses on a background thread
+                viewModelScope.launch(Dispatchers.IO) {
+                    val convertedExpenses = convertAllExpenseAmount(context, expenses)
+                    withContext(Dispatchers.Main) {
+                        value = convertedExpenses
                     }
                 }
             }
         }
+
+    val allExpenseDetailRecent: LiveData<List<ExpenseDetails>> =
+        MediatorLiveData<List<ExpenseDetails>>().apply {
+            addSource(expenseRepository.allExpenseDetailRecent) { expenses ->
+                // Convert expenses on a background thread
+                viewModelScope.launch(Dispatchers.IO) {
+                    val convertedExpenses = convertAllExpenseAmount(context, expenses)
+                    withContext(Dispatchers.Main) {
+                        value = convertedExpenses
+                    }
+                }
+            }
+        }
+
+    private fun convertAllExpenseAmount(
+        context: Context,
+        expenseDetails: List<ExpenseDetails>
+    ): List<ExpenseDetails> {
+        // Make sure context is valid, and exchange rate is retrieved properly
+        val exchangeRate = CurrencyCache.getExchangeRate(context)
+
+        // Convert amounts in the expenseDetails list
+        return expenseDetails.map { expense ->
+            try {
+                val convertedAmount = CurrencyUtils.convertFromUSD(expense.amount, exchangeRate)
+                expense.copy(amount = convertedAmount)
+            } catch (e: Exception) {
+                Log.e("DsK", "Error converting amount for expense ID ${expense.expenseID}: ${e.message}")
+                expense // Return original expense in case of an error
+            }
+        }
+    }
+
 
     fun deleteExpenseDetails(expenseDetails: ExpenseDetails) {
         viewModelScope.launch {

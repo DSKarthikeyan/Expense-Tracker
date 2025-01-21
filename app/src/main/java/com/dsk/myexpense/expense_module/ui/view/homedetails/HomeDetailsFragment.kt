@@ -121,8 +121,7 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
         homeDetailsViewModel.allExpenseDetailRecent.observe(viewLifecycleOwner) { list ->
             list?.let {
                 adapter.updateList(list)
-                adapter.notifyDataSetChanged() // Ensure the RecyclerView refreshes
-                Log.d("DsK", "RecyclerView updated with ${list.size} items")
+                adapter.notifyDataSetChanged()
             }
         }
 

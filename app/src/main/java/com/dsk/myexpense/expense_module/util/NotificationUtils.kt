@@ -212,8 +212,8 @@ class NotificationUtils {
                     viewModel.saveTransaction(
                         context,
                         messageDetails.senderName,
-                        messageDetails.expenseMessageSender?: "expenseMessageSender",
-                        messageDetails.receiverName?: "receiverName",
+                        messageDetails.expenseMessageSender?: "",
+                        messageDetails.receiverName?: "",
                         description,
                         messageDetails.expenseAmount,
                         date,

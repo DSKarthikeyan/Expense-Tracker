@@ -1,6 +1,7 @@
 package com.dsk.myexpense.expense_module.ui.view.statisticsdetails
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,7 @@ import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.FragmentStatisticsDetailsBinding
@@ -20,9 +22,11 @@ import com.dsk.myexpense.expense_module.data.source.local.db.MonthlyExpenseWithT
 import com.dsk.myexpense.expense_module.data.source.local.db.WeeklyExpenseSum
 import com.dsk.myexpense.expense_module.data.source.local.db.WeeklyExpenseWithTime
 import com.dsk.myexpense.expense_module.ui.adapter.MyItemRecyclerViewAdapter
+import com.dsk.myexpense.expense_module.ui.view.TransactionDetailsBottomView
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
+import com.dsk.myexpense.expense_module.util.SwipeToDeleteCallback
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarView
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarViewModel
 import java.text.SimpleDateFormat
@@ -68,14 +72,6 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
         super.onViewCreated(view, savedInstanceState)
 
         initUI()
-        setupDropdownFilter()
-        setupObservers()
-        updateChart(homeDetailsViewModel.getDailyExpenses()) { prepareDayChartData(it) }
-        binding.toggleGroup.check(binding.dayButton.id)
-
-        setupChartFilters()
-        setupSortButton()
-        prepareHeaderBarData()
     }
 
     private fun prepareHeaderBarData() {
@@ -126,14 +122,29 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
     }
 
     private fun initUI() {
-        binding.apply {
-            selectedFilter = resources.getString(R.string.text_all)
-            // Initialize RecyclerView
-            topSpendingRecycler.setHasFixedSize(true)
-            topSpendingRecycler.layoutManager = LinearLayoutManager(context)
-            adapter = MyItemRecyclerViewAdapter(appLoadingViewModel = appLoadingViewModel, this@StatisticsDetailsFragment)
-            topSpendingRecycler.adapter = adapter
+        setupRecyclerView()
+        setupDropdownFilter()
+        setupObservers()
+        updateChart(homeDetailsViewModel.getDailyExpenses()) { prepareDayChartData(it) }
+        binding.toggleGroup.check(binding.dayButton.id)
+
+        setupChartFilters()
+        setupSortButton()
+        prepareHeaderBarData()
+    }
+
+    private fun setupRecyclerView() {
+        selectedFilter = resources.getString(R.string.text_all)
+        binding.topSpendingRecycler.layoutManager = LinearLayoutManager(context)
+        adapter = MyItemRecyclerViewAdapter(appLoadingViewModel, this)
+        binding.topSpendingRecycler.adapter = adapter
+
+        // Adding swipe to delete functionality
+        val swipeCallback = SwipeToDeleteCallback(binding.topSpendingRecycler, homeDetailsViewModel) { deletedItem ->
+            Log.d("DsK", "Deleted: ${deletedItem.expenseSenderName} successfully")
         }
+        val itemTouchHelper = ItemTouchHelper(swipeCallback)
+        itemTouchHelper.attachToRecyclerView(binding.topSpendingRecycler)
     }
 
     private fun setupObservers() {
@@ -149,6 +160,7 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
                     topSpendingRecycler.visibility = View.VISIBLE
                     noDataRecyclerText.visibility = View.GONE
                     adapter.updateList(list)
+                    adapter.notifyDataSetChanged()
                 }
             }
         }
@@ -286,7 +298,9 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
         }
 
     override fun onItemClicked(expenseDetails: ExpenseDetails) {
-        // Handle item click
+        val transactionDetailsBottomSheet =
+            context?.let { TransactionDetailsBottomView(it, expenseDetails) }
+        transactionDetailsBottomSheet?.show(parentFragmentManager, "TransactionDetailsBottomSheet")
     }
 
     override fun onItemLongClicked(expenseDetails: ExpenseDetails) {

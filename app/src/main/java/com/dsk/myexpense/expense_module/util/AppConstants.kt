@@ -5,7 +5,7 @@ import java.util.regex.Pattern
 class AppConstants {
 
     companion object{
-        const val DATE_FORMAT_STRING = "EEE, d MMM yyyy HH:mm a"
+        const val DATE_FORMAT_STRING = "EEE, d MMM yyyy hh:mm a"
         const val APP_LINK_SHARE_FORMAT = "text/plain"
         const val APP_IMAGE_SELECTION_FORMAT = "image/*"
         const val EMPTY_STRING = ""

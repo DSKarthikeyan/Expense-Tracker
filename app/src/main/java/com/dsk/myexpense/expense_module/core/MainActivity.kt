@@ -304,24 +304,37 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun arePermissionsGranted(): Boolean {
-        val requiredPermissions = getRequiredPermissions()
-        return requiredPermissions.all { permission ->
-            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
-        }
-    }
-
     private fun getRequiredPermissions(): List<String> {
-        val permissions = mutableListOf(
-            Manifest.permission.RECEIVE_SMS,
-            Manifest.permission.READ_SMS,
-            Manifest.permission.CAMERA
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            permissions.add(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+        val permissions = mutableListOf<String>()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13 and above
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+            permissions.add(Manifest.permission.READ_MEDIA_IMAGES) // Access to images
+            permissions.add(Manifest.permission.READ_MEDIA_VIDEO)  // Access to videos
+            permissions.add(Manifest.permission.READ_MEDIA_AUDIO)  // Access to audio
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11 and above
+            permissions.add(Manifest.permission.MANAGE_EXTERNAL_STORAGE) // Broad external storage access
+        } else {
+            // Below Android 11
+            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
+
+        // Common permissions for all versions
+        permissions.addAll(
+            listOf(
+                Manifest.permission.RECEIVE_SMS,
+                Manifest.permission.READ_SMS,
+                Manifest.permission.READ_PHONE_STATE,
+                Manifest.permission.CAMERA
+            )
+        )
+
         return permissions
     }
+
 
     private fun requestPermissions() {
         val requiredPermissions = getRequiredPermissions().filter { permission ->
@@ -331,6 +344,13 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(
                 this, requiredPermissions.toTypedArray(), permissionRequestCode
             )
+        }
+    }
+
+    private fun arePermissionsGranted(): Boolean {
+        val requiredPermissions = getRequiredPermissions()
+        return requiredPermissions.all { permission ->
+            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
         }
     }
 
@@ -371,13 +391,24 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleImageSelection(uri: Uri) {
         try {
+            // Persist permission for future access
             contentResolver.takePersistableUriPermission(
                 uri,
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             )
+            Log.d("DsK", "Persisted URI permission successfully.")
+
+            // Save or use the URI
             selectedImageUri = uri
+            Log.d("DsK", "Main Activity image selectedImageUri $selectedImageUri")
+
+            // Now use the URI, for example, load into an ImageView
+//                    fragmentSettingsAccountDetailsBinding?.ivProfile?.let {
+//                        Utility.loadImageIntoView(it, selectedImageUri!!, requireContext(), isCircular = true)
+//                    }
         } catch (e: SecurityException) {
-            Log.e("DsK", "Failed to persist URI permission: ${e.localizedMessage}")
+            e.printStackTrace()
+            Log.e("DsK", "Failed to persist permission: ${e.localizedMessage}")
         }
     }
 

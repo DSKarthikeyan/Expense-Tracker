@@ -134,7 +134,7 @@ class LineChartView @JvmOverloads constructor(
             // Highlight tooltip for selected point
             if (selectedIndex == index) {
                 // Tooltip background
-                val tooltipText = "$${value}"
+                val tooltipText = "${value}"
                 val textWidth = tooltipPaint.measureText(tooltipText)
                 val rect = RectF(x - textWidth / 2 - 10, y - 90, x + textWidth / 2 + 10, y - 50)
                 val tooltipBackground = Paint().apply {

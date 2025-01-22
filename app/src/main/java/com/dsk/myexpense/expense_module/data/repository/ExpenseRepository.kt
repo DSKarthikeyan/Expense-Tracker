@@ -17,11 +17,11 @@ import com.dsk.myexpense.expense_module.data.source.local.db.DailyExpenseWithTim
 import com.dsk.myexpense.expense_module.data.source.local.db.ExpenseDAO
 import com.dsk.myexpense.expense_module.data.source.local.db.ExpenseTransactionDao
 import com.dsk.myexpense.expense_module.data.source.local.db.MonthlyExpenseWithTime
-import com.dsk.myexpense.expense_module.data.source.local.db.UserDao
 import com.dsk.myexpense.expense_module.data.source.local.db.WeeklyExpenseSum
 import com.dsk.myexpense.expense_module.data.source.local.sharedPref.SharedPreferencesManager
 import com.dsk.myexpense.expense_module.data.source.network.CurrencyAPIService
 import com.dsk.myexpense.expense_module.util.ApiResponse
+import com.dsk.myexpense.expense_module.util.AppConstants
 import com.dsk.myexpense.expense_module.util.Utility
 import com.dsk.myexpense.expense_module.util.Utility.bitmapToByteArray
 
@@ -139,7 +139,7 @@ class ExpenseRepository(
                         // Fallback to code if the symbol is null or empty
                         val finalSymbolToUse = finalSymbol?.takeIf { it.isNotEmpty() } ?: currencyCode
 
-                        Log.d("DsK", "Currencies name ${currency.name} code $currencyCode symbol $finalSymbolToUse")
+//                        Log.d("DsK", "Currencies name ${currency.name} code $currencyCode symbol $finalSymbolToUse")
 
                         // Create a Currency object
                         val currencyEntity = Currency(
@@ -192,7 +192,7 @@ class ExpenseRepository(
         context: Context,
         expenseDetails: ExpenseDetails, categoryName: String, isIncome: Boolean, bitmap: Bitmap?
     ) {
-        val type = if (isIncome) "Income" else "Expense"
+        val type = if (isIncome) context.resources.getString(R.string.text_income) else context.resources.getString(R.string.text_expense)
         val updatedExpenseDetails = Utility.convertExpenseAmountToUSD(context, expenseDetails)
         // Ensure category exists or create a new one
         val category = categoryDao.getCategoryByNameAndType(categoryName, type) ?: run {
@@ -223,7 +223,7 @@ class ExpenseRepository(
             invoiceImage = ExpenseInvoiceImage(
                 expenseID = expenseDetails.expenseID ?: 0,
                 expenseInvoiceImage = byteArray,
-                expenseImageFilePath = "" // File path can be updated if necessary
+                expenseImageFilePath = AppConstants.EMPTY_STRING // File path can be updated if necessary
             )
         }
 

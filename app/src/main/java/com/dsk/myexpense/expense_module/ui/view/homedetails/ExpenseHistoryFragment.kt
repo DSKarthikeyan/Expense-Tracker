@@ -33,14 +33,14 @@ class ExpenseHistoryFragment : BottomSheetDialogFragment(),
         GenericViewModelFactory {
             HomeDetailsViewModel(
                 requireContext(),
-                (requireActivity().application as ExpenseApplication).expenseRepository,
-                (requireActivity().application as ExpenseApplication).settingsRepository
+                ExpenseApplication.getExpenseRepository(requireContext()),
+                ExpenseApplication.getSettingsRepository(requireContext())
             )
         }
     }
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
-            AppLoadingViewModel((requireActivity().application as ExpenseApplication).expenseRepository)
+            AppLoadingViewModel(ExpenseApplication.getExpenseRepository(requireContext()))
         }
     }
 
@@ -152,6 +152,13 @@ class ExpenseHistoryFragment : BottomSheetDialogFragment(),
         }.timeInMillis
 
         filterExpenses(startDate, endDate, null) // Pass the start and end date for the current year
+    }
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.apply {
+            layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+        }
     }
 
     private fun setupRecyclerView() {

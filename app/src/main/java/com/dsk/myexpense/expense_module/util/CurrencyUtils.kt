@@ -8,6 +8,37 @@ import org.json.JSONObject
 
 object CurrencyUtils {
 
+    fun getCurrencySymbol(context: Context): String? {
+        val sharedPreferences = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
+        return sharedPreferences.getString(AppConstants.KEY_BASE_CURRENCY_SYMBOL, null)
+    }
+
+    fun setCurrencySymbol(context: Context, symbol: String) {
+        val sharedPreferences = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
+        with(sharedPreferences.edit()) {
+            putString(AppConstants.KEY_BASE_CURRENCY_SYMBOL, symbol)
+            apply()
+        }
+    }
+
+    fun getBaseCurrency(context: Context): String {
+        val sharedPreferences = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
+        return sharedPreferences.getString(AppConstants.KEY_BASE_CURRENCY, AppConstants.KEY_CURRENCY_VALUE_NAME) ?: AppConstants.KEY_CURRENCY_VALUE
+    }
+
+    fun getExchangeRate(context: Context): Double {
+        val sharedPreferences = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
+        return sharedPreferences.getFloat(AppConstants.KEY_EXCHANGE_RATE, 0.0f).toDouble()
+    }
+
+    fun setBaseCurrency(context: Context, currency: String, exchangeRate: Double) {
+        val sharedPreferences = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
+        sharedPreferences.edit()
+            .putString(AppConstants.KEY_BASE_CURRENCY, currency)
+            .putFloat(AppConstants.KEY_EXCHANGE_RATE, exchangeRate.toFloat())
+            .apply()
+    }
+
     suspend fun getCurrencySymbol(
         context: Context,
         getFromCache: Boolean = true,
@@ -16,7 +47,7 @@ object CurrencyUtils {
     ): String {
         if(getFromCache) {
             // Attempt to fetch the symbol from cache
-            CurrencyCache.getCurrencySymbol(context)?.let {
+            getCurrencySymbol(context)?.let {
                 return it
             }
         }
@@ -29,7 +60,7 @@ object CurrencyUtils {
         val symbol = currencyMap[codeToFetch] ?: codeToFetch
 
         // Cache the fetched symbol
-        CurrencyCache.setCurrencySymbol(context, symbol!!)
+        setCurrencySymbol(context, symbol!!)
 
         return symbol
     }

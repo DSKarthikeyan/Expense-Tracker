@@ -11,13 +11,9 @@ import com.dsk.myexpense.expense_module.data.model.Currency
 import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
 import com.dsk.myexpense.expense_module.util.ApiResponse
 import com.dsk.myexpense.expense_module.util.AppConstants
-import com.dsk.myexpense.expense_module.util.CurrencyCache
-import com.dsk.myexpense.expense_module.util.Utility
+import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
 
 class AppLoadingViewModel(private val repository: ExpenseRepository) : ViewModel() {
 
@@ -133,6 +129,6 @@ class AppLoadingViewModel(private val repository: ExpenseRepository) : ViewModel
     }
 
     fun getCurrencySymbol(context: Context): String{
-        return CurrencyCache.getCurrencySymbol(context) ?: "$"
+        return CurrencyUtils.getCurrencySymbol(context) ?: AppConstants.KEY_CURRENCY_VALUE_SYMBOL
     }
 }

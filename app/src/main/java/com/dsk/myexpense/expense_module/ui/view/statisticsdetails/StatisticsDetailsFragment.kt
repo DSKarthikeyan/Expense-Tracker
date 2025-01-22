@@ -20,19 +20,16 @@ import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.data.source.local.db.DailyExpenseWithTime
 import com.dsk.myexpense.expense_module.data.source.local.db.MonthlyExpenseWithTime
 import com.dsk.myexpense.expense_module.data.source.local.db.WeeklyExpenseSum
-import com.dsk.myexpense.expense_module.data.source.local.db.WeeklyExpenseWithTime
 import com.dsk.myexpense.expense_module.ui.adapter.MyItemRecyclerViewAdapter
 import com.dsk.myexpense.expense_module.ui.view.TransactionDetailsBottomView
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.util.SwipeToDeleteCallback
+import com.dsk.myexpense.expense_module.util.Utility
+import com.dsk.myexpense.expense_module.util.Utility.isIncome
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarView
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarViewModel
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 
 class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailClickListener {
 
@@ -125,7 +122,7 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
         setupRecyclerView()
         setupDropdownFilter()
         setupObservers()
-        updateChart(homeDetailsViewModel.getDailyExpenses()) { prepareDayChartData(it) }
+        updateChart(homeDetailsViewModel.getDailyExpenses()) { Utility.prepareDayChartData(it) }
         binding.toggleGroup.check(binding.dayButton.id)
 
         setupChartFilters()
@@ -200,38 +197,28 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
 
         updateChart(filteredData) { data ->
             when (binding.toggleGroup.checkedButtonId) {
-                binding.dayButton.id -> prepareDayChartData(data as List<DailyExpenseWithTime>)
-                binding.weekButton.id -> prepareWeekChartData(data as List<WeeklyExpenseSum>)
-                binding.monthButton.id -> convertDayToWeekOfMonth(data as List<WeeklyExpenseSum>)
-                binding.yearButton.id -> prepareYearChartData(data as List<MonthlyExpenseWithTime>)
+                binding.dayButton.id -> Utility.prepareDayChartData(data as List<DailyExpenseWithTime>)
+                binding.weekButton.id -> Utility.prepareWeekChartData(data as List<WeeklyExpenseSum>)
+                binding.monthButton.id -> Utility.convertDayToWeekOfMonth(data as List<WeeklyExpenseSum>)
+                binding.yearButton.id -> Utility.prepareYearChartData(data as List<MonthlyExpenseWithTime>)
                 else -> listOf()
             }
-        }
-    }
-
-    private fun Any.isIncome(): Boolean {
-        return when (this) {
-            is DailyExpenseWithTime -> this.isIncome
-            is WeeklyExpenseSum -> this.isIncome
-            is WeeklyExpenseWithTime -> this.isIncome
-            is MonthlyExpenseWithTime -> this.isIncome
-            else -> throw IllegalArgumentException("Unknown data type: ${this::class.java.simpleName}")
         }
     }
 
     private fun setupChartFilters() {
         binding.apply {
             dayButton.setOnClickListener {
-                updateChart(homeDetailsViewModel.getDailyExpenses()) { prepareDayChartData(it) }
+                updateChart(homeDetailsViewModel.getDailyExpenses()) { Utility.prepareDayChartData(it) }
             }
             weekButton.setOnClickListener {
-                updateChart(homeDetailsViewModel.getWeeklyExpenses()) { prepareWeekChartData(it) }
+                updateChart(homeDetailsViewModel.getWeeklyExpenses()) { Utility.prepareWeekChartData(it) }
             }
             monthButton.setOnClickListener {
-                updateChart(homeDetailsViewModel.getMonthlyExpenses()) { convertDayToWeekOfMonth(it) }
+                updateChart(homeDetailsViewModel.getMonthlyExpenses()) { Utility.convertDayToWeekOfMonth(it) }
             }
             yearButton.setOnClickListener {
-                updateChart(homeDetailsViewModel.getYearlyExpenses()) { prepareYearChartData(it) }
+                updateChart(homeDetailsViewModel.getYearlyExpenses()) { Utility.prepareYearChartData(it) }
             }
         }
     }
@@ -267,35 +254,6 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
 
         popupMenu.show()
     }
-
-    private fun prepareDayChartData(expenseData: List<DailyExpenseWithTime>): List<Pair<String, Int>> =
-        expenseData.map { expense ->
-            val formattedTime = SimpleDateFormat("hh a", Locale.getDefault()).format(Date(expense.time ?: 0L))
-            formattedTime to (expense.amount ?: 0)
-        }
-
-    private fun prepareWeekChartData(expenseData: List<WeeklyExpenseSum>): List<Pair<String, Int>> =
-        expenseData.map { expense ->
-            val dayInMillis = expense.day ?: 0L
-            val dateFormat = SimpleDateFormat("d", Locale.getDefault())
-
-            val dayFormatted = dateFormat.format(Date(dayInMillis))
-            dayFormatted to (expense.sum ?: 0)
-        }
-
-    private fun prepareYearChartData(expenseData: List<MonthlyExpenseWithTime>): List<Pair<String, Int>> =
-        expenseData.map { expense ->
-            val formattedMonth = SimpleDateFormat("MMM yy", Locale.getDefault()).format(Date(expense.time ?: 0L))
-            formattedMonth to (expense.amount ?: 0)
-        }
-
-    private fun convertDayToWeekOfMonth(data: List<WeeklyExpenseSum>): List<Pair<String, Int>> =
-        data.map {
-            val calendar = Calendar.getInstance().apply { timeInMillis = it.day ?: 0L }
-            val weekOfMonth = calendar.get(Calendar.WEEK_OF_MONTH)
-            val suffix = when (weekOfMonth) { 1 -> "st"; 2 -> "nd"; 3 -> "rd"; else -> "th" }
-            "${weekOfMonth}${suffix} wk" to (it.sum ?: 0)
-        }
 
     override fun onItemClicked(expenseDetails: ExpenseDetails) {
         val transactionDetailsBottomSheet =

@@ -34,6 +34,10 @@ class AccountsDetailsFragment : Fragment() {
     private var fragmentSettingsAccountDetailsBinding: FragmentSettingsAccountDetailsBinding? = null
     private val binding get() = fragmentSettingsAccountDetailsBinding!!
     private lateinit var adapter: ProfileOptionAdapter
+    private lateinit var headerBarViewModel: HeaderBarViewModel
+    private lateinit var headerBarView: HeaderBarView
+    private var selectedImageUri: Uri? = null
+
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
         GenericViewModelFactory {
             HomeDetailsViewModel(
@@ -60,19 +64,15 @@ class AccountsDetailsFragment : Fragment() {
                 // Save or use the URI
                 selectedImageUri = it
                 fragmentSettingsAccountDetailsBinding?.ivProfile?.let {
-                    Utility.loadImageIntoView(it, selectedImageUri!!, requireContext(), isCircular = true)
+                    Utility.loadImageIntoView(
+                        it, selectedImageUri!!, requireContext(), isCircular = true
+                    )
                 }
             }
         }
 
-    private lateinit var headerBarViewModel: HeaderBarViewModel
-    private lateinit var headerBarView: HeaderBarView
-    private var selectedImageUri: Uri? = null
-
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         fragmentSettingsAccountDetailsBinding =
             FragmentSettingsAccountDetailsBinding.inflate(inflater, container, false)
@@ -144,8 +144,7 @@ class AccountsDetailsFragment : Fragment() {
         val optionsList = listOf(
             ProfileOption(R.drawable.ic_action_friends, getString(R.string.text_invite_friends)),
             ProfileOption(
-                R.drawable.ic_settings,
-                getString(R.string.text_settings)
+                R.drawable.ic_settings, getString(R.string.text_settings)
             )  // Add Settings option
         )
 
@@ -154,7 +153,7 @@ class AccountsDetailsFragment : Fragment() {
                 getString(R.string.text_settings) -> navigateToSettings()
                 getString(R.string.text_invite_friends) -> {
                     // Share the app URL with friends
-                    shareAppUrl()
+                    Utility.shareAppUrl(requireContext())
                 }
 
                 else -> {}
@@ -175,7 +174,9 @@ class AccountsDetailsFragment : Fragment() {
                                 homeDetailsViewModel.saveUser(name, profilePictureUri.toString())
                             } else {
                                 // Show a toast message if validation fails
-                                Toast.makeText(requireContext(), "Details not saved", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    requireContext(), "Details not saved", Toast.LENGTH_SHORT
+                                ).show()
                             }
                         },
                         preSelectedImageUri = selectedImageUri // Initially no image
@@ -195,17 +196,10 @@ class AccountsDetailsFragment : Fragment() {
     private fun updateUserDetails(name: String, profilePictureUri: String) {
         fragmentSettingsAccountDetailsBinding?.tvProfileName?.text = name
         fragmentSettingsAccountDetailsBinding?.ivProfile?.let {
-            Utility.loadImageIntoView(it, Uri.parse(profilePictureUri), requireContext(), isCircular = true)
+            Utility.loadImageIntoView(
+                it, Uri.parse(profilePictureUri), requireContext(), isCircular = true
+            )
         }
-    }
-
-    private fun shareAppUrl() {
-        val shareIntent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, AppConstants.ANDROID_APP_URL)
-            type = AppConstants.APP_LINK_SHARE_FORMAT
-        }
-        startActivity(Intent.createChooser(shareIntent, getString(R.string.text_share_app_url)))
     }
 
     private fun navigateToSettings() {

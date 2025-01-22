@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dsk.myexpense.expense_module.data.model.Category
 import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
-import com.dsk.myexpense.expense_module.util.CurrencyCache
 import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import kotlinx.coroutines.launch
 
@@ -67,8 +66,8 @@ class SettingsViewModel(
             )
 //            Log.d("SettingsViewModel","Currency setDefaultCurrency: symbol $symbol -- currency $currency -- currencyValue $currencyValue")
             // Cache the symbol and base currency
-            CurrencyCache.setCurrencySymbol(context, symbol)
-            CurrencyCache.setBaseCurrency(context, currency, currencyValue)
+            CurrencyUtils.setCurrencySymbol(context, symbol)
+            CurrencyUtils.setBaseCurrency(context, currency, currencyValue)
 
             // Persist the default currency in the repository
             settingsRepository.setDefaultCurrency(currency, currencyValue)

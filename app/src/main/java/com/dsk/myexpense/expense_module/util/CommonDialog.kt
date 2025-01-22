@@ -1,7 +1,6 @@
 package com.dsk.myexpense.expense_module.util
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
@@ -98,11 +97,8 @@ class CommonDialog {
         categoryViewModel.categories.observe(context as LifecycleOwner) { categories ->
             // If there are no categories, handle that scenario
             if (categories.isNullOrEmpty()) {
-                Log.d("CommonDialog", "categories: empty")
                 onCategorySelected(null)  // Return null if no categories available
             } else {
-                Log.d("CommonDialog", "categories: not empty")
-
                 // Create an ArrayAdapter for the list of category names
                 val adapter =
                     object : ArrayAdapter<Category>(context, R.layout.item_category, categories) {
@@ -339,7 +335,7 @@ class CommonDialog {
                 pickImageLauncher.launch(AppConstants.APP_IMAGE_SELECTION_FORMAT)
             } else {
                 // Create URI for the selected drawable resource
-                val imageUri = Uri.parse("android.resource://${context.packageName}/$selectedImageResId")
+                val imageUri = Uri.parse("${AppConstants.APP_IMAGE_SELECTION_RESOURCE_PATH}${context.packageName}/$selectedImageResId")
                 Log.d("DsK","imageUri $imageUri")
                 onImageSelected(imageUri)
                 imageSelectionDialog?.dismiss()
@@ -349,7 +345,7 @@ class CommonDialog {
         // Build and show the dialog
         imageSelectionDialog = AlertDialog.Builder(context)
             .setView(dialogView)
-            .setTitle("Select an Image")
+            .setTitle(context.getString(R.string.text_select_an_image))
             .setNegativeButton(R.string.text_cancel) { dialog, _ ->
                 dialog.dismiss()
             }

@@ -4,14 +4,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.Switch
 import android.widget.TextView
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.dsk.myexpense.R
 import com.dsk.myexpense.expense_module.data.model.CardEntity
 import androidx.recyclerview.widget.DiffUtil
+import com.dsk.myexpense.expense_module.util.Utility
 import com.google.android.material.materialswitch.MaterialSwitch
 
 class CardAdapter(
@@ -28,10 +27,7 @@ class CardAdapter(
         private var isCardNumberVisible = false
 
         fun bind(card: CardEntity) {
-            Log.d(
-                "CardAdapter",
-                "Binding card: ${card.nameOnCard}, ${card.cardNumber}, ${card.expiryDate}"
-            )
+            Log.d("CardAdapter", "Binding card: ${card.nameOnCard}, ${card.cardNumber}, ${card.expiryDate}")
             cardHolderName.text = card.nameOnCard
             cardNumber.text = maskCardNumber(card.cardNumber)
             cardExpiry.text = card.expiryDate
@@ -50,7 +46,7 @@ class CardAdapter(
                 }
             }
 
-            val cardTypeValue = determineCardType(card.cardNumber)
+            val cardTypeValue = Utility.determineCardType(card.cardNumber)
             cardType.text = cardTypeValue  // Set the card type text
 
             itemView.setOnClickListener {
@@ -60,18 +56,6 @@ class CardAdapter(
 
         private fun maskCardNumber(cardNumber: String): String {
             return cardNumber.replace(Regex("\\d(?=\\d{4})"), "*")
-        }
-    }
-
-    private fun determineCardType(cardNumber: String): String {
-        return when {
-            cardNumber.startsWith("4") -> "Visa"  // Visa cards typically start with '4'
-            cardNumber.startsWith("5") -> "MasterCard"  // MasterCard cards typically start with '5'
-            cardNumber.startsWith("3") && (cardNumber[1] == '4' || cardNumber[1] == '7') -> "American Express"  // American Express starts with '34' or '37'
-            cardNumber.startsWith("6") -> "Discover"  // Discover cards typically start with '6'
-            cardNumber.startsWith("35") -> "JCB"  // JCB cards typically start with '35'
-            cardNumber.startsWith("2") -> "UnionPay"  // UnionPay cards typically start with '2'
-            else -> "Test Card"  // For other cases
         }
     }
 

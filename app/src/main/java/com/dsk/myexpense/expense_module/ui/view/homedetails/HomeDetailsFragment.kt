@@ -24,7 +24,7 @@ import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.NotificationUtils
 import com.dsk.myexpense.expense_module.util.SwipeToDeleteCallback
-import java.util.Calendar
+import com.dsk.myexpense.expense_module.util.Utility
 
 /**
  * A fragment representing a list of Items.
@@ -38,15 +38,15 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
         GenericViewModelFactory {
             HomeDetailsViewModel(
                 requireContext(),
-                (requireActivity().application as ExpenseApplication).expenseRepository,
-                (requireActivity().application as ExpenseApplication).settingsRepository
+                ExpenseApplication.getExpenseRepository(requireContext()),
+                ExpenseApplication.getSettingsRepository(requireContext())
             )
         }
     }
 
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
-            AppLoadingViewModel((requireActivity().application as ExpenseApplication).expenseRepository)
+            AppLoadingViewModel(ExpenseApplication.getExpenseRepository(requireContext()))
         }
     }
 
@@ -134,13 +134,7 @@ class HomeDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseDetailC
     }
 
     private fun updateTime() {
-        val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        val greeting = when (currentHour) {
-            in 0..11 -> getString(R.string.greeting_morning)
-            in 12..17 -> getString(R.string.greeting_afternoon)
-            else -> getString(R.string.greeting_evening)
-        }
-        binding.tvGreeting.text = greeting
+        binding.tvGreeting.text = Utility.getCurrentTimeWelcomeMessage(requireContext())
     }
 
     private fun formatAmount(currencySymbol: String, amount: Double?): String {

@@ -23,19 +23,17 @@ import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.TransactionDetailsBinding
 import com.dsk.myexpense.databinding.TransactionDetailsItemViewBinding
 import com.dsk.myexpense.expense_module.core.ExpenseApplication
-import com.dsk.myexpense.expense_module.data.model.Currency
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
-import com.dsk.myexpense.expense_module.util.CurrencyCache
+import com.dsk.myexpense.expense_module.util.AppConstants
 import com.dsk.myexpense.expense_module.util.NotificationUtils
 import com.dsk.myexpense.expense_module.util.Utility
 import com.dsk.myexpense.expense_module.util.Utility.dp
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarView
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -52,24 +50,23 @@ class TransactionDetailsBottomView(
     private val bindingView get() = binding!!
     private lateinit var expenseDate: String
     private lateinit var expenseTime: String
-    private var currencySymbol: String = ""
+    private var currencySymbol: String = AppConstants.EMPTY_STRING
+    private lateinit var headerBarViewModel: HeaderBarViewModel
+    private lateinit var headerBarView: HeaderBarView
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
-            AppLoadingViewModel((requireActivity().application as ExpenseApplication).expenseRepository)
+            AppLoadingViewModel(ExpenseApplication.getExpenseRepository(requireContext()))
         }
     }
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
         GenericViewModelFactory {
             HomeDetailsViewModel(
                 requireContext(),
-                (requireActivity().application as ExpenseApplication).expenseRepository,
-                (requireActivity().application as ExpenseApplication).settingsRepository
+                ExpenseApplication.getExpenseRepository(requireContext()),
+                ExpenseApplication.getSettingsRepository(requireContext())
             )
         }
     }
-
-    private lateinit var headerBarViewModel: HeaderBarViewModel
-    private lateinit var headerBarView: HeaderBarView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -246,7 +243,7 @@ class TransactionDetailsBottomView(
         dismiss()
     }
 
-    private fun generateAndDownloadPdf(fileName: String = "expense_details") {
+    private fun generateAndDownloadPdf(fileName: String = AppConstants.APP_CSV_EXPENSE_DETAILS_FILE_NAME) {
         CoroutineScope(Dispatchers.IO).launch {
             if (isAdded) {  // Ensure the fragment is attached
                 try {
@@ -371,7 +368,7 @@ class TransactionDetailsBottomView(
                         // Save to Downloads directory
                         val downloadsDir =
                             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                        val file = File(downloadsDir, "${fileName}.pdf")
+                        val file = File(downloadsDir, "${fileName}${AppConstants.APP_PDF_FILE_NAME_EXTENSION}")
                         pdfDocument.writeTo(FileOutputStream(file))
                         pdfDocument.close()
 

@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.dsk.myexpense.expense_module.util.AppConstants
 import kotlinx.coroutines.flow.first
 
 private val Context.dataStore by preferencesDataStore("settings")
@@ -44,7 +45,7 @@ class SettingsDataStore private constructor(private val context: Context) {
     // Function to get default currency
     suspend fun getDefaultCurrency(): String {
         val preferences = context.dataStore.data.first()
-        return preferences[DEFAULT_CURRENCY_KEY] ?: "USD"
+        return preferences[DEFAULT_CURRENCY_KEY] ?: AppConstants.KEY_CURRENCY_VALUE_NAME
     }
 
     suspend fun getDefaultCurrencyValue(): Double {

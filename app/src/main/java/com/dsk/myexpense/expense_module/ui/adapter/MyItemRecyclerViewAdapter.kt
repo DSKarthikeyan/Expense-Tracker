@@ -11,15 +11,11 @@ import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.ItemGroupListDetailBinding
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
-import com.dsk.myexpense.expense_module.util.AppConstants
+import com.dsk.myexpense.expense_module.util.Utility
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 
 class MyItemRecyclerViewAdapter(
     private val appLoadingViewModel: AppLoadingViewModel,
@@ -55,7 +51,7 @@ class MyItemRecyclerViewAdapter(
             holder.expenseAmountDetail.resources.getColor(color, null)
         )
 
-        updateDate(holder.expenseAmountDate, item.expenseAddedDate)
+        Utility.updateDate(holder.expenseAmountDate, item.expenseAddedDate)
 
         CoroutineScope(Dispatchers.IO).launch {
             val categoryImage = item.categoryId?.let { appLoadingViewModel.getCategoryNameByID(it) }
@@ -73,59 +69,6 @@ class MyItemRecyclerViewAdapter(
                 Log.e("RecyclerViewAdapter", "Index out of bounds: $position")
             }
         }
-    }
-
-    private fun updateDate(textView: TextView, timestamp: Long) {
-        val currentTime = System.currentTimeMillis()
-        val differenceInMillis = currentTime - timestamp
-        val oneMinute = 60 * 1000
-        val oneHour = 60 * oneMinute
-        val oneDay = 24 * oneHour
-
-        val formattedTime: String = when {
-            differenceInMillis < 0 -> {
-                val futureDifference = -differenceInMillis
-                when {
-                    futureDifference < oneMinute -> "In ${futureDifference / 1000} second${if (futureDifference / 1000 == 1L) "" else "s"}"
-                    futureDifference < oneHour -> "In ${futureDifference / oneMinute} minute${if (futureDifference / oneMinute == 1L) "" else "s"}"
-                    futureDifference < oneDay -> "In ${futureDifference / oneHour} hour${if (futureDifference / oneHour == 1L) "" else "s"}"
-                    else -> "In the future (${SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault()).format(Date(timestamp))})"
-                }
-            }
-            differenceInMillis < oneMinute -> "${differenceInMillis / 1000} second${if (differenceInMillis / 1000 == 1L) "" else "s"} ago"
-            differenceInMillis < oneHour -> "${differenceInMillis / oneMinute} minute${if (differenceInMillis / oneMinute == 1L) "" else "s"} ago"
-            differenceInMillis < oneDay -> "${differenceInMillis / oneHour} hour${if (differenceInMillis / oneHour == 1L) "" else "s"} ago"
-            isToday(timestamp) -> "Today"
-            isYesterday(timestamp) -> "Yesterday"
-            else -> SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault()).format(Date(timestamp))
-        }
-
-        textView.text = formattedTime
-
-        if (differenceInMillis < oneDay && differenceInMillis >= 0) {
-            val delay = when {
-                differenceInMillis < oneMinute -> 1000L
-                differenceInMillis < oneHour -> oneMinute.toLong()
-                else -> oneHour.toLong()
-            }
-            textView.postDelayed({
-                updateDate(textView, timestamp)
-            }, delay)
-        }
-    }
-
-    private fun isToday(timestamp: Long): Boolean {
-        val currentCalendar = Calendar.getInstance()
-        val eventCalendar = Calendar.getInstance().apply { timeInMillis = timestamp }
-        return currentCalendar.get(Calendar.YEAR) == eventCalendar.get(Calendar.YEAR) &&
-                currentCalendar.get(Calendar.DAY_OF_YEAR) == eventCalendar.get(Calendar.DAY_OF_YEAR)
-    }
-
-    private fun isYesterday(timestamp: Long): Boolean {
-        val currentCalendar = Calendar.getInstance()
-        val eventCalendar = Calendar.getInstance().apply { timeInMillis = timestamp }
-        return currentCalendar.get(Calendar.YEAR) == eventCalendar.get(Calendar.YEAR) &&
-                currentCalendar.get(Calendar.DAY_OF_YEAR) - eventCalendar.get(Calendar.DAY_OF_YEAR) == 1
     }
 
     fun updateList(newList: List<ExpenseDetails>) {

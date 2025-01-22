@@ -1,6 +1,5 @@
 package com.dsk.myexpense.expense_module.ui.adapter
 
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup

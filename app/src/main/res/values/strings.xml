@@ -61,6 +61,7 @@
     <string name="text_date">Date</string>
     <string name="text_name">Name</string>
     <string name="text_cancel">Cancel</string>
+    <string name="text_select_an_image">Select an Image</string>
     <string name="text_expense_name">Expense Name</string>
     <string name="text_category">Category</string>
     <string name="text_cards">Cards</string>
@@ -172,4 +173,8 @@
     <string name="greeting_morning">Good Morning,</string>
     <string name="greeting_afternoon">Good Afternoon,</string>
     <string name="greeting_evening">Good Evening,</string>
+
+    <string name="text_notification_pdf_saved_message_title">PDF Saved</string>
+    <string name="text_notification_pdf_info_description">Notification for saved PDFs</string>
+    <string name="text_notification_pdf_saved_message_description">Your expense details PDF has been saved.</string>
 </resources>

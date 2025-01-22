@@ -37,7 +37,7 @@ import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.AppConstants
 import com.dsk.myexpense.expense_module.util.CommonDialog
-import com.dsk.myexpense.expense_module.util.CurrencyCache
+import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import com.dsk.myexpense.expense_module.util.PermissionManager
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarView
 import com.dsk.myexpense.expense_module.util.headerbar.HeaderBarViewModel
@@ -133,7 +133,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
         preloadedExpenseDetails?.let { preloadData(it) } ?: setCurrentDate()
 
-        selectedCurrency = CurrencyCache.getCurrencySymbol(requireContext()).toString()
+        selectedCurrency = CurrencyUtils.getCurrencySymbol(requireContext()).toString()
 
         binding.addNewExpenseWidget.apply {
             amountExpenseGroup.hint = "$selectedCurrency 48.00" // Set hint on TextInputLayout
@@ -180,9 +180,6 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
                 Log.d("SettingsFragment", "Category dialog already open, ignoring click.")
                 false
             }
-
-            Log.d("SettingsFragment", "categoryLayout: clicked")
-
             // Set the flag to indicate the dialog is open
             isCategoryDialogOpen = true
 
@@ -200,16 +197,6 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
                 onDismissDialog = { isCategorySelected ->
                     // Reset the flag after the dialog is dismissed
                     isCategoryDialogOpen = false
-
-                    // Optionally, log or perform actions based on whether a category was selected
-                    if (isCategorySelected == true) {
-                        Log.d("SettingsFragment", "Category selected successfully.")
-                    } else {
-                        Log.d(
-                            "SettingsFragment",
-                            "Category selection was canceled or no category selected."
-                        )
-                    }
                 }
             )
             true
@@ -280,7 +267,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
             binding.addNewExpenseWidget.addInvoiceImageView.setImageBitmap(null)
             visibility = View.GONE
         }
-        Toast.makeText(context, "Invoice image cleared", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Invoice image Removed", Toast.LENGTH_SHORT).show()
     }
 
     private fun preloadData(expenseDetails: ExpenseDetails) {
@@ -302,7 +289,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
             }
 
             val dateFormatter =
-                SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault())
+                SimpleDateFormat(AppConstants.DATE_TIME_FORMAT_STRING, Locale.getDefault())
             addExpenseDateTextView.text =
                 dateFormatter.format(Date(expenseDetails.expenseAddedDate))
         }
@@ -330,7 +317,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
                             set(year, month, dayOfMonth, hourOfDay, minute)
                         }
                         val formattedDate = SimpleDateFormat(
-                            AppConstants.DATE_FORMAT_STRING,
+                            AppConstants.DATE_TIME_FORMAT_STRING,
                             Locale.getDefault()
                         ).format(selectedDate.time)
                         binding.addNewExpenseWidget.addExpenseDateTextView.text = formattedDate
@@ -345,7 +332,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
     private fun setCurrentDate() {
         val currentDate =
-            SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault()).format(Date())
+            SimpleDateFormat(AppConstants.DATE_TIME_FORMAT_STRING, Locale.getDefault()).format(Date())
         binding.addNewExpenseWidget.addExpenseDateTextView.text = currentDate
     }
 
@@ -439,7 +426,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
     }
 
     private fun getDateInMilliseconds(selectedDate: String): Long {
-        val formatter = SimpleDateFormat(AppConstants.DATE_FORMAT_STRING, Locale.getDefault())
+        val formatter = SimpleDateFormat(AppConstants.DATE_TIME_FORMAT_STRING, Locale.getDefault())
         return try {
             formatter.parse(selectedDate)?.time ?: 0L
         } catch (e: Exception) {
@@ -452,13 +439,11 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
     }
 
     private fun requestMediaPermission() {
-        Log.d("AddNewExpenseActivity", "requestMediaPermission:")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             PermissionManager.requestPermission(
                 requireContext(),
                 Manifest.permission.READ_MEDIA_IMAGES,
                 onGranted = {
-                    Log.d("AddNewExpenseActivity", "Permission granted")
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
                         SdkExtensions.getExtensionVersion(Build.VERSION_CODES.R) >= 2
                     ) {
@@ -472,7 +457,6 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
                 }
             )
         } else {
-            Log.d("AddNewExpenseActivity", "Fallback for lower API versions")
             accessMedia()
         }
     }
@@ -522,10 +506,10 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             // For Android 14+, we use ACTION_PICK_IMAGES to open the new photo picker UI
             val intent = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
-                type = "image/*" // Setting image type for the picker
+                type = AppConstants.APP_IMAGE_SELECTION_FORMAT // Setting image type for the picker
                 putExtra(
                     MediaStore.EXTRA_PICK_IMAGES_MAX,
-                    10
+                    4
                 ) // Allowing the user to pick up to 10 images
             }
             photoPickerLauncher.launch(intent)
@@ -571,7 +555,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
                 if (!inputText.startsWith(requiredPrefix)) {
                     val updatedText =
-                        "$requiredPrefix${inputText.replace(currencySymbol, "").trim()}"
+                        "$requiredPrefix${inputText.replace(currencySymbol, AppConstants.EMPTY_STRING).trim()}"
                     editText.setText(updatedText)
                     editText.setSelection(updatedText.length)
                 }

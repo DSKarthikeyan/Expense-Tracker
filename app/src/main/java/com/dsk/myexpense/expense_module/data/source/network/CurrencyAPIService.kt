@@ -2,14 +2,13 @@ package com.dsk.myexpense.expense_module.data.source.network
 
 import com.dsk.myexpense.expense_module.data.model.Currency
 import com.dsk.myexpense.expense_module.util.ApiResponse
+import com.dsk.myexpense.expense_module.util.AppConstants
 import java.io.IOException
 
 object CurrencyAPIService {
 
-    private const val BASE_URL = "https://openexchangerates.org/api/"
-
     private val apiService: CurrencyApi by lazy {
-        RetrofitClient.createRetrofitService(BASE_URL).create(CurrencyApi::class.java)
+        RetrofitClient.createRetrofitService(AppConstants.BASE_URL_CURRENCY_LIST).create(CurrencyApi::class.java)
     }
 
     suspend fun getCurrencies(appId: String): ApiResponse<List<Currency>> {

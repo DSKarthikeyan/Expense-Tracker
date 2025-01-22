@@ -56,7 +56,7 @@ class SmsReceiver : BroadcastReceiver() {
                 Log.d("DsK", "onReceive messageDetails: $messageDetails")
 
                 // Check if the message contains valid expense details
-                if (messageDetails.expenseType != "Not Valid") {
+                if (messageDetails.expenseType != context.getString(R.string.text_not_valid)) {
                     // Update the message details with additional information
                     messageDetails = messageDetails.copy( // Using copy() to create a new instance with updated properties
                         expenseMessageSender = sender,
@@ -105,7 +105,7 @@ class SmsReceiver : BroadcastReceiver() {
                 senderName = messageSuggestion.referenceMessageSender,
                 expenseType = messageSuggestion.expenseType,
                 expenseAmount = messageSuggestion.amount,
-                receiverName = messageSuggestion.paidTo ?: "",
+                receiverName = messageSuggestion.paidTo ?: AppConstants.EMPTY_STRING,
                 expenseDate = messageSuggestion.time,
                 isIncome = messageSuggestion.isExpense,
                 categoryName = messageSuggestion.referenceMessageSender,

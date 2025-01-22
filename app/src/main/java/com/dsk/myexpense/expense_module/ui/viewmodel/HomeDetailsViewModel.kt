@@ -18,9 +18,8 @@ import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
 import com.dsk.myexpense.expense_module.data.source.local.db.DailyExpenseWithTime
 import com.dsk.myexpense.expense_module.data.source.local.db.MonthlyExpenseWithTime
 import com.dsk.myexpense.expense_module.data.source.local.db.WeeklyExpenseSum
-import com.dsk.myexpense.expense_module.data.source.local.sharedPref.SharedPreferencesManager
 import com.dsk.myexpense.expense_module.ui.view.settings.SettingsRepository
-import com.dsk.myexpense.expense_module.util.CurrencyCache
+import com.dsk.myexpense.expense_module.util.AppConstants
 import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import com.dsk.myexpense.expense_module.util.Utility
 import kotlinx.coroutines.Dispatchers
@@ -46,21 +45,21 @@ class HomeDetailsViewModel(
 
     private val getTotalIncomeAmount: LiveData<Double> = MediatorLiveData<Double>().apply {
         addSource(expenseRepository.getTotalIncomeAmount) { totalIncomeInUSD ->
-            val exchangeRate = CurrencyCache.getExchangeRate(context)
+            val exchangeRate = CurrencyUtils.getExchangeRate(context)
             value = CurrencyUtils.convertFromUSD(totalIncomeInUSD, exchangeRate)
         }
     }
 
     private val getTotalExpenseAmount: LiveData<Double> = MediatorLiveData<Double>().apply {
         addSource(expenseRepository.getTotalExpenseAmount) { totalExpenseInUSD ->
-            val exchangeRate = CurrencyCache.getExchangeRate(context)
+            val exchangeRate = CurrencyUtils.getExchangeRate(context)
             value = CurrencyUtils.convertFromUSD(totalExpenseInUSD, exchangeRate)
         }
     }
 
     private val getTotalIncomeExpenseAmount: LiveData<Double> = MediatorLiveData<Double>().apply {
         addSource(expenseRepository.getTotalIncomeExpenseAmount) { totalIncomeExpenseInUSD ->
-            val exchangeRate = CurrencyCache.getExchangeRate(context)
+            val exchangeRate = CurrencyUtils.getExchangeRate(context)
             value = CurrencyUtils.convertFromUSD(totalIncomeExpenseInUSD.toDouble(), exchangeRate)
         }
     }
@@ -143,7 +142,7 @@ class HomeDetailsViewModel(
         expenseDetails: List<ExpenseDetails>
     ): List<ExpenseDetails> {
         // Make sure context is valid, and exchange rate is retrieved properly
-        val exchangeRate = CurrencyCache.getExchangeRate(context)
+        val exchangeRate = CurrencyUtils.getExchangeRate(context)
 
         // Convert amounts in the expenseDetails list
         return expenseDetails.map { expense ->
@@ -250,19 +249,16 @@ class HomeDetailsViewModel(
     }
 
     fun getCurrencySymbol(context: Context): String {
-        return CurrencyCache.getCurrencySymbol(context) ?: "$"
+        return CurrencyUtils.getCurrencySymbol(context) ?: AppConstants.KEY_CURRENCY_VALUE_SYMBOL
     }
 
     fun saveUser(name: String, profilePicture: String) {
-        Log.d("DsK","View Model in")
         viewModelScope.launch {
             val user = User(name = name, profilePicture = profilePicture)
             deleteUser()
-            Log.d("DsK","View Model in 22")
             expenseRepository.insertUser(user)
             _userDetails.value = user
             _userDetails.emit(user)
-            Log.d("DsK","View Model ${user.name}")
         }
     }
 

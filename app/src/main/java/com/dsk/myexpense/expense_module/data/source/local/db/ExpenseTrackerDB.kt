@@ -11,6 +11,7 @@ import com.dsk.myexpense.expense_module.data.model.Currency
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.data.model.ExpenseInvoiceImage
 import com.dsk.myexpense.expense_module.data.model.User
+import com.dsk.myexpense.expense_module.util.AppConstants
 
 @Database(entities = [ExpenseDetails::class, ExpenseInvoiceImage::class,
     Category::class, Currency::class, CardEntity::class, AccountEntity::class,User::class], exportSchema = false, version = 1)
@@ -37,7 +38,7 @@ abstract class ExpenseTrackerDB : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     ExpenseTrackerDB::class.java,
-                    "expense_tracker"
+                    AppConstants.APP_LOCAL_DATABASE_NAME
                 ).allowMainThreadQueries().build()
                 INSTANCE = instance
                 // return instance

@@ -23,7 +23,7 @@ object CurrencyUtils {
 
     fun getBaseCurrency(context: Context): String {
         val sharedPreferences = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
-        return sharedPreferences.getString(AppConstants.KEY_BASE_CURRENCY, AppConstants.KEY_CURRENCY_VALUE_NAME) ?: AppConstants.KEY_CURRENCY_VALUE
+        return sharedPreferences.getString(AppConstants.KEY_BASE_CURRENCY, AppConstants.KEY_CURRENCY_VALUE_NAME) ?: AppConstants.KEY_CURRENCY_VALUE_NAME
     }
 
     fun getExchangeRate(context: Context): Double {

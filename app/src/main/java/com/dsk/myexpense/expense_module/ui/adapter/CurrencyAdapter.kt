@@ -28,7 +28,7 @@ class CurrencyAdapter(
     override fun onBindViewHolder(holder: CurrencyViewHolder, position: Int) {
         val currency = filteredCurrencies[position]
         holder.textCurrencyName.text = currency.name
-        holder.textCurrencyCode.text = currency.code.toString()
+        holder.textCurrencyCode.text = "${currency.code}"
 
         holder.itemView.setOnClickListener {
             onCurrencySelected(currency)

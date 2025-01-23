@@ -42,8 +42,7 @@ import java.io.File
 import java.io.FileOutputStream
 
 class TransactionDetailsBottomView(
-    private val context: Context,
-    private val expenseDetails: ExpenseDetails
+    private val context: Context, private val expenseDetails: ExpenseDetails
 ) : BottomSheetDialogFragment() {
 
     private var binding: TransactionDetailsBinding? = null
@@ -55,7 +54,10 @@ class TransactionDetailsBottomView(
     private lateinit var headerBarView: HeaderBarView
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
-            AppLoadingViewModel(ExpenseApplication.getExpenseRepository(requireContext()))
+            AppLoadingViewModel(
+                ExpenseApplication.getCategoryRepository(requireContext()),
+                ExpenseApplication.getCurrencyRepository(requireContext())
+            )
         }
     }
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
@@ -63,6 +65,8 @@ class TransactionDetailsBottomView(
             HomeDetailsViewModel(
                 requireContext(),
                 ExpenseApplication.getExpenseRepository(requireContext()),
+                ExpenseApplication.getCategoryRepository(requireContext()),
+                ExpenseApplication.getCurrencyRepository(requireContext()),
                 ExpenseApplication.getSettingsRepository(requireContext())
             )
         }
@@ -153,38 +157,35 @@ class TransactionDetailsBottomView(
             if (expenseDetails.isIncome) getString(R.string.text_income) else getString(R.string.text_expense)
 
         currencySymbol = homeDetailsViewModel.getCurrencySymbol(requireContext())
-        currencySymbol = getString(R.string.text_amount_value, currencySymbol, expenseDetails.amount)
+        currencySymbol =
+            getString(R.string.text_amount_value, currencySymbol, expenseDetails.amount)
         bindingView.tvTransactionAmount.text = currencySymbol
         bindingView.totalLayout.transactionDetailLabel.text = getString(R.string.text_total)
         bindingView.totalLayout.transactionDetailValue.text = currencySymbol
 
         bindingView.statusLayout.transactionDetailLabel.text = getString(R.string.text_status)
         // Set basic data dynamically
-        bindingView.statusLayout.transactionDetailValue.text =
-            if (expenseDetails.isIncome) {
-                bindingView.statusLayout.transactionDetailValue.setTextColor(
-                    resources.getColor(
-                        R.color.teal_800,
-                        null
-                    )
+        bindingView.statusLayout.transactionDetailValue.text = if (expenseDetails.isIncome) {
+            bindingView.statusLayout.transactionDetailValue.setTextColor(
+                resources.getColor(
+                    R.color.teal_800, null
                 )
-                bindingView.tvTransactionStatus.setTextColor(
-                    resources.getColor(
-                        R.color.teal_800,
-                        null
-                    )
+            )
+            bindingView.tvTransactionStatus.setTextColor(
+                resources.getColor(
+                    R.color.teal_800, null
                 )
-                getString(R.string.text_income)
-            } else {
-                bindingView.tvTransactionStatus.setTextColor(resources.getColor(R.color.red, null))
-                bindingView.statusLayout.transactionDetailValue.setTextColor(
-                    resources.getColor(
-                        R.color.red,
-                        null
-                    )
+            )
+            getString(R.string.text_income)
+        } else {
+            bindingView.tvTransactionStatus.setTextColor(resources.getColor(R.color.red, null))
+            bindingView.statusLayout.transactionDetailValue.setTextColor(
+                resources.getColor(
+                    R.color.red, null
                 )
-                getString(R.string.text_expense)
-            }
+            )
+            getString(R.string.text_expense)
+        }
 
         bindingView.fromLayout.transactionDetailLabel.text = getString(R.string.text_from)
         bindingView.fromLayout.transactionDetailValue.text = expenseDetails.expenseSenderName
@@ -303,32 +304,27 @@ class TransactionDetailsBottomView(
                         // Transaction Details Section
                         binding?.statusLayout?.let {
                             drawTransactionDetailsSection(
-                                canvas,
-                                it, 350f, paint
+                                canvas, it, 350f, paint
                             )
                         }
                         binding?.fromLayout?.let {
                             drawTransactionDetailsSection(
-                                canvas,
-                                it, 430f, paint
+                                canvas, it, 430f, paint
                             )
                         }
                         binding?.toLayout?.let {
                             drawTransactionDetailsSection(
-                                canvas,
-                                it, 510f, paint
+                                canvas, it, 510f, paint
                             )
                         }
                         binding?.timeLayout?.let {
                             drawTransactionDetailsSection(
-                                canvas,
-                                it, 590f, paint
+                                canvas, it, 590f, paint
                             )
                         }
                         binding?.dateLayout?.let {
                             drawTransactionDetailsSection(
-                                canvas,
-                                it, 670f, paint
+                                canvas, it, 670f, paint
                             )
                         }
 
@@ -338,14 +334,12 @@ class TransactionDetailsBottomView(
                         // Spending Details
                         binding?.earningsLayout?.let {
                             drawTransactionDetailsSection(
-                                canvas,
-                                it, 730f, paint
+                                canvas, it, 730f, paint
                             )
                         }
                         binding?.feesLayout?.let {
                             drawTransactionDetailsSection(
-                                canvas,
-                                it, 810f, paint
+                                canvas, it, 810f, paint
                             )
                         }
 
@@ -355,8 +349,7 @@ class TransactionDetailsBottomView(
                         // Total Details
                         binding?.totalLayout?.let {
                             drawTransactionDetailsSection(
-                                canvas,
-                                it, 880f, paint
+                                canvas, it, 880f, paint
                             )
                         }
 
@@ -368,7 +361,9 @@ class TransactionDetailsBottomView(
                         // Save to Downloads directory
                         val downloadsDir =
                             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                        val file = File(downloadsDir, "${fileName}${AppConstants.APP_PDF_FILE_NAME_EXTENSION}")
+                        val file = File(
+                            downloadsDir, "${fileName}${AppConstants.APP_PDF_FILE_NAME_EXTENSION}"
+                        )
                         pdfDocument.writeTo(FileOutputStream(file))
                         pdfDocument.close()
 
@@ -416,10 +411,7 @@ class TransactionDetailsBottomView(
     }
 
     private fun drawTransactionDetailsSection(
-        canvas: Canvas,
-        binding: TransactionDetailsItemViewBinding,
-        yPosition: Float,
-        paint: Paint
+        canvas: Canvas, binding: TransactionDetailsItemViewBinding, yPosition: Float, paint: Paint
     ) {
         canvas.drawText(binding.transactionDetailValue.text.toString(), 20f, yPosition, paint)
     }
@@ -432,11 +424,7 @@ class TransactionDetailsBottomView(
     }
 
     private fun drawButton(
-        canvas: Canvas,
-        button: Button,
-        paint: Paint,
-        x: Float,
-        y: Float
+        canvas: Canvas, button: Button, paint: Paint, x: Float, y: Float
     ) {
         val textBounds = Rect()
         paint.getTextBounds(button.text.toString(), 0, button.text.length, textBounds)

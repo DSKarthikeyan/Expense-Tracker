@@ -1,28 +1,14 @@
 package com.dsk.myexpense.expense_module.ui.viewmodel.smshandler
 
-import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
-import com.dsk.myexpense.expense_module.data.source.local.db.ExpenseTrackerDB
-import com.dsk.myexpense.expense_module.data.source.local.sharedPref.SharedPreferencesManager
-import com.dsk.myexpense.expense_module.data.source.network.CurrencyAPIService
 import kotlinx.coroutines.launch
 
-class SmsReceiverViewModel(application: Application) : AndroidViewModel(application) {
-
-    // Dependency injection through constructor
-    private val repository: ExpenseRepository = ExpenseRepository(
-        expenseDAO = ExpenseTrackerDB.getDatabase(application).getExpenseDAO(),
-        transactionDao = ExpenseTrackerDB.getDatabase(application).getExpenseTransactionDAO(),
-        categoryDao = ExpenseTrackerDB.getDatabase(application).getExpenseCategoryDAO(),
-        currencyDao = ExpenseTrackerDB.getDatabase(application).getExpenseCurrencyDAO(),
-        currencyAPIService = CurrencyAPIService,
-        SharedPreferencesManager(application)
-    )
+class SmsReceiverViewModel(private val expenseRepository: ExpenseRepository) : ViewModel() {
 
     /**
      * Save a transaction with optional invoice image.
@@ -59,7 +45,7 @@ class SmsReceiverViewModel(application: Application) : AndroidViewModel(applicat
                 expenseAddedDate = date
             )
             // Save transaction with or without invoice
-            repository.saveExpenseWithInvoice(
+            expenseRepository.saveExpenseWithInvoice(
                     context = context,
                     expenseDetails = expenseDetails,
                     categoryName = categoryName,

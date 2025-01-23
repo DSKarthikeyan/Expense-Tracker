@@ -7,7 +7,10 @@ import android.content.ComponentName
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import com.dsk.myexpense.expense_module.data.repository.CategoryRepository
+import com.dsk.myexpense.expense_module.data.repository.CurrencyRepository
 import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
+import com.dsk.myexpense.expense_module.data.repository.WalletAccountRepository
 import com.dsk.myexpense.expense_module.data.source.local.db.ExpenseTrackerDB
 import com.dsk.myexpense.expense_module.data.source.local.sharedPref.SharedPreferencesManager
 import com.dsk.myexpense.expense_module.data.source.network.CurrencyAPIService
@@ -19,18 +22,27 @@ import java.lang.ref.WeakReference
 class ExpenseApplication : Application() {
 
     // Database initialization
-    private val database by lazy { ExpenseTrackerDB.getDatabase(this) }
+    private val expenseDataBase by lazy { ExpenseTrackerDB.getDatabase(this) }
 
     // Repository initialization
     val expenseRepository: ExpenseRepository by lazy {
         ExpenseRepository(
-            database.getExpenseDAO(),
-            database.getExpenseTransactionDAO(),
-            database.getExpenseCategoryDAO(),
-            database.getExpenseCurrencyDAO(),
-            CurrencyAPIService,
+            expenseDataBase.getExpenseDAO(),
+            categoryRepository,
             SharedPreferencesManager(this)
         )
+    }
+
+    val categoryRepository : CategoryRepository by lazy {
+        CategoryRepository(expenseDataBase.getExpenseCategoryDAO())
+    }
+
+    val walletAccountRepository : WalletAccountRepository by lazy {
+        WalletAccountRepository(expenseDataBase.cardDao(), expenseDataBase.accountDao())
+    }
+
+    val currencyRepository : CurrencyRepository by lazy {
+        CurrencyRepository(expenseDataBase.getExpenseCurrencyDAO(), currencyAPIService = CurrencyAPIService)
     }
 
     // Settings Repository initialization
@@ -49,6 +61,18 @@ class ExpenseApplication : Application() {
 
         fun getSettingsRepository(context: Context): SettingsRepository {
             return (context.applicationContext as ExpenseApplication).settingsRepository
+        }
+
+        fun getCurrencyRepository(context: Context): CurrencyRepository {
+            return (context.applicationContext as ExpenseApplication).currencyRepository
+        }
+
+        fun getWalletRepository(context: Context): WalletAccountRepository {
+            return (context.applicationContext as ExpenseApplication).walletAccountRepository
+        }
+
+        fun getCategoryRepository(context: Context): CategoryRepository {
+            return (context.applicationContext as ExpenseApplication).categoryRepository
         }
     }
 

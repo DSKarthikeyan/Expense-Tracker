@@ -7,16 +7,13 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.FragmentWalletAccountsBinding
-import com.dsk.myexpense.expense_module.ui.viewmodel.WalletViewModel
 
 class AccountsFragment : Fragment() {
 
     private var _binding: FragmentWalletAccountsBinding? = null
     private val fragmentWalletAccountsBinding get() = _binding!!
-    private val viewModel: WalletViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?

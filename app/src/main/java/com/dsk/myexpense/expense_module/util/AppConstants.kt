@@ -63,5 +63,9 @@ class AppConstants {
         const val APP_FILE_EXPENSES_KEY_NAME = "expenses"
         const val APP_FILE_CATEGORIES_KEY_NAME = "categories"
         const val APP_FILE_CURRENCIES_KEY_NAME = "currencies"
+
+        const val USER_SHARED_PREF_NAME = "user_prefs"
+        const val USER_SHARED_PREF_USER_DETAILS_NAME = "user_name"
+        const val USER_SHARED_PREF_USER_PROFILE_PICTURE_NAME = "user_profile_picture"
     }
 }

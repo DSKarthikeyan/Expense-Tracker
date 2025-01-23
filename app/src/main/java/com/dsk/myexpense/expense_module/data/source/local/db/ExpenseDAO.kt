@@ -149,4 +149,19 @@ interface ExpenseDAO {
     @Query("SELECT * FROM expense_details")
     fun getAllExpensesLiveData(): LiveData<List<ExpenseDetails>>
 
+    @Transaction
+    suspend fun insertExpenseWithInvoice(
+        expenseDetails: ExpenseDetails,
+        invoiceImage: ExpenseInvoiceImage
+    ) {
+        // Insert ExpenseDetails
+        val expenseID = insert(expenseDetails).toInt() // Fetch the inserted ID
+
+        // Prepare Invoice Image with the returned ID
+        val updatedInvoiceImage = invoiceImage.copy(expenseID = expenseID)
+
+        // Insert Invoice Image
+        insertInvoiceImage(updatedInvoiceImage)
+    }
+
 }

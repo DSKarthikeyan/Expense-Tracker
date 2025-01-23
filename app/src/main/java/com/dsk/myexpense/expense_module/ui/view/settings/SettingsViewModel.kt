@@ -6,14 +6,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dsk.myexpense.expense_module.data.model.Category
-import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
+import com.dsk.myexpense.expense_module.data.repository.CategoryRepository
 import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import kotlinx.coroutines.launch
 
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
-    private val expenseRepository: ExpenseRepository,
+    private val categoryRepository: CategoryRepository,
 ) : ViewModel() {
 
     private val _darkModeEnabled = MutableLiveData<Boolean>()
@@ -85,7 +85,7 @@ class SettingsViewModel(
     private fun saveCategoryToDatabase(category: Category) {
         // Save the selected category to the database (assuming you have a repository that handles DB operations)
         viewModelScope.launch {
-            expenseRepository.addCategory(category)
+            categoryRepository.addCategory(category)
         }
     }
 }

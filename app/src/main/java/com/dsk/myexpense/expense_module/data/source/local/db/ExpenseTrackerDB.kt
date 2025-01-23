@@ -17,7 +17,6 @@ import com.dsk.myexpense.expense_module.util.AppConstants
     Category::class, Currency::class, CardEntity::class, AccountEntity::class,User::class], exportSchema = false, version = 1)
 abstract class ExpenseTrackerDB : RoomDatabase() {
     abstract fun getExpenseDAO(): ExpenseDAO
-    abstract fun getExpenseTransactionDAO(): ExpenseTransactionDao
     abstract fun getExpenseCategoryDAO(): CategoryDao
     abstract fun getExpenseCurrencyDAO(): CurrencyDAO
     abstract fun cardDao(): CardDao

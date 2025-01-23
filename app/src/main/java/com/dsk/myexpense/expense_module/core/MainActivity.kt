@@ -45,13 +45,21 @@ class MainActivity : AppCompatActivity() {
     // ViewModels
     private val smsViewModel: SmsViewModel by viewModels()
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
-        GenericViewModelFactory { AppLoadingViewModel((application as ExpenseApplication).expenseRepository) }
+        GenericViewModelFactory {
+            AppLoadingViewModel(
+                ExpenseApplication.getCategoryRepository(this),
+                ExpenseApplication.getCurrencyRepository(this)
+            )
+        }
     }
+
     private val homeDetailsViewModel: HomeDetailsViewModel by viewModels {
         GenericViewModelFactory {
             HomeDetailsViewModel(
                 this,
                 ExpenseApplication.getExpenseRepository(this),
+                ExpenseApplication.getCategoryRepository(this),
+                ExpenseApplication.getCurrencyRepository(this),
                 ExpenseApplication.getSettingsRepository(this)
             )
         }
@@ -121,7 +129,10 @@ class MainActivity : AppCompatActivity() {
                         context = this@MainActivity,
                         pickImageLauncher = pickImageLauncher,
                         onSave = { name, profilePictureUri, imageView ->
-                            Log.d("DsK", "Main Activity selectedImageUri $selectedImageUri profilePictureUri $profilePictureUri")
+                            Log.d(
+                                "DsK",
+                                "Main Activity selectedImageUri $selectedImageUri profilePictureUri $profilePictureUri"
+                            )
                             if (name.isNotEmpty() && profilePictureUri != null) {
                                 homeDetailsViewModel.saveUser(name, profilePictureUri.toString())
                             } else {
@@ -145,19 +156,30 @@ class MainActivity : AppCompatActivity() {
             // For Android 13 and above, request permissions for specific media types
             val requiredPermissions = mutableListOf<String>()
 
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.READ_MEDIA_IMAGES
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 requiredPermissions.add(Manifest.permission.READ_MEDIA_IMAGES)
             }
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.READ_MEDIA_VIDEO
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 requiredPermissions.add(Manifest.permission.READ_MEDIA_VIDEO)
             }
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.READ_MEDIA_AUDIO
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 requiredPermissions.add(Manifest.permission.READ_MEDIA_AUDIO)
             }
 
             // If permissions are not granted, request them
             if (requiredPermissions.isNotEmpty()) {
-                ActivityCompat.requestPermissions(this, requiredPermissions.toTypedArray(), permissionRequestCode)
+                ActivityCompat.requestPermissions(
+                    this, requiredPermissions.toTypedArray(), permissionRequestCode
+                )
             } else {
                 Log.d("DsK", "All media permissions already granted.")
             }
@@ -174,14 +196,28 @@ class MainActivity : AppCompatActivity() {
                         startActivityForResult(intent, permissionRequestCode)
                     } catch (e: ActivityNotFoundException) {
                         // Handle when this activity is not found
-                        Log.e("DsK", "ActivityNotFoundException: Unable to open manage storage settings.")
-                        Toast.makeText(this, "This device does not support managing all files.", Toast.LENGTH_SHORT).show()
+                        Log.e(
+                            "DsK",
+                            "ActivityNotFoundException: Unable to open manage storage settings."
+                        )
+                        Toast.makeText(
+                            this,
+                            "This device does not support managing all files.",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             } else {
                 // For devices below Android 11 (API 30), request specific external storage permissions
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), permissionRequestCode)
+                if (ContextCompat.checkSelfPermission(
+                        this, Manifest.permission.READ_EXTERNAL_STORAGE
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                        permissionRequestCode
+                    )
                 }
             }
         }
@@ -227,7 +263,11 @@ class MainActivity : AppCompatActivity() {
 
         appLoadingViewModel.allCurrencies.observe(this) { currencies ->
             if (currencies.isEmpty()) {
-                appLoadingViewModel.fetchAndStoreCurrencies(CurrencyUtils.loadCurrencyMapFromJSON(this))
+                appLoadingViewModel.fetchAndStoreCurrencies(
+                    CurrencyUtils.loadCurrencyMapFromJSON(
+                        this
+                    )
+                )
             }
         }
 
@@ -288,8 +328,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun ExpenseMessageDetails.toExpenseDetails(
-        categoryName: String,
-        type: String
+        categoryName: String, type: String
     ): ExpenseDetails {
         val category = homeDetailsViewModel.getExpenseCategoryDetails(categoryName, type)
         return ExpenseDetails(
@@ -393,8 +432,7 @@ class MainActivity : AppCompatActivity() {
         try {
             // Persist permission for future access
             contentResolver.takePersistableUriPermission(
-                uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             )
             Log.d("DsK", "Persisted URI permission successfully.")
 

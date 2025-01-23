@@ -37,15 +37,18 @@ class StatisticsDetailsFragment : Fragment(), MyItemRecyclerViewAdapter.ExpenseD
         GenericViewModelFactory {
             HomeDetailsViewModel(
                 requireContext(),
-                (requireActivity().application as ExpenseApplication).expenseRepository,
-                (requireActivity().application as ExpenseApplication).settingsRepository
+                ExpenseApplication.getExpenseRepository(requireContext()),
+                ExpenseApplication.getCategoryRepository(requireContext()),
+                ExpenseApplication.getCurrencyRepository(requireContext()),
+                ExpenseApplication.getSettingsRepository(requireContext())
             )
         }
     }
 
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
-            AppLoadingViewModel((requireActivity().application as ExpenseApplication).expenseRepository)
+            AppLoadingViewModel(ExpenseApplication.getCategoryRepository(requireContext()),
+                ExpenseApplication.getCurrencyRepository(requireContext()))
         }
     }
 

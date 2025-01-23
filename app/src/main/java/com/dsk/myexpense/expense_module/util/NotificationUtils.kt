@@ -17,6 +17,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import com.dsk.myexpense.R
+import com.dsk.myexpense.expense_module.core.ExpenseApplication
 import com.dsk.myexpense.expense_module.core.MainActivity
 import com.dsk.myexpense.expense_module.data.model.ExpenseMessageDetails
 import com.dsk.myexpense.expense_module.ui.viewmodel.smshandler.SmsReceiverViewModel
@@ -253,10 +254,10 @@ class NotificationUtils {
                     else context.getString(R.string.text_expense)
                 }"
             ).setPositiveButton(R.string.text_add) { _, _ ->
-                val application = context.applicationContext as Application
+                val expenseRepository = (context.application as ExpenseApplication).expenseRepository
                 val isIncome = messageDetails.isIncome ?: false
                 val categoryNameValue = messageDetails.categoryName ?: AppConstants.EMPTY_STRING
-                val viewModel = SmsReceiverViewModel(application)
+                val viewModel = SmsReceiverViewModel(expenseRepository)
                 viewModel.saveTransaction(
                     context,
                     messageDetails.senderName,

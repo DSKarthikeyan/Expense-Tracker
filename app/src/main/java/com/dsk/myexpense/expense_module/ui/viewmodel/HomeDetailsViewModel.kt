@@ -14,6 +14,8 @@ import com.dsk.myexpense.expense_module.data.model.Category
 import com.dsk.myexpense.expense_module.data.model.Currency
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.data.model.User
+import com.dsk.myexpense.expense_module.data.repository.CategoryRepository
+import com.dsk.myexpense.expense_module.data.repository.CurrencyRepository
 import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
 import com.dsk.myexpense.expense_module.data.source.local.db.DailyExpenseWithTime
 import com.dsk.myexpense.expense_module.data.source.local.db.MonthlyExpenseWithTime
@@ -31,6 +33,8 @@ import kotlinx.coroutines.withContext
 class HomeDetailsViewModel(
     context: Context,
     private var expenseRepository: ExpenseRepository,
+    private var categoryRepository: CategoryRepository,
+    private var currencyRepository: CurrencyRepository,
     private var settingsRepository: SettingsRepository
 ) : ViewModel() {
 
@@ -88,17 +92,18 @@ class HomeDetailsViewModel(
         emit(expenseRepository.getExpensesBetweenDates(startDate, endDate))
     }
 
-    fun getAllCategoriesLiveData(): LiveData<List<Category>> = expenseRepository.getAllCategoriesLiveData()
+    fun getAllCategoriesLiveData(): LiveData<List<Category>> =
+        categoryRepository.getAllCategoriesLiveData()
 
     fun getAllCurrencyLiveData() = liveData(Dispatchers.IO) {
-        emit(expenseRepository.getAllCurrencyList())
+        emit(currencyRepository.getAllCurrencyList())
     }
 
     fun getAllExpenses(): List<ExpenseDetails> = expenseRepository.getAllExpenses()
 
-    fun getAllCategories(): List<Category> = expenseRepository.getAllCategories()
+    fun getAllCategories(): List<Category> = categoryRepository.getAllCategories()
 
-    fun getAllCurrency() = expenseRepository.getAllCurrencyList()
+    fun getAllCurrency() = currencyRepository.getAllCurrencyList()
 
     private fun updateCombinedLiveData(
         currency: String = "",
@@ -138,8 +143,7 @@ class HomeDetailsViewModel(
         }
 
     private fun convertAllExpenseAmount(
-        context: Context,
-        expenseDetails: List<ExpenseDetails>
+        context: Context, expenseDetails: List<ExpenseDetails>
     ): List<ExpenseDetails> {
         // Make sure context is valid, and exchange rate is retrieved properly
         val exchangeRate = CurrencyUtils.getExchangeRate(context)
@@ -150,7 +154,10 @@ class HomeDetailsViewModel(
                 val convertedAmount = CurrencyUtils.convertFromUSD(expense.amount, exchangeRate)
                 expense.copy(amount = convertedAmount)
             } catch (e: Exception) {
-                Log.e("DsK", "Error converting amount for expense ID ${expense.expenseID}: ${e.message}")
+                Log.e(
+                    "DsK",
+                    "Error converting amount for expense ID ${expense.expenseID}: ${e.message}"
+                )
                 expense // Return original expense in case of an error
             }
         }
@@ -207,13 +214,13 @@ class HomeDetailsViewModel(
 
     fun insertAllCategory(category: List<Category>) {
         viewModelScope.launch {
-            expenseRepository.insertAllCategories(category)
+            categoryRepository.insertAllCategories(category)
         }
     }
 
     fun insertAllCurrencies(category: List<Currency>) {
         viewModelScope.launch {
-            expenseRepository.insertAllCurrencies(category)
+            currencyRepository.insertAllCurrencies(category)
         }
     }
 
@@ -275,5 +282,6 @@ class HomeDetailsViewModel(
         _userDetails.value = null // Clear StateFlow
     }
 
-    suspend fun getExpenseCategoryDetails(categoryName: String, categoryType: String): Category = expenseRepository.getCategoryOrInsert(categoryName,categoryType)
+    suspend fun getExpenseCategoryDetails(categoryName: String, categoryType: String): Category =
+        categoryRepository.getCategoryOrInsert(categoryName, categoryType)
 }

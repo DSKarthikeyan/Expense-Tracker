@@ -12,16 +12,23 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.FragmentWalletCardsBinding
+import com.dsk.myexpense.expense_module.core.ExpenseApplication
 import com.dsk.myexpense.expense_module.data.model.CardEntity
 import com.dsk.myexpense.expense_module.ui.adapter.CardAdapter
+import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.WalletViewModel
 
 class CardsFragment : Fragment() {
 
     private var _binding: FragmentWalletCardsBinding? = null
     private val fragmentCardsBinding get() = _binding!!
-    private val viewModel: WalletViewModel by viewModels()
-
+    private val viewModel: WalletViewModel by viewModels {
+        GenericViewModelFactory {
+            WalletViewModel(
+                ExpenseApplication.getWalletRepository(requireContext()),
+            )
+        }
+    }
     private lateinit var cardAdapter: CardAdapter
 
     override fun onCreateView(

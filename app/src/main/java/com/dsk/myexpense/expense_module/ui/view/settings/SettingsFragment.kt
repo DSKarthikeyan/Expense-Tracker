@@ -40,6 +40,8 @@ class SettingsFragment : Fragment() {
             HomeDetailsViewModel(
                 requireContext(),
                 ExpenseApplication.getExpenseRepository(requireContext()),
+                ExpenseApplication.getCategoryRepository(requireContext()),
+                ExpenseApplication.getCurrencyRepository(requireContext()),
                 ExpenseApplication.getSettingsRepository(requireContext())
             )
         }
@@ -47,7 +49,10 @@ class SettingsFragment : Fragment() {
 
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
-            AppLoadingViewModel(ExpenseApplication.getExpenseRepository(requireContext()))
+            AppLoadingViewModel(
+                ExpenseApplication.getCategoryRepository(requireContext()),
+                ExpenseApplication.getCurrencyRepository(requireContext())
+            )
         }
     }
 
@@ -55,18 +60,14 @@ class SettingsFragment : Fragment() {
         GenericViewModelFactory {
             SettingsViewModel(
                 ExpenseApplication.getSettingsRepository(requireContext()),
-                ExpenseApplication.getExpenseRepository(requireContext())
+                ExpenseApplication.getCategoryRepository(requireContext())
             )
         }
     }
 
     private val categoryViewModel: CategoryViewModel by viewModels {
         GenericViewModelFactory {
-            CategoryViewModel(
-                ExpenseApplication.getExpenseRepository(
-                    requireContext()
-                )
-            )
+            CategoryViewModel(ExpenseApplication.getCategoryRepository(requireContext()))
         }
     }
 
@@ -194,7 +195,8 @@ class SettingsFragment : Fragment() {
     private fun setupImportFormatSpinner() {
         val formats = listOf(
             AppConstants.KEY_EXPENSE_FILE_FORMAT_TYPE_CSV,
-            AppConstants.KEY_EXPENSE_FILE_FORMAT_TYPE_JSON)
+            AppConstants.KEY_EXPENSE_FILE_FORMAT_TYPE_JSON
+        )
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, formats)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerImportFormat.adapter = adapter

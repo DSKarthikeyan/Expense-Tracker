@@ -2,26 +2,28 @@ package com.dsk.myexpense.expense_module.data.source.local.sharedPref
 
 import android.content.Context
 import com.dsk.myexpense.expense_module.data.model.User
+import com.dsk.myexpense.expense_module.util.AppConstants
 
 class SharedPreferencesManager(context: Context) {
-    private val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
+    private val sharedPreferences =
+        context.getSharedPreferences(AppConstants.USER_SHARED_PREF_NAME, Context.MODE_PRIVATE)
 
     fun saveUser(name: String, profilePicture: String) {
         sharedPreferences.edit().apply {
-            putString("user_name", name)
-            putString("user_profile_picture", profilePicture)
+            putString(AppConstants.USER_SHARED_PREF_USER_DETAILS_NAME, name)
+            putString(AppConstants.USER_SHARED_PREF_USER_PROFILE_PICTURE_NAME, profilePicture)
             apply()
         }
     }
 
     fun getUser(): User? {
-        val name = sharedPreferences.getString("user_name", null)
-        val profilePicture = sharedPreferences.getString("user_profile_picture", null)
+        val name = sharedPreferences.getString(AppConstants.USER_SHARED_PREF_USER_DETAILS_NAME, null)
+        val profilePicture =
+            sharedPreferences.getString(AppConstants.USER_SHARED_PREF_USER_PROFILE_PICTURE_NAME, null)
 
         return if (name != null && profilePicture != null) {
-            User(
-                name = name, profilePicture = profilePicture
-            )
+            User(name = name, profilePicture = profilePicture)
         } else {
             null
         }

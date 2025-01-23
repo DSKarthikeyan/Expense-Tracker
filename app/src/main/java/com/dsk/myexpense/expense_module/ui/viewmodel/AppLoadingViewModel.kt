@@ -8,14 +8,16 @@ import androidx.lifecycle.viewModelScope
 import com.dsk.myexpense.R
 import com.dsk.myexpense.expense_module.data.model.Category
 import com.dsk.myexpense.expense_module.data.model.Currency
-import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
+import com.dsk.myexpense.expense_module.data.repository.CategoryRepository
+import com.dsk.myexpense.expense_module.data.repository.CurrencyRepository
 import com.dsk.myexpense.expense_module.util.ApiResponse
 import com.dsk.myexpense.expense_module.util.AppConstants
 import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class AppLoadingViewModel(private val repository: ExpenseRepository) : ViewModel() {
+class AppLoadingViewModel(private val categoryRepository: CategoryRepository,
+    private val currencyRepository: CurrencyRepository) : ViewModel() {
 
     /**
      * Initializes the predefined categories in the database if they don't already exist.
@@ -23,8 +25,8 @@ class AppLoadingViewModel(private val repository: ExpenseRepository) : ViewModel
     fun initializeCategories(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             val expenseType = context.getString(R.string.text_expense)
-            if (repository.getCategoriesByType(expenseType).isEmpty()) {
-                repository.insertAllCategories(getPredefinedCategories(context))
+            if (categoryRepository.getCategoriesByType(expenseType).isEmpty()) {
+                categoryRepository.insertAllCategories(getPredefinedCategories(context))
             } else {
                 Log.d("AppLoadingViewModel", "Categories already exist, no insertion needed.")
             }
@@ -35,7 +37,7 @@ class AppLoadingViewModel(private val repository: ExpenseRepository) : ViewModel
      * Retrieves categories by type from the database.
      */
     fun getCategoriesByType(type: String): List<Category> =
-        repository.getCategoriesByType(type)
+        categoryRepository.getCategoriesByType(type)
 
 
     /**
@@ -102,10 +104,10 @@ class AppLoadingViewModel(private val repository: ExpenseRepository) : ViewModel
 
     fun fetchAndStoreCurrencies(currencySymbolsFromJSON: Map<String, String>) {
         viewModelScope.launch(Dispatchers.IO) {
-            when (val currenciesResponse = repository.fetchCurrenciesFromAPI(AppConstants.CURRENCY_LIST_APP_ID, currencySymbolsFromJSON )) {
+            when (val currenciesResponse = currencyRepository.fetchCurrenciesFromAPI(AppConstants.CURRENCY_LIST_APP_ID, currencySymbolsFromJSON )) {
                 is ApiResponse.Success -> {
                     Log.d("AppLoadingViewModel"," Currency Loading Success ")
-                    currenciesResponse.data?.let { repository.insertAllCurrencies(it) }
+                    currenciesResponse.data?.let { currencyRepository.insertAllCurrencies(it) }
                 }
                 is ApiResponse.Error -> {
                     Log.e("AppLoadingViewModel", "Error fetching currencies: ${currenciesResponse.message}")
@@ -118,14 +120,14 @@ class AppLoadingViewModel(private val repository: ExpenseRepository) : ViewModel
     }
 
     // Fetch currencies from API
-    val allCurrencies: LiveData<List<Currency>> = repository.getCurrenciesFromLocalLiveDB()
+    val allCurrencies: LiveData<List<Currency>> = currencyRepository.getCurrenciesFromLocalLiveDB()
 
     fun getCurrenciesFromLocalDB(): List<Currency>{
-       return repository.getAllCurrencyList()
+       return currencyRepository.getAllCurrencyList()
     }
 
     suspend fun getCategoryNameByID(categoryId: Int): Category? {
-        return repository.getCategoryNameByID(categoryId)
+        return categoryRepository.getCategoryNameByID(categoryId)
     }
 
     fun getCurrencySymbol(context: Context): String{

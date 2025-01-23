@@ -11,6 +11,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import com.dsk.myexpense.expense_module.core.ExpenseApplication
 import com.dsk.myexpense.expense_module.ui.viewmodel.smshandler.SmsReceiverViewModel
 
 class SmsActionReceiver : BroadcastReceiver() {
@@ -69,8 +70,8 @@ class SmsActionReceiver : BroadcastReceiver() {
 //            Log.d("DsK", "handleAddAction Processing ADD action with details: messageSender=$messageSender, amount=$amount, date=$date")
 
             // Initialize ViewModel
-            val application = context.applicationContext as Application
-            val viewModel = SmsReceiverViewModel(application)
+            val expenseRepository = (context.applicationContext as ExpenseApplication).expenseRepository
+            val viewModel = SmsReceiverViewModel(expenseRepository)
 
             // Save the transaction
             viewModel.saveTransaction(

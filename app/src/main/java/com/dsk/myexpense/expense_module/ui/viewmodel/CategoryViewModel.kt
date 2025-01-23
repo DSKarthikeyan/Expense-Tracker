@@ -5,10 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dsk.myexpense.expense_module.data.model.Category
-import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
+import com.dsk.myexpense.expense_module.data.repository.CategoryRepository
 import kotlinx.coroutines.launch
 
-class CategoryViewModel(private val categoryRepository: ExpenseRepository) : ViewModel() {
+class CategoryViewModel(private val categoryRepository: CategoryRepository) : ViewModel() {
 
     // LiveData holding the list of categories
     var categories: LiveData<List<Category>> = categoryRepository.getAllCategoriesLiveData()

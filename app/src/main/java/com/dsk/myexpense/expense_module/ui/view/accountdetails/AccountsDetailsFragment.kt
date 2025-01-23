@@ -43,6 +43,8 @@ class AccountsDetailsFragment : Fragment() {
             HomeDetailsViewModel(
                 requireContext(),
                 ExpenseApplication.getExpenseRepository(requireContext()),
+                ExpenseApplication.getCategoryRepository(requireContext()),
+                ExpenseApplication.getCurrencyRepository(requireContext()),
                 ExpenseApplication.getSettingsRepository(requireContext())
             )
         }

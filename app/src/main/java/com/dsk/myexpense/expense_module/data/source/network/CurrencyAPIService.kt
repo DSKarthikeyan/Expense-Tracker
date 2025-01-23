@@ -16,12 +16,13 @@ object CurrencyAPIService {
             val response = apiService.getCurrencies(appId)
             if (response.isSuccessful) {
                 val body = response.body()
+//                Log.d("DsK","getCurrencies $body")
                 if (body != null && body["rates"] is Map<*, *>) {
                     ApiResponse.Success(
                         (body["rates"] as Map<String, Double>).map {
                             Currency(
                                 name = it.key, code = it.value,
-                                symbol =""
+                                symbol = AppConstants.EMPTY_STRING
                             )
                         }
                     )

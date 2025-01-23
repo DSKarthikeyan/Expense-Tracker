@@ -65,6 +65,8 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
             HomeDetailsViewModel(
                 requireContext(),
                 ExpenseApplication.getExpenseRepository(requireContext()),
+                ExpenseApplication.getCategoryRepository(requireContext()),
+                ExpenseApplication.getCurrencyRepository(requireContext()),
                 ExpenseApplication.getSettingsRepository(requireContext())
             )
         }
@@ -72,7 +74,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
     private val categoryViewModel: CategoryViewModel by viewModels {
         GenericViewModelFactory {
-            CategoryViewModel(ExpenseApplication.getExpenseRepository(requireContext()))
+            CategoryViewModel(ExpenseApplication.getCategoryRepository(requireContext()))
         }
     }
 
@@ -80,7 +82,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
         GenericViewModelFactory {
             SettingsViewModel(
                 ExpenseApplication.getSettingsRepository(requireContext()),
-                ExpenseApplication.getExpenseRepository(requireContext())
+                ExpenseApplication.getCategoryRepository(requireContext())
             )
         }
     }
@@ -91,7 +93,8 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
-            AppLoadingViewModel(ExpenseApplication.getExpenseRepository(requireContext()))
+            AppLoadingViewModel(ExpenseApplication.getCategoryRepository(requireContext()),
+                ExpenseApplication.getCurrencyRepository(requireContext()))
         }
     }
 

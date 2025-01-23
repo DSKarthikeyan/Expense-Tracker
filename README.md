@@ -11,7 +11,7 @@ The **Expense Module** is an Android application designed to manage and track ex
 ---
 
 ## Requirements
-- **Android Version**: API Level 31 or higher.
+- **Android Version**: API Level 24 or higher.
 - **Permissions**:
   - Network access (`INTERNET`, `ACCESS_NETWORK_STATE`)
   - SMS permissions (`RECEIVE_SMS`, `READ_SMS`)

@@ -21,6 +21,10 @@ class CategorySpinnerAdapter(
 
     override fun getItemId(position: Int): Long = categories[position].id.toLong()
 
+    fun getItemPosition(categoryId: Int): Int {
+        return categories.indexOfFirst { it.id == categoryId }
+    }
+
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         return createView(position, convertView, parent, R.layout.spinner_item)
     }

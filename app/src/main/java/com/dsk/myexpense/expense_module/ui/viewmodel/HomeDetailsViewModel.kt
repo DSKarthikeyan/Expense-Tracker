@@ -74,13 +74,13 @@ class HomeDetailsViewModel(
             updateCombinedLiveData(currency = currency)
         }
         combinedLiveData.addSource(getTotalIncomeAmount) { income ->
-            updateCombinedLiveData(currencySymbol.value ?: "", income = income)
+            updateCombinedLiveData(currencySymbol.value ?: AppConstants.EMPTY_STRING, income = income)
         }
         combinedLiveData.addSource(getTotalExpenseAmount) { expense ->
-            updateCombinedLiveData(currencySymbol.value ?: "", expense = expense)
+            updateCombinedLiveData(currencySymbol.value ?: AppConstants.EMPTY_STRING, expense = expense)
         }
         combinedLiveData.addSource(getTotalIncomeExpenseAmount) { balance ->
-            updateCombinedLiveData(currencySymbol.value ?: "", balance = balance)
+            updateCombinedLiveData(currencySymbol.value ?: AppConstants.EMPTY_STRING, balance = balance)
         }
     }
 

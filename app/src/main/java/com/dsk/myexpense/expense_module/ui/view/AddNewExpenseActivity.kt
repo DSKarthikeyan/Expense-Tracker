@@ -90,7 +90,6 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
     // Flag to check if the dialog is already shown
     private var isCategoryDialogOpen = false
 
-
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
             AppLoadingViewModel(ExpenseApplication.getCategoryRepository(requireContext()),
@@ -275,6 +274,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
     private fun preloadData(expenseDetails: ExpenseDetails) {
         binding.addNewExpenseWidget.apply {
+            if(!expenseDetails.isIncome) addNewExpense.isChecked = true else addNewIncome.isChecked = true
             addExpenseNameTextView.setText(expenseDetails.expenseSenderName)
             addExpenseDescriptionTextView.setText(expenseDetails.expenseDescription)
             addExpenseAmountTextView.setText(expenseDetails.amount.toString())
@@ -283,11 +283,10 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
                 categories = appLoadingViewModel.getCategoriesByType(getCategoryType())
                 val adapter = CategorySpinnerAdapter(requireContext(), categories)
                 spinnerCategoryType.adapter = adapter
+                val selectedCategoryIndex = expenseDetails.categoryId ?: -1
 
-                val selectedCategoryIndex =
-                    categories.indexOfFirst { it.id == expenseDetails.categoryId }
                 if (selectedCategoryIndex != -1) {
-                    spinnerCategoryType.setSelection(selectedCategoryIndex)
+                    spinnerCategoryType.setSelection(adapter.getItemPosition(selectedCategoryIndex))
                 }
             }
 
@@ -412,6 +411,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
                 invoiceImage,
                 selectedCategory.name
             )
+            Log.d("DsK","expenseDetailToSave $expenseDetailToSave")
         } else {
             homeDetailsViewModel.insertExpense(
                 requireContext(),

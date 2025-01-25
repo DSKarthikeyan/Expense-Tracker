@@ -261,6 +261,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Initialize categories via ViewModel
+        appLoadingViewModel.initializeCategories(this)
         appLoadingViewModel.allCurrencies.observe(this) { currencies ->
             if (currencies.isEmpty()) {
                 appLoadingViewModel.fetchAndStoreCurrencies(

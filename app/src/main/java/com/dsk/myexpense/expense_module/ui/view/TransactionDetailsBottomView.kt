@@ -28,6 +28,7 @@ import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.AppConstants
+import com.dsk.myexpense.expense_module.util.BundleKeyValues
 import com.dsk.myexpense.expense_module.util.NotificationUtils
 import com.dsk.myexpense.expense_module.util.Utility
 import com.dsk.myexpense.expense_module.util.Utility.dp
@@ -235,7 +236,7 @@ class TransactionDetailsBottomView(
 
     private fun navigateToAddNewExpenseActivity() {
         val bundle = Bundle().apply {
-            putParcelable("expenseDetails", expenseDetails)
+            putParcelable(BundleKeyValues.EXPENSE_DETAILS_KEY_EXPENSE_DETAILS, expenseDetails)
         }
         val addNewExpenseFragment = AddNewExpenseActivity().apply {
             arguments = bundle

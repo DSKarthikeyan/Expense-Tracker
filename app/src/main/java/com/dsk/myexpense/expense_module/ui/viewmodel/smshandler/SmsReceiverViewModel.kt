@@ -2,14 +2,24 @@ package com.dsk.myexpense.expense_module.ui.viewmodel.smshandler
 
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.data.repository.ExpenseRepository
+import com.dsk.myexpense.expense_module.util.AppConstants
 import kotlinx.coroutines.launch
 
 class SmsReceiverViewModel(private val expenseRepository: ExpenseRepository) : ViewModel() {
 
+    private val _isPermissionGranted = MutableLiveData<Boolean>()
+    val isPermissionGranted: LiveData<Boolean> get() = _isPermissionGranted
+
+    fun setPermissionGranted(granted: Boolean) {
+        _isPermissionGranted.value = granted
+    }
+    
     /**
      * Save a transaction with optional invoice image.
      * @param senderName Sender of the expense
@@ -37,7 +47,7 @@ class SmsReceiverViewModel(private val expenseRepository: ExpenseRepository) : V
             // Create ExpenseDetails object
             val expenseDetails = ExpenseDetails(
                 expenseMessageSenderName = messageSenderName,
-                expenseSenderName = senderName ?: "",
+                expenseSenderName = senderName ?: AppConstants.EMPTY_STRING,
                 expenseDescription = description,
                 amount = amount,
                 isIncome = isIncome,

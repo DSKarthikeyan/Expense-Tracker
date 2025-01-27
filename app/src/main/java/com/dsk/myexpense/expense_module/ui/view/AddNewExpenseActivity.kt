@@ -36,6 +36,7 @@ import com.dsk.myexpense.expense_module.ui.viewmodel.CategoryViewModel
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
 import com.dsk.myexpense.expense_module.util.AppConstants
+import com.dsk.myexpense.expense_module.util.BundleKeyValues
 import com.dsk.myexpense.expense_module.util.CommonDialog
 import com.dsk.myexpense.expense_module.util.CurrencyUtils
 import com.dsk.myexpense.expense_module.util.PermissionManager
@@ -111,7 +112,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.getParcelable<ExpenseDetails>("expenseDetails")?.let {
+        arguments?.getParcelable<ExpenseDetails>(BundleKeyValues.EXPENSE_DETAILS_KEY_EXPENSE_DETAILS)?.let {
             preloadedExpenseDetails = it
         }
     }
@@ -351,13 +352,13 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
         // Validate fields
         if (expenseName.isEmpty()) {
-            widget.addExpenseNameTextView.error = "Name cannot be empty"
+            widget.addExpenseNameTextView.error = AppConstants.KEY_ERROR_MESSAGE_ADD_NEW_EXPENSE_NAME_EMPTY
             widget.addExpenseNameTextView.requestFocus()
             return
         }
 
         if (widget.addExpenseAmountTextView.text.toString().isEmpty()) {
-            widget.addExpenseAmountTextView.error = "Amount cannot be empty"
+            widget.addExpenseAmountTextView.error = AppConstants.KEY_ERROR_MESSAGE_ADD_NEW_EXPENSE_AMOUNT_EMPTY
             widget.addExpenseAmountTextView.requestFocus()
             return
         }
@@ -367,13 +368,13 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
             selectedCurrency
         )
         if (expenseAmountValue <= 0) {
-            widget.addExpenseAmountTextView.error = "Amount must be greater than 0"
+            widget.addExpenseAmountTextView.error = AppConstants.KEY_ERROR_MESSAGE_ADD_NEW_EXPENSE_AMOUNT_VALID_VALUE
             widget.addExpenseAmountTextView.requestFocus()
             return
         }
 
         if (selectedDate.isEmpty()) {
-            Toast.makeText(requireContext(), "Please select a valid date", Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), AppConstants.KEY_ERROR_MESSAGE_ADD_NEW_EXPENSE_VALID_DATE, Toast.LENGTH_SHORT)
                 .show()
             widget.addExpenseDateView.performClick() // Open date picker
             return
@@ -381,7 +382,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
 
         val dateInMilliseconds = getDateInMilliseconds(selectedDate)
         if (dateInMilliseconds <= 0) {
-            Toast.makeText(requireContext(), "Invalid date selected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), AppConstants.KEY_ERROR_MESSAGE_ADD_NEW_EXPENSE_INVALID_DATE, Toast.LENGTH_SHORT).show()
             widget.addExpenseDateView.performClick()
             return
         }
@@ -425,7 +426,7 @@ class AddNewExpenseActivity : BottomSheetDialogFragment() {
     }
 
     private fun getNumericValueFromText(input: String, currencySymbol: String): Double {
-        return input.replace("$currencySymbol ", "").trim().toDoubleOrNull() ?: 0.0
+        return input.replace("$currencySymbol ", AppConstants.EMPTY_STRING).trim().toDoubleOrNull() ?: 0.0
     }
 
     private fun getDateInMilliseconds(selectedDate: String): Long {

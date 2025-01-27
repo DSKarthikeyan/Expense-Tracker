@@ -41,6 +41,7 @@ annotation class BundleKeyValues {
         const val NOTIFICATION_KEY_EXPENSE_IS_INCOME = "isIncome"
         const val NOTIFICATION_KEY_EXPENSE_MESSAGE_DETAILS = "messageDetails"
 
+        const val EXPENSE_DETAILS_KEY_EXPENSE_DETAILS = "expenseDetails"
         const val EXPENSE_DETAILS_KEY_SENDER_NAME = "expenseSenderName"
         const val EXPENSE_DETAILS_KEY_CATEGORY_ID ="categoryId"
         const val EXPENSE_DETAILS_KEY_EXPENSE_ID = "expenseID"

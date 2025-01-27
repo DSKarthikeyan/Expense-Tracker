@@ -67,5 +67,11 @@ class AppConstants {
         const val USER_SHARED_PREF_NAME = "user_prefs"
         const val USER_SHARED_PREF_USER_DETAILS_NAME = "user_name"
         const val USER_SHARED_PREF_USER_PROFILE_PICTURE_NAME = "user_profile_picture"
+
+        const val KEY_ERROR_MESSAGE_ADD_NEW_EXPENSE_NAME_EMPTY = "Name cannot be empty"
+        const val KEY_ERROR_MESSAGE_ADD_NEW_EXPENSE_AMOUNT_EMPTY = "Amount cannot be empty"
+        const val KEY_ERROR_MESSAGE_ADD_NEW_EXPENSE_AMOUNT_VALID_VALUE = "Amount must be greater than 0"
+        const val KEY_ERROR_MESSAGE_ADD_NEW_EXPENSE_VALID_DATE = "Please select a valid date"
+        const val KEY_ERROR_MESSAGE_ADD_NEW_EXPENSE_INVALID_DATE = "Invalid date selected"
     }
 }

@@ -33,10 +33,14 @@ class RegexHelper {
      * @param message from SMS
      */
     fun getPaidToName(message: String): String? {
-        val regex = "(?i)(?:\\sat\\s|in\\*)([A-Za-z0-9]*\\s?-?\\s?[A-Za-z0-9]*\\s?-?\\.?)"
+//        val regex = "(?i)(?:\\sat\\s|in\\*)([A-Za-z0-9]*\\s?-?\\s?[A-Za-z0-9]*\\s?-?\\.?)"
+//
+//        return Regex(regex).find(message)?.groups?.get(0)?.value?.replace("at ", "")
+//            ?.replace(" in", "")?.replace(" on", "")?.trim()
 
-        return Regex(regex).find(message)?.groups?.get(0)?.value?.replace("at ", "")
-            ?.replace(" in", "")?.replace(" on", "")?.trim()
+        val regex = "(?i)(?:to\\s|at\\s|/)([A-Z0-9\\s]+(?:\\s[A-Z0-9\\s]*)*)"
+
+        return Regex(regex).find(message)?.groups?.get(1)?.value?.trim()
     }
 
     /**

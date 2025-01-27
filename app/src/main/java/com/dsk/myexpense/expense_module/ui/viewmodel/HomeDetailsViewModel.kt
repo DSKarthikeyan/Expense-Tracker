@@ -39,7 +39,7 @@ class HomeDetailsViewModel(
 ) : ViewModel() {
 
     private val _currencySymbol = MutableLiveData<String>()
-    val currencySymbol: LiveData<String> get() = _currencySymbol
+    private val currencySymbol: LiveData<String> get() = _currencySymbol
 
     // MediatorLiveData to combine currency symbol with other amounts
     val combinedLiveData = MediatorLiveData<Pair<String, Triple<Double?, Double?, Double?>>>()
@@ -106,7 +106,7 @@ class HomeDetailsViewModel(
     fun getAllCurrency() = currencyRepository.getAllCurrencyList()
 
     private fun updateCombinedLiveData(
-        currency: String = "",
+        currency: String = AppConstants.EMPTY_STRING,
         income: Double? = getTotalIncomeAmount.value,
         expense: Double? = getTotalExpenseAmount.value,
         balance: Double? = getTotalIncomeExpenseAmount.value?.toDouble()
@@ -223,7 +223,6 @@ class HomeDetailsViewModel(
             currencyRepository.insertAllCurrencies(category)
         }
     }
-
 
     fun getDailyExpenses(): List<DailyExpenseWithTime> {
         return expenseRepository.getDailyExpenses()

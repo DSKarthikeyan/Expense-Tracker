@@ -21,7 +21,6 @@ import com.dsk.myexpense.R
 import com.dsk.myexpense.databinding.ActivityMainBinding
 import com.dsk.myexpense.expense_module.util.SmsReceiver
 import com.dsk.myexpense.expense_module.ui.viewmodel.AppLoadingViewModel
-import com.dsk.myexpense.expense_module.ui.viewmodel.smshandler.SmsViewModel
 import com.dsk.myexpense.expense_module.ui.view.AddNewExpenseActivity
 import com.dsk.myexpense.expense_module.ui.view.settings.SettingsDataStore
 import com.dsk.myexpense.expense_module.ui.viewmodel.GenericViewModelFactory
@@ -38,12 +37,18 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.dsk.myexpense.expense_module.data.model.ExpenseDetails
 import com.dsk.myexpense.expense_module.data.model.ExpenseMessageDetails
 import com.dsk.myexpense.expense_module.ui.viewmodel.HomeDetailsViewModel
+import com.dsk.myexpense.expense_module.ui.viewmodel.smshandler.SmsReceiverViewModel
 import com.dsk.myexpense.expense_module.util.CommonDialog
 
 class MainActivity : AppCompatActivity() {
 
     // ViewModels
-    private val smsViewModel: SmsViewModel by viewModels()
+    private val smsViewModel: SmsReceiverViewModel by viewModels{
+        GenericViewModelFactory {
+            SmsReceiverViewModel(ExpenseApplication.getExpenseRepository(this))
+        }
+    }
+
     private val appLoadingViewModel: AppLoadingViewModel by viewModels {
         GenericViewModelFactory {
             AppLoadingViewModel(

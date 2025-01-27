@@ -34,7 +34,7 @@ class MyItemRecyclerViewAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = expenseDetails[position]
-        holder.expenseDetailsName.text = item.expenseSenderName
+        holder.expenseDetailsName.text = item.expenseReceiverName.takeIf { it.isNotEmpty() } ?: item.expenseSenderName
         val currencySymbol = holder.expenseAmountDetail.context.getString(
             R.string.text_amount_value,
             appLoadingViewModel.getCurrencySymbol(holder.expenseAmountDetail.context),

@@ -37,10 +37,17 @@ class RegexHelper {
 //
 //        return Regex(regex).find(message)?.groups?.get(0)?.value?.replace("at ", "")
 //            ?.replace(" in", "")?.replace(" on", "")?.trim()
+        val regex = Regex(
+            """
+        (?i)                                                # Case-insensitive matching
+        (?:to\sname\sis\s|to\s|UPI/P2M/[^/]+/|at\s|in\*)    # Match prefixes indicating the name field
+        ([A-Za-z][A-Za-z0-9\s.,'-]{2,})                    # Capture names (letters, numbers, spaces, punctuations)
+        (?=\s(?:Not\s|SMS|Call|On|INR|A/c|Sent|$))         # Ensure the name ends before unintended text
+        """.trimIndent(),
+            RegexOption.COMMENTS
+        )
 
-        val regex = "(?i)(?:to\\s|at\\s|/)([A-Z0-9\\s]+(?:\\s[A-Z0-9\\s]*)*)"
-
-        return Regex(regex).find(message)?.groups?.get(1)?.value?.trim()
+        return regex.find(message)?.groups?.get(1)?.value?.trim()
     }
 
     /**

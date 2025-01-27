@@ -5,6 +5,7 @@ import android.util.Log
 import com.dsk.myexpense.R
 import com.dsk.myexpense.expense_module.data.model.SMSMessage
 import com.dsk.myexpense.expense_module.data.model.Suggestion
+
 /**
  * Suggestion Detector with the help of Regexp Parsing.
  */
@@ -20,7 +21,7 @@ class SuggestionDetectorImpl(private val regexHelper: RegexHelper, private val a
             R.string.text_expense)
         val spent = regexHelper.getAmountSpent(smsMessage.body)
         val paidToName = regexHelper.getPaidToName(smsMessage.body)
-
+//        Log.d("DsK","paidToName $paidToName")
         if (spent != null) {
             return Suggestion(
                 id = generateUniqueId(smsMessage),

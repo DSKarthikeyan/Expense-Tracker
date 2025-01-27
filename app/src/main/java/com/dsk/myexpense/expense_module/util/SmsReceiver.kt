@@ -1,7 +1,5 @@
 package com.dsk.myexpense.expense_module.util
 
-import android.app.Activity
-import android.app.AlertDialog
 import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -11,7 +9,6 @@ import android.util.Log
 import com.dsk.myexpense.R
 import com.dsk.myexpense.expense_module.data.model.ExpenseMessageDetails
 import com.dsk.myexpense.expense_module.data.model.SMSMessage
-import com.dsk.myexpense.expense_module.ui.viewmodel.smshandler.SmsReceiverViewModel
 import com.dsk.myexpense.expense_module.util.detector.RegexHelper
 import com.dsk.myexpense.expense_module.util.detector.SuggestionDetector
 import com.dsk.myexpense.expense_module.util.detector.SuggestionDetectorImpl
@@ -94,18 +91,18 @@ class SmsReceiver : BroadcastReceiver() {
     ): ExpenseMessageDetails {
 
         // Initialize the SuggestionDetector with the regexHelper and application context
-        val suggestionDetector = SuggestionDetectorImpl(regexHelper, application)
+        suggestionDetector = SuggestionDetectorImpl(regexHelper, application)
 
         // Detect message suggestion from the SMS
         val messageSuggestion = suggestionDetector.detectSuggestions(smsMessage)
-
+//        Log.d("DsK","$messageSuggestion")
         if (messageSuggestion != null) {
             // If suggestions are found, return the ExpenseMessageDetails populated with the relevant data
             return ExpenseMessageDetails(
                 senderName = messageSuggestion.referenceMessageSender,
                 expenseType = messageSuggestion.expenseType,
                 expenseAmount = messageSuggestion.amount,
-                receiverName = messageSuggestion.paidTo ?: AppConstants.EMPTY_STRING,
+                receiverName = messageSuggestion.paidTo,
                 expenseDate = messageSuggestion.time,
                 isIncome = messageSuggestion.isExpense,
                 categoryName = messageSuggestion.referenceMessageSender,
